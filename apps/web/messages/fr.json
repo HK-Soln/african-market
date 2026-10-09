@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "title": "African Market",
+    "description": "Find African shops, products and services near you in the UAE"
+  },
+  "home": {
+    "tagline": "Boutiques, produits et services africains près de chez vous, dans les sept émirats.",
+    "searchPlaceholder": "Rechercher egusi, beurre de karité, tailleur…",
+    "useMyLocation": "Utiliser ma position",
+    "browseByEmirate": "Parcourir par émirat",
+    "forSellers": "Inscrivez votre boutique gratuitement",
+    "whatsapp": "WhatsApp",
+    "call": "Appeler",
+    "email": "E-mail"
+  },
+  "emirates": {
+    "DXB": "Dubai",
+    "AUH": "Abu Dhabi",
+    "SHJ": "Sharjah",
+    "AJM": "Ajman",
+    "UAQ": "Umm Al Quwain",
+    "RAK": "Ras Al Khaimah",
+    "FUJ": "Fujairah"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

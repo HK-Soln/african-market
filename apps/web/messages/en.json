@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "title": "African Market",
+    "description": "Find African shops, products and services near you in the UAE"
+  },
+  "home": {
+    "tagline": "African shops, food and services near you, across all seven emirates.",
+    "searchPlaceholder": "Search egusi, shea butter, tailor, hair salon…",
+    "useMyLocation": "Use my location",
+    "browseByEmirate": "Browse by emirate",
+    "forSellers": "List your shop for free",
+    "whatsapp": "WhatsApp",
+    "call": "Call",
+    "email": "Email"
+  },
+  "emirates": {
+    "DXB": "Dubai",
+    "AUH": "Abu Dhabi",
+    "SHJ": "Sharjah",
+    "AJM": "Ajman",
+    "UAQ": "Umm Al Quwain",
+    "RAK": "Ras Al Khaimah",
+    "FUJ": "Fujairah"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

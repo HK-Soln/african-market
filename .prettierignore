@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+dist
+.next
+coverage
+docs/PLAN.md
+libs/api-client/src/schema.ts
+apps/gateway/openapi.json
+# Next.js rewrites these on every build
+apps/web/tsconfig.json
+apps/seller/tsconfig.json
+apps/admin/tsconfig.json

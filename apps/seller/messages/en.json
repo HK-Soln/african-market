@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "African Market for Sellers",
+    "description": "Manage your shop, branches, products and orders"
+  },
+  "home": {
+    "tagline": "Manage your shop, branches, catalogue and customers.",
+    "getStarted": "Get started",
+    "steps": "Create your shop · Add branches on the map · List products · Get verified"
+  },
+  "emirates": {
+    "DXB": "Dubai",
+    "AUH": "Abu Dhabi",
+    "SHJ": "Sharjah",
+    "AJM": "Ajman",
+    "UAQ": "Umm Al Quwain",
+    "RAK": "Ras Al Khaimah",
+    "FUJ": "Fujairah"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

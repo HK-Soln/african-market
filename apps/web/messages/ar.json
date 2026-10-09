@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "title": "السوق الأفريقي",
+    "description": "Find African shops, products and services near you in the UAE"
+  },
+  "home": {
+    "tagline": "متاجر ومنتجات وخدمات أفريقية بالقرب منك في الإمارات السبع.",
+    "searchPlaceholder": "ابحث عن منتجات أو متاجر أو خدمات…",
+    "useMyLocation": "استخدم موقعي",
+    "browseByEmirate": "تصفح حسب الإمارة",
+    "forSellers": "أدرج متجرك مجاناً",
+    "whatsapp": "واتساب",
+    "call": "اتصال",
+    "email": "بريد إلكتروني"
+  },
+  "emirates": {
+    "DXB": "دبي",
+    "AUH": "أبوظبي",
+    "SHJ": "الشارقة",
+    "AJM": "عجمان",
+    "UAQ": "أم القيوين",
+    "RAK": "رأس الخيمة",
+    "FUJ": "الفجيرة"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

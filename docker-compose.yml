@@ -1,0 +1,51 @@
+# Local infrastructure only. Services and frontends run on the host with `pnpm dev`.
+# Production equivalents: RDS PostgreSQL 16 + PostGIS, ElastiCache Redis, Amazon MQ (RabbitMQ), S3 + CloudFront, SES.
+name: african-market
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: am
+      POSTGRES_PASSWORD: am
+      POSTGRES_DB: african_market
+    ports: ['5432:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U am -d african_market']
+      interval: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: am
+      RABBITMQ_DEFAULT_PASS: am
+    ports: ['5672:5672', '15672:15672'] # 15672 = management UI (am / am)
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: am
+      MINIO_ROOT_PASSWORD: am-minio-secret
+    ports: ['9000:9000', '9001:9001'] # 9001 = console
+    volumes: [miniodata:/data]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ['1025:1025', '8025:8025'] # 8025 = inbox UI for OTP and notification emails
+
+volumes:
+  pgdata:
+  miniodata:

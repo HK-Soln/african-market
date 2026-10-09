@@ -1,0 +1,58 @@
+{
+  "name": "@am/gateway",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Backend-for-frontend: the only REST API the Next.js apps call. Auth, validation, rate limiting, OpenAPI, fan-out to services over TCP.",
+  "scripts": {
+    "build": "tsc -p tsconfig.app.json",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "lint": "eslint src",
+    "test": "jest --passWithNoTests",
+    "openapi": "node dist/openapi.js"
+  },
+  "nx": {
+    "tags": [
+      "app",
+      "backend",
+      "phase:0"
+    ],
+    "targets": {
+      "openapi": {
+        "dependsOn": [
+          "build"
+        ],
+        "outputs": [
+          "{projectRoot}/openapi.json"
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "@am/auth": "workspace:*",
+    "@am/contracts": "workspace:*",
+    "@am/core": "workspace:*",
+    "@nestjs/common": "^11.2.7",
+    "@nestjs/core": "^11.2.7",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/microservices": "^11.2.7",
+    "@nestjs/platform-express": "^11.2.7",
+    "@nestjs/swagger": "^11.4.7",
+    "@nestjs/throttler": "^6.7.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "cookie-parser": "^1.4.7",
+    "helmet": "^8.3.0",
+    "nestjs-pino": "^4.6.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.1"
+  }
+}

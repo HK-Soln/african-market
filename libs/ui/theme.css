@@ -1,0 +1,18 @@
+/*
+ * Shared Tailwind v4 design tokens. Each Next.js app imports this file from its
+ * globals.css and adds `@source` for libs/ui so these classes are generated.
+ * Brand colours are placeholders until the brand is designed (Phase 0 task).
+ */
+@theme {
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-500: #ea7a0c;
+  --color-brand-600: #c2620a;
+  --color-brand-700: #9a4a0b;
+  --color-ink-50: #f7f7f5;
+  --color-ink-200: #e3e1db;
+  --color-ink-500: #77736a;
+  --color-ink-700: #45423c;
+  --color-ink-900: #1c1b19;
+  --font-sans: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
+}

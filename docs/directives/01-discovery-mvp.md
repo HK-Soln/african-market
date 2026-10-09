@@ -1,0 +1,167 @@
+# Phase 1: Discovery MVP (public launch)
+
+**Outcome:** sellers register shops with branches, opening hours and service areas, list products and
+services, pass basic KYC and admin verification. Customers find verified shops and products near
+them on a map and list, filter, open SSR shop and product pages, and contact sellers by WhatsApp, call
+or email. Sellers see contact analytics. Admins verify, moderate and manage categories. No payments.
+
+**Gate to exit:** in each emirate where search is opened, there are enough verified shops that a
+first search returns results. Opening search is an admin switch per emirate (F1-13).
+
+Read `docs/PLAN.md` sections: Users and core journeys, Feature scope, Services, Data model,
+Location discovery and search, Contact, UAE specifics.
+
+---
+
+## Backend
+
+- [ ] **F1-01 Media service** (no dependency)
+      `media_object` (owner_id, purpose: shop_logo/shop_gallery/product_image/kyc_document/avatar,
+      bucket public|private, key, content_type, size_bytes, width, height, status pending/ready/rejected,
+      variants jsonb). `createUpload` returns a presigned PUT (S3 SDK v3, MinIO locally) with type and size
+      limits per purpose (images ≤ 10 MB jpeg/png/webp/heic; KYC ≤ 15 MB incl. pdf). `confirmUpload`
+      checks the object, generates webp variants with `sharp` (thumb 200, card 600, full 1600), strips EXIF,
+      sets `ready` and publishes `media.ready`. KYC documents stay in the private bucket and get only
+      short-lived presigned GETs for admins. Gateway: `POST /media/uploads`, `POST /media/uploads/:id/confirm`.
+
+- [ ] **F1-02 Shops: shop and branch model** (depends on F1-01)
+      Entities per the plan: `shop` (name, slug unique, description LocalizedText, logo_media_id, gallery
+      media ids, category_ids, origin_countries text[] ISO-3166 alpha-2, legal_name, trade_license_no,
+      license_expiry, license_media_id, kyc_status none/pending/passed/failed, verification_status
+      draft/pending/verified/rejected/suspended, contact_whatsapp, contact_phone, contact_email,
+      checkout_enabled false, cod_enabled false, stripe_account_id null), `branch` (shop_id, name,
+      emirate code, area, address_line, makani, location geography Point (GiST), service_area
+      geography MultiPolygon nullable (GiST), service_radius_m nullable, pickup, delivery,
+      delivery_fee_fils, min_order_fils, contact overrides, is_primary), `opening_hours` (branch_id,
+      weekday 0-6, opens_at, closes_at; several rows per day allowed), `special_hours` (branch_id, date,
+      closed or hours, label e.g. Eid). Validate pins with `isInUae`. Owner creating a shop gets an
+      `owner` membership (identity consumes `shop.created`, publishes `membership.changed`) and the
+      `seller` role. Patterns for create/update/get/list mine/upsert branch/delete branch/set hours.
+      Events: `shop.created`, `shop.updated`, `branch.updated`.
+
+- [ ] **F1-03 Basic KYC and verification workflow** (depends on F1-02)
+      `verification_request` (shop_id, type kyc|trade_license, submitted_by, documents media ids,
+      status pending/approved/rejected, reviewer_id, reason, decided_at). KYC = government ID (Emirates ID
+      or passport) + selfie, reviewed by an admin through a `KycProvider` interface (`ManualKycProvider`
+      now). Trade licence (number, issuing authority, expiry, document) is optional in Phase 1 and becomes
+      required for checkout in Phase 3. Shop goes `pending` on submission and `verified` when KYC passes
+      and an admin approves the listing. Only verified, non-suspended shops are public. Publish
+      `shop.verified` on every status change. Audit-log every decision. Notify the seller by email (SMS
+      optional) through a temporary direct call to the email adapter until Phase 2 notifications.
+
+- [ ] **F1-04 Catalogue** (depends on F1-02)
+      `category` tree (parent_id, slug, name LocalizedText, kind product/service, is_restricted,
+      requires_declaration, sort). Seed via migration: Groceries & Food (Grains & flours, Spices & soup
+      ingredients, Snacks, Drinks, Frozen), Beauty & Hair (Hair & wigs, Skin care, Cosmetics), Fashion
+      (Ankara & fabrics, Ready-to-wear, Tailoring), Home & Culture (Art & crafts, Books & music),
+      Services (Hair salons & braiding, Tailoring, Events & catering, Money transfer agents (listing only),
+      Cargo & shipping, Restaurants). Names in en, ar, fr. `product` (shop_id, category_id, type
+      product/service, title LocalizedText, description LocalizedText, origin_country, image media ids,
+      status draft/active/hidden/rejected, food_declaration jsonb for food categories), `variant`
+      (product_id, sku, options jsonb, price_fils, compare_at_fils), `branch_listing` (branch_id,
+      variant_id, in_stock, quantity nullable, price_override_fils). Food and restricted categories go to
+      admin review before `active`. Events `product.upserted`, `product.removed`. Catalogue hides products
+      of shops that are not verified (consume `shop.verified`).
+
+- [ ] **F1-05 Discovery read model** (depends on F1-02, F1-04)
+      Tables `search_branch` (branch_id pk, shop_id, shop_slug, shop_name, logo url, category_ids,
+      origin_countries, emirate, area, location, service_area, service_radius_m, pickup, delivery,
+      verified, rating_avg, rating_count, completeness_score, hours jsonb (weekly + special, for open-now),
+      searchable tsvector, boost fields reserved for Phase 2, updated_from_event_at) and `search_product`
+      (product_id, shop_id, branch_ids, title LocalizedText, category_id, origin_country, min_price_fils,
+      image url, searchable tsvector). Built only from events (`shop.*`, `branch.updated`,
+      `product.*`), fetching full details from the owning service over TCP when the payload is thin.
+      Idempotent and order-safe. Admin-only `discovery.rebuild` pattern that replays from the owners.
+      Create an `unaccent`-based text search configuration (`am_simple`) in the migration and GIN indexes
+      on `searchable` plus `pg_trgm` on names.
+
+- [ ] **F1-06 Nearby search** (depends on F1-05)
+      `DiscoveryPatterns.searchNearby`: input point (lat,lng), mode `delivery` (ST_Covers service_area or
+      distance ≤ service_radius_m) or `pickup` (ST_DWithin location, travel radius default 10 km),
+      optional query text, filters (category incl. descendants, origin country, open now in Asia/Dubai,
+      delivers to me, emirate), `limit` ≤ 50, `cursor`. Ranking score = weighted distance decay, open now,
+      verified, rating (Bayesian), completeness, text rank when `q` present; deterministic tie-break on
+      branch id; cursor encodes (score, id). Returns branches with distance and, when `q` matches
+      products, the top matching products per branch. `searchMap`: bounding box + zoom; returns individual
+      pins at high zoom, server-side clusters (ST_SnapToGrid or ST_ClusterDBSCAN) at low zoom. Integration
+      tests on PostGIS with fixture shops around Deira, Al Nahda, International City, Sharjah and Ajman.
+      p95 under 150 ms for 10k branches locally (add a seed script).
+
+- [ ] **F1-07 Contact events** (depends on F1-02)
+      `contact_event` (shop_id, branch_id, product_id nullable, channel whatsapp/call/email, user_id
+      nullable, anonymous session id, source page, created_at), partition-ready (monthly). Pattern
+      `ShopsPatterns.recordContact`; gateway `POST /contact-events` is public, rate limited and
+      de-duplicated per session/shop/channel within 10 minutes. Seller analytics pattern: counts by day,
+      channel and product for the last 7/30/90 days.
+
+- [ ] **F1-08 Gateway public and seller APIs** (depends on F1-02 to F1-07)
+      Public: `GET /search/nearby`, `GET /search/map`, `GET /shops/:slug`, `GET /shops/:slug/products`,
+      `GET /products/:id`, `GET /categories`, `GET /emirates` (with search-open flag). Seller (auth,
+      `@ShopRoles`): shops CRUD, branches CRUD + hours, products CRUD, uploads, submit for verification,
+      analytics. Admin (`@Roles('admin')`): verification queue + decisions, product moderation, category
+      CRUD, emirate search switches, shop suspend. Regenerate the api-client.
+
+- [ ] **F1-09 Social sign-in** (depends on Phase 0)
+      Google and Apple sign-in on web and seller: verify ID tokens server-side in identity (Google
+      certs, Apple JWKS), link to existing accounts by verified email, `credential` rows of type
+      google/apple. Behind env flags so local dev works without client ids.
+
+## Web app (customer PWA)
+
+- [ ] **F1-10 Location and map** (depends on F1-08)
+      `MapProvider` adapter in `apps/web/src/lib/maps` with a Google Maps JS implementation (`@vis.gl/react-google-maps`)
+      and a no-key fallback (static list only) when `NEXT_PUBLIC_GOOGLE_MAPS_KEY` is empty. Location: ask
+      for GPS permission only on user action; fall back to a chosen emirate + area (Places autocomplete
+      restricted to AE), then IP-based city. Remember the chosen location in a cookie so SSR can use it.
+
+- [ ] **F1-11 Search experience** (depends on F1-10)
+      Home with search bar, "near me" results, emirate and category chips. Results page with list/map
+      toggle synced to URL params, filters (category, origin country flag picker, open now, delivers to
+      me, pickup/delivery), infinite scroll by cursor, empty states that suggest widening the radius.
+      Every result card: logo, name, verified badge, distance, open-now, category, origin flags, and
+      WhatsApp/Call buttons that log contact events.
+
+- [ ] **F1-12 Shop and product pages** (depends on F1-08)
+      SSR `/[locale]/s/[slug]` and `/[locale]/p/[id]-[slug]`: gallery, description, branches with map,
+      hours (today highlighted, special hours), service area summary, products grid by category, contact
+      buttons per branch, report-listing link. Show the seller's legal name and licence number when
+      provided (Federal Decree-Law 14 of 2023). Open Graph image and description, JSON-LD
+      (LocalBusiness/Product), `hreflang`, canonical URLs, sitemap generated from discovery.
+      WhatsApp prefilled message names the product and links back to the page.
+
+## Seller and admin apps
+
+- [ ] **F1-13 Seller onboarding and dashboard** (depends on F1-08)
+      Guided onboarding: shop details → first branch with map pin (drag to adjust), address, Makani
+      optional, hours editor (copy to all days, split shifts, special hours), service area as radius slider
+      or drawn polygon → contact numbers (validate WhatsApp numbers) → logo/gallery uploads → KYC upload →
+      submit. Dashboard: verification status with reasons, branches, catalogue (product form with
+      variants, per-branch stock/price, images, food declaration), contact analytics charts, settings.
+      Fully usable on a phone. Arabic RTL checked.
+
+- [ ] **F1-14 Admin console** (depends on F1-08)
+      Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).
+      Verification queue with document viewer (private presigned URLs) and approve/reject with reason,
+      product moderation queue for food/restricted categories, reports queue, category tree editor
+      (en/ar/fr names), emirate search switches with live verified-shop counts, shop search and suspend,
+      audit log viewer.
+
+- [ ] **F1-15 Report listing** (depends on F1-12)
+      Public "report this shop/product" (reason enum + text, optional sign-in), stored in the owning
+      service, surfaced in the admin reports queue.
+
+## Launch readiness
+
+- [ ] **F1-16 End-to-end journeys** (depends on F1-11 to F1-14)
+      Playwright in en and ar: (1) find and contact: set location, search, open shop, tap WhatsApp
+      (assert link and contact event); (2) list a shop: seller onboarding to submission, admin approval,
+      shop appears in search.
+
+- [ ] **F1-17 Performance, SEO and accessibility pass**
+      Lighthouse ≥ 90 performance/accessibility/SEO on home, results and shop pages on mobile; images via
+      `next/image` from the CDN; search response cached in Redis for 30 s per (rounded point, filters).
+
+- [ ] **F1-18 Production environment and launch**
+      Terraform `production` environment, backups and point-in-time recovery verified by a restore test,
+      alarms (5xx rate, p95 latency, queue depth, DLQ size, DB CPU), status page. Open search per emirate
+      from the admin console as verified shops reach the threshold. **Closes the Phase 1 gate.**

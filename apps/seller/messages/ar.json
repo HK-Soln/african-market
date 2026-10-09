@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "السوق الأفريقي للبائعين",
+    "description": "Manage your shop, branches, products and orders"
+  },
+  "home": {
+    "tagline": "أدر متجرك وفروعك ومنتجاتك وعملاءك.",
+    "getStarted": "ابدأ الآن",
+    "steps": "أنشئ متجرك · أضف الفروع على الخريطة · أدرج المنتجات · وثّق متجرك"
+  },
+  "emirates": {
+    "DXB": "دبي",
+    "AUH": "أبوظبي",
+    "SHJ": "الشارقة",
+    "AJM": "عجمان",
+    "UAQ": "أم القيوين",
+    "RAK": "رأس الخيمة",
+    "FUJ": "الفجيرة"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

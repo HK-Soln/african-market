@@ -1,0 +1,10 @@
+packages:
+  - 'apps/*'
+  - 'libs/*'
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@swc/core'
+  - 'argon2'
+  - 'nx'
+  - 'sharp'
+  - 'unrs-resolver'

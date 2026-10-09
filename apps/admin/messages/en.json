@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "title": "African Market Admin",
+    "description": "Verification, moderation and categories"
+  },
+  "home": {
+    "tagline": "Verification queue, moderation, categories and audit log.",
+    "queue": "Verification queue"
+  },
+  "emirates": {
+    "DXB": "Dubai",
+    "AUH": "Abu Dhabi",
+    "SHJ": "Sharjah",
+    "AJM": "Ajman",
+    "UAQ": "Umm Al Quwain",
+    "RAK": "Ras Al Khaimah",
+    "FUJ": "Fujairah"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

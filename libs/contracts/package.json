@@ -1,0 +1,23 @@
+{
+  "name": "@am/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Message patterns, event names and payloads, service registry, shared DTO types",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit",
+    "lint": "eslint src",
+    "test": "jest --passWithNoTests"
+  },
+  "nx": {
+    "tags": [
+      "lib",
+      "shared"
+    ]
+  }
+}

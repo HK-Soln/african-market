@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "title": "إدارة السوق الأفريقي",
+    "description": "Verification, moderation and categories"
+  },
+  "home": {
+    "tagline": "قائمة التحقق والإشراف والفئات وسجل التدقيق.",
+    "queue": "قائمة التحقق"
+  },
+  "emirates": {
+    "DXB": "دبي",
+    "AUH": "أبوظبي",
+    "SHJ": "الشارقة",
+    "AJM": "عجمان",
+    "UAQ": "أم القيوين",
+    "RAK": "رأس الخيمة",
+    "FUJ": "الفجيرة"
+  },
+  "language": {
+    "en": "English",
+    "ar": "العربية",
+    "fr": "Français"
+  }
+}

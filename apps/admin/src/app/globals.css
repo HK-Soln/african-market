@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+@import '@am/ui/theme.css';
+@source '../../../../libs/ui/src';
+
+/* Use logical utilities (ms-, me-, ps-, pe-, start-, end-) so layouts mirror in Arabic. */
+body {
+  @apply bg-ink-50 text-ink-900 antialiased;
+}

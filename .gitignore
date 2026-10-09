@@ -1,0 +1,16 @@
+node_modules
+dist
+.next
+out
+coverage
+.nx
+*.tsbuildinfo
+.env
+.env.*.local
+!.env.example
+.DS_Store
+*.log
+.turbo
+next-env.d.ts
+infra/terraform/**/.terraform
+infra/terraform/**/*.tfstate*

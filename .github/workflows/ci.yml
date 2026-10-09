@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: am
+          POSTGRES_PASSWORD: am
+          POSTGRES_DB: african_market
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U am -d african_market"
+          --health-interval 5s --health-retries 20
+    env:
+      DATABASE_URL: postgres://am:am@localhost:5432/african_market
+      NX_NO_CLOUD: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: nrwl/nx-set-shas@v4
+      - run: pnpm format:check
+      - run: pnpm nx affected -t lint typecheck test build --parallel=3
+      - name: Migrations apply cleanly on PostGIS
+        run: pnpm migration:run

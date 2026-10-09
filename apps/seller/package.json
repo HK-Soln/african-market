@@ -1,0 +1,51 @@
+{
+  "name": "@am/seller",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Manage your shop, branches, products and orders",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"no unit tests yet\""
+  },
+  "nx": {
+    "tags": [
+      "app",
+      "frontend",
+      "phase:1"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/.next"
+        ]
+      },
+      "typecheck": {
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "@am/api-client": "workspace:*",
+    "@am/contracts": "workspace:*",
+    "@am/geo": "workspace:*",
+    "@am/i18n": "workspace:*",
+    "@am/ui": "workspace:*",
+    "next": "15.5.27",
+    "next-intl": "^4.14.9",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

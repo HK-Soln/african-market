@@ -2,8 +2,8 @@ name: Security
 
 # Secret scanning, dependency audit and static analysis. Runs on every pull request, on pushes
 # to the long-lived branches, and weekly (to catch newly disclosed CVEs in unchanged code).
-# All three jobs are REQUIRED status checks in the branch rulesets (infra/github/rulesets). Container image scanning (Trivy) joins them in F0-12/F0-14,
-# once the Dockerfiles exist.
+# All three jobs are REQUIRED status checks in the branch rulesets (infra/github/rulesets).
+# Container image scanning (Trivy) joins them in F0-12/F0-14, once the Dockerfiles exist.
 
 on:
   pull_request:
@@ -54,11 +54,11 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
+      # No install and no cache: the audit reads pnpm-lock.yaml only.
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
 
       # Visibility only: everything from moderate up, dev dependencies included.
       - name: Audit (report)

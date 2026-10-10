@@ -1,4 +1,4 @@
-import { DataSourceOptions } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { OutboxMessage, ProcessedEvent } from './outbox.entity';
 
@@ -30,4 +30,34 @@ export function buildDataSourceOptions(config: ServiceDataSourceConfig): DataSou
     namingStrategy: new SnakeNamingStrategy(),
     logging: process.env.TYPEORM_LOGGING === 'true' ? ['query', 'error'] : ['error'],
   };
+}
+
+/**
+ * DataSource for the TypeORM CLI. TypeORM creates its `<schema>.migrations` bookkeeping table
+ * before it runs the first migration, so on an empty database (CI, a new RDS instance) the schema
+ * must already exist or `migration:run` fails with `schema "<name>" does not exist`.
+ */
+class CliDataSource extends DataSource {
+  override async initialize(): Promise<this> {
+    const { schema, url } = this.options as { schema?: string; url?: string };
+    if (schema && url) await ensureSchema(url, schema);
+    return super.initialize();
+  }
+}
+
+async function ensureSchema(url: string, schema: string): Promise<void> {
+  if (!/^[a-z_][a-z0-9_]*$/.test(schema)) throw new Error(`Invalid schema name: ${schema}`);
+  // A throwaway connection without a schema, so nothing is looked up in it yet.
+  const bootstrap = new DataSource({ type: 'postgres', url });
+  await bootstrap.initialize();
+  try {
+    await bootstrap.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+  } finally {
+    await bootstrap.destroy();
+  }
+}
+
+/** Default export of each service's `src/data-source.ts`, used by `migration:*` targets. */
+export function createCliDataSource(config: ServiceDataSourceConfig): DataSource {
+  return new CliDataSource(buildDataSourceOptions(config));
 }

@@ -1,6 +1,5 @@
 import 'reflect-metadata';
-import { DataSource } from 'typeorm';
-import { buildDataSourceOptions, ServiceDataSourceConfig } from '@am/database';
+import { createCliDataSource, ServiceDataSourceConfig } from '@am/database';
 import { SERVICES } from '@am/contracts';
 import { entities } from './entities';
 
@@ -11,4 +10,4 @@ export const dataSourceConfig: ServiceDataSourceConfig = {
   migrations: [__dirname + '/migrations/*.js'],
 };
 
-export default new DataSource(buildDataSourceOptions(dataSourceConfig));
+export default createCliDataSource(dataSourceConfig);

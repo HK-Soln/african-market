@@ -1,0 +1,22 @@
+title = "African Market gitleaks config"
+
+# Start from gitleaks' built-in rules, then narrow with the allowlist below.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Build output, generated files and local-development placeholders; not real secrets"
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)dist/''',
+  '''(^|/)\.next/''',
+  '''(^|/)coverage/''',
+  '''\.tsbuildinfo$''',
+  '''pnpm-lock\.yaml$''',
+]
+# Documented local-only values from .env.example and docker-compose.yml. Real secrets live in
+# AWS Secrets Manager and GitHub environment secrets, never in the repository.
+regexes = [
+  '''dev-only-access-secret-change-me-0123456789''',
+  '''am-minio-secret''',
+]

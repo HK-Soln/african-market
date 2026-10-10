@@ -1,5 +1,6 @@
--- Runs once when the local volume is created. Each service's first migration also
--- creates its schema and extensions IF NOT EXISTS, so this file is a convenience only.
+-- Runs once when the local volume is created. A convenience only: `migration:run` creates each
+-- service's schema itself and the first migration creates its extensions, which is what CI and
+-- RDS rely on (neither applies this file).
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;

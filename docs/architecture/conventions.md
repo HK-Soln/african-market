@@ -96,6 +96,10 @@ Example: "seller creates a branch".
 
 ## 8. Git and CI
 
-- Branch per task, conventional commits, PR per task or small group of tasks.
-- CI (`.github/workflows/ci.yml`) runs `nx affected -t lint typecheck test build` with Postgres+PostGIS
-  as a service. Phase 0 adds e2e, image builds and deploy to staging.
+- Branch per task cut from `dev`, conventional commits, PR per task or small group of tasks.
+- Flow: feature branch → `dev` (squash) → `stage` (merge commit) → `main` (merge commit, production).
+  No direct pushes to the three long-lived branches. Details, required checks and the branch rules
+  are in [`branching-and-cicd.md`](branching-and-cicd.md).
+- CI (`.github/workflows/`) runs format, `nx affected -t lint typecheck test build`, all migrations
+  against an empty PostGIS database, a secret scan and a dependency audit on every pull request.
+  Phase 0 adds e2e, image builds and scanning, and deploys (`stage` → staging, `main` → production).

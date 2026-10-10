@@ -62,7 +62,7 @@ jobs:
       # Pull requests compare against their target branch (a feature PR against dev, a promotion
       # PR against stage or main). Pushes compare against the last green run on that branch.
       - name: Derive affected base and head
-        uses: nrwl/nx-set-shas@v4
+        uses: nrwl/nx-set-shas@v5
         with:
           main-branch-name: ${{ github.base_ref || github.ref_name }}
 

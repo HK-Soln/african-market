@@ -1,0 +1,74 @@
+name: Branch policy
+
+# Enforces the promotion flow that GitHub branch rules cannot express on their own:
+#
+#   feature branch  ->  dev  ->  stage  ->  main (production)
+#
+#   - PRs into `main`  may only come from `stage`
+#   - PRs into `stage` may only come from `dev`
+#   - PRs into `dev`   must come from a typed branch (feat/…, fix/…, chore/…, …) and carry a
+#     conventional-commit title, because dev is squash-merged and the title becomes the commit
+#
+# Both jobs are REQUIRED status checks in the branch rulesets (infra/github/rulesets).
+
+on:
+  pull_request:
+    branches: [dev, stage, main]
+    types: [opened, reopened, synchronize, edited]
+
+permissions: {}
+
+jobs:
+  source-branch:
+    name: PR source branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate source branch
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          echo "PR: $HEAD -> $BASE"
+          case "$BASE" in
+            main)
+              if [ "$HEAD" != "stage" ]; then
+                echo "::error::PRs into 'main' must come from 'stage' (got '$HEAD'). Promote through stage."
+                exit 1
+              fi
+              ;;
+            stage)
+              if [ "$HEAD" != "dev" ]; then
+                echo "::error::PRs into 'stage' must come from 'dev' (got '$HEAD'). Merge into dev first."
+                exit 1
+              fi
+              ;;
+            dev)
+              if ! printf '%s' "$HEAD" | grep -Eq '^((feat|fix|chore|docs|refactor|perf|test|ci|build|hotfix|revert)/[a-z0-9][a-z0-9._-]*|dependabot/.+)$'; then
+                echo "::error::Branch '$HEAD' is not a valid feature branch. Use <type>/<short-name>, e.g. feat/branch-service-areas, with type one of feat, fix, chore, docs, refactor, perf, test, ci, build, hotfix, revert."
+                exit 1
+              fi
+              ;;
+          esac
+          echo "Source branch OK."
+
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate title
+        env:
+          BASE: ${{ github.base_ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Promotion PRs (dev -> stage, stage -> main) are merge commits; their title is free-form.
+          if [ "$BASE" != "dev" ]; then
+            echo "Promotion PR, title not checked."
+            exit 0
+          fi
+          if ! printf '%s' "$TITLE" | grep -Eq '^(feat|fix|chore|docs|refactor|perf|test|ci|build|revert)(\([a-z0-9][a-z0-9-]*\))?!?: .+'; then
+            echo "::error::PR title must be a conventional commit, e.g. 'feat(shops): branch service areas'. It becomes the squash commit on dev."
+            exit 1
+          fi
+          echo "Title OK."

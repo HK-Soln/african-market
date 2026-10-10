@@ -28,6 +28,8 @@ run the checks, tick it in the directive and commit.
 ```
 
 Larger chunks work too ("implement F1-01 to F1-04"), but one task per commit keeps reviews easy.
+Each task is committed on a feature branch and reaches `dev` through a pull request; see
+[`../architecture/branching-and-cicd.md`](../architecture/branching-and-cicd.md).
 
 ## Task format
 

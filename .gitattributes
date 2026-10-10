@@ -1,0 +1,11 @@
+# LF everywhere, on every OS. Prettier (`pnpm format:check`, a required CI step) fails on CRLF,
+# and Windows checkouts with core.autocrlf=true would otherwise rewrite files locally.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
+*.pdf binary

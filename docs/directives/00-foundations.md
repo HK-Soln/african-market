@@ -114,8 +114,11 @@ delivery is ignored); F0-10 turns that into automated tests.
 - [ ] **F0-14 CI/CD** (depends on F0-11, F0-12)
       Extend `.github/workflows/ci.yml`: Nx affected with remote cache optional, Playwright e2e against the
       compose stack, container image builds for affected apps, push to ECR and deploy to staging on
-      `main` (OIDC role, no long-lived AWS keys), run migrations as a one-off ECS task before the new
-      task definitions roll out. Dependency audit and container scanning (Trivy) as non-blocking at first.
+      `stage` and to production on `main` behind a manual approval (OIDC role, no long-lived AWS
+      keys), run migrations as a one-off ECS task before the new task definitions roll out. Container
+      scanning (Trivy) as non-blocking at first. Add the `staging` required deployment to the `main`
+      ruleset. The branch flow, required checks, secret scan and dependency audit already exist
+      (T-16, `docs/architecture/branching-and-cicd.md`).
 
 - [ ] **F0-15 Observability** (depends on F0-01)
       OpenTelemetry SDK in `libs/core` (HTTP, Nest, pg, amqplib instrumentation), trace id propagated

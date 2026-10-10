@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: am
       POSTGRES_PASSWORD: am
       POSTGRES_DB: african_market
-    ports: ['5432:5432']
+    ports: ['${POSTGRES_HOST_PORT:-5432}:5432'] # override in .env if 5432 is taken on the host
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infra/docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
@@ -20,7 +20,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports: ['6379:6379']
+    ports: ['${REDIS_HOST_PORT:-6379}:6379'] # override in .env if 6379 is taken on the host
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -34,10 +34,11 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio:latest
+    # minio/minio was removed from Docker Hub; Chainguard publishes the same server binary.
+    image: cgr.dev/chainguard/minio:latest
     command: server /data --console-address ':9001'
     environment:
-      MINIO_ROOT_USER: am
+      MINIO_ROOT_USER: am-minio # MinIO requires at least 3 characters
       MINIO_ROOT_PASSWORD: am-minio-secret
     ports: ['9000:9000', '9001:9001'] # 9001 = console
     volumes: [miniodata:/data]

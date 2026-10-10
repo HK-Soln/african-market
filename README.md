@@ -38,7 +38,7 @@ Then open:
 | http://localhost:4000/api/v1/health/services | Health of every service in the current phase |
 | http://localhost:15672                       | RabbitMQ UI (am / am)                        |
 | http://localhost:8025                        | Mailpit (emails, OTPs)                       |
-| http://localhost:9001                        | MinIO console (am / am-minio-secret)         |
+| http://localhost:9001                        | MinIO console (am-minio / am-minio-secret)   |
 
 ## Layout
 

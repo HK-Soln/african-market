@@ -16,11 +16,26 @@ delivery is ignored); F0-10 turns that into automated tests.
 
 ---
 
-- [ ] **F0-01 Verify the scaffold locally**
+- [x] **F0-01 Verify the scaffold locally**
       `pnpm install`, `pnpm infra:up`, `cp .env.example .env`, `pnpm build`, `pnpm migration:run`,
       `pnpm dev`. Confirm `GET http://localhost:4000/api/v1/health/services` reports identity `ok` with
       postgres and rabbitmq `up`, and web/seller/admin render at `/en` and `/ar` (Arabic is right-to-left).
       Fix anything that does not work on a fresh clone and note it here.
+
+  > Note: verified 2026-10-10 on Windows 11 with Node 24 (the pinned major is 22; nothing failed
+  > because of it). Fixed for a fresh clone: (1) `minio/minio` no longer exists on Docker Hub, so
+  > compose now uses `cgr.dev/chainguard/minio`; (2) MinIO rejects a root user shorter than 3
+  > characters, so `am` became `am-minio` (compose, `.env.example`, root README); (3) Postgres and
+  > Redis host ports are overridable with `POSTGRES_HOST_PORT` / `REDIS_HOST_PORT` for machines where
+  > 5432 / 6379 are taken; (4) `NODE_ENV` removed from `.env.example`, because Nx loads `.env` for
+  > every task and it forced a non-production `NODE_ENV` onto `next build`.
+  > Note: machine-specific, not fixed in the repo: on Windows, `pnpm install` fails with `EPERM`
+  > renames while a VS Code window is open on the repo (its extension host holds every `node_modules`
+  > folder open), so install from a plain terminal with that window closed. `@swc/core` (pulled in by
+  > next-intl) refuses its default cache when other local accounts can write to the user profile; set
+  > `SWC_NATIVE_BINDING_CACHE` in `.env` to a folder only the current user can write to.
+  > Note: the gateway logs one harmless `Unsupported route path: "/api/*"` warning at boot; it comes
+  > from a dependency, not from our routes, and Nest converts it automatically.
 
 - [ ] **F0-02 Identity data model** (depends on F0-01)
       Entities in `apps/identity`: `user` (phone E.164 unique nullable, email citext unique nullable,

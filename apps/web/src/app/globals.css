@@ -1,8 +1,10 @@
 @import 'tailwindcss';
 @import '@am/ui/theme.css';
+@import '@am/ui/components.css';
 @source '../../../../libs/ui/src';
 
-/* Use logical utilities (ms-, me-, ps-, pe-, start-, end-) so layouts mirror in Arabic. */
-body {
-  @apply bg-ink-50 text-ink-900 antialiased;
-}
+/*
+ * Colours, type and component styles come from the design system (@am/ui). Use its tokens as
+ * Tailwind utilities (bg-surface, text-ink-muted, border-line) and logical spacing (ms-, me-,
+ * ps-, pe-, start-, end-) so layouts mirror in Arabic.
+ */

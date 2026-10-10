@@ -53,7 +53,7 @@ libs/
   auth/        JWT claims, @Public/@Roles/@ShopRoles/@CurrentUser, JwtAuthGuard, RolesGuard, canAccessBranch()
   geo/         emirates, LatLng/GeoJSON helpers, PostGIS SQL fragments (withinMeters, coversPoint, distanceMeters)
   i18n/        LOCALES, textDirection(), LocalizedText + pickLocalized(), formatAed(), UAE timezone
-  ui/          shared React components + Tailwind theme tokens (theme.css)
+  ui/          the design system: tokens (theme.css), component styles (components.css), fonts, logos, React components
   api-client/  openapi-fetch client; src/schema.ts is GENERATED from apps/gateway/openapi.json
 infra/docker/  local Postgres init SQL         infra/terraform/  AWS (Phase 0 task)
 docs/          PLAN, DECISIONS, directives, architecture conventions
@@ -110,6 +110,9 @@ Mailpit 8025. Docker credentials are `am` / `am`.
 - **Translated content:** `jsonb` `LocalizedText` (`{ en, ar, fr }`); read with `pickLocalized`.
   UI strings live in `apps/*/messages/{en,ar,fr}.json`; every new key goes into all three files
   (fr may be English text until Phase 2, marked in the PR).
+- **UI:** build screens from `@am/ui` and its tokens (`bg-surface`, `text-ink-muted`, `bg-clay`); the
+  Claude Design system is the source of truth (`libs/ui/README.md`, T-17). Tailwind's default colours
+  are switched off. Check new components at `/en/dev/ui` and `/ar/dev/ui`.
 - **RTL:** use logical Tailwind utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `text-start`).
   Never `ml-`/`mr-`/`left-`/`right-` for layout. Check every screen in `/ar`.
 - **Phones:** E.164, validated with `libphonenumber-js`, default region AE. **Time:** store UTC

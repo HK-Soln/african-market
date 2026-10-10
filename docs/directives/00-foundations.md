@@ -101,13 +101,25 @@ delivery is ignored); F0-10 turns that into automated tests.
       Named throttles on OTP and login routes. DTOs with class-validator and Swagger decorators.
       Regenerate `@am/api-client`. Integration test of the full OTP flow through the gateway.
 
-- [ ] **F0-07 Design system** (no dependency)
+- [x] **F0-07 Design system** (no dependency)
       Replace placeholder brand tokens in `libs/ui/theme.css` (ask the human for brand colours and logo;
       until then keep the placeholders). Load Inter and Noto Sans Arabic with `next/font` in all three
       apps and switch font by direction. Components in `libs/ui`: Button (exists), Input, Select,
       PhoneInput (country picker defaulting to +971), OtpInput, Card, Badge (verified, sponsored, open now),
       Sheet/Modal, Tabs, Toast, EmptyState, Skeleton. All RTL-safe with logical properties. A simple
       `/[locale]/dev/ui` page in `apps/web` (not linked, `noindex`) showing every component in en and ar.
+
+  > Note: built from the owner's Claude Design system instead of placeholders (T-17). Fonts are
+  > Plus Jakarta Sans and IBM Plex Sans Arabic, as the design specifies, not Inter and Noto.
+  > Note: ported now: Logo, Icon, Button, LinkButton, IconButton, Input, Select, PhoneInput,
+  > OtpInput, Checkbox, Radio, Toggle, Tabs, Chip, Badge, OriginBadge, Price, Card, Skeleton,
+  > Stepper, Toast, EmptyState, BottomSheet, Modal, LanguageSwitcher. The design's shop, product,
+  > map, chat, table and chart components are styled already and get their React ports in the
+  > phase that first uses them.
+  > Note: unlike the design bundle, components take every label as a prop (no English defaults),
+  > PhoneInput and OtpInput can be controlled, and dialogs trap focus and close on Escape.
+  > Note: the country picker sheet behind PhoneInput, and flag images in place of emoji flags
+  > (which show as letters on Windows), are left for F0-08 and Phase 1.
 
 - [ ] **F0-08 Auth screens in web and seller** (depends on F0-06, F0-07)
       Sign up / sign in with phone OTP (primary) and email (secondary), consent checkboxes (terms and

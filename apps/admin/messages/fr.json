@@ -19,6 +19,7 @@
   "language": {
     "en": "English",
     "ar": "العربية",
-    "fr": "Français"
+    "fr": "Français",
+    "label": "Langue"
   }
 }

@@ -49,7 +49,7 @@ export function Tabs({
     const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
     const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
     const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
-    let next = index;
+    let next: number;
     if (event.key === forward) next = (index + 1) % items.length;
     else if (event.key === backward) next = (index - 1 + items.length) % items.length;
     else if (event.key === 'Home') next = 0;

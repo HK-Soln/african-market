@@ -63,6 +63,7 @@ export const IdentityErrors = {
   otpResendTooSoon: 'OTP_RESEND_TOO_SOON',
   otpRateLimited: 'OTP_RATE_LIMITED',
   otpSendFailed: 'OTP_SEND_FAILED',
+  /** `details.attemptsLeft` says how many more guesses this code allows. */
   otpInvalid: 'OTP_INVALID',
   otpExpired: 'OTP_EXPIRED',
   otpTooManyAttempts: 'OTP_TOO_MANY_ATTEMPTS',

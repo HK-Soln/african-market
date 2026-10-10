@@ -20,7 +20,9 @@ import { otpMessage } from './otp-message';
 import { OtpRateLimiter } from './otp-rate-limiter';
 import { OTP_MAX_ATTEMPTS, OTP_RESEND_COOLDOWN_SECONDS, OTP_TTL_SECONDS } from './otp.constants';
 
-type VerifyOutcome = { user: User; isNewUser: boolean } | { error: IdentityErrorCode };
+type VerifyOutcome =
+  | { user: User; isNewUser: boolean }
+  | { error: IdentityErrorCode; details?: Record<string, unknown> };
 
 const ERROR_STATUS: Partial<Record<IdentityErrorCode, number>> = {
   [IdentityErrors.otpTooManyAttempts]: 429,
@@ -118,7 +120,10 @@ export class OtpService {
         return { error: IdentityErrors.otpTooManyAttempts };
       if (!otpCodeMatches(this.hmacSecret, challenge.id, input.code, challenge.codeHash)) {
         await manager.increment(OtpChallenge, { id: challenge.id }, 'attempts', 1);
-        return { error: IdentityErrors.otpInvalid };
+        return {
+          error: IdentityErrors.otpInvalid,
+          details: { attemptsLeft: OTP_MAX_ATTEMPTS - challenge.attempts - 1 },
+        };
       }
 
       let user = await manager.findOneBy(User, { phone });
@@ -158,7 +163,7 @@ export class OtpService {
       return { user, isNewUser };
     });
 
-    if ('error' in outcome) throw this.error(outcome.error);
+    if ('error' in outcome) throw this.error(outcome.error, outcome.details);
     return { user: toUserDto(outcome.user), isNewUser: outcome.isNewUser };
   }
 
@@ -169,11 +174,12 @@ export class OtpService {
     return phone;
   }
 
-  private error(code: IdentityErrorCode): AppRpcException {
+  private error(code: IdentityErrorCode, details?: Record<string, unknown>): AppRpcException {
     return new AppRpcException({
       status: ERROR_STATUS[code] ?? 400,
       code,
       message: ERROR_MESSAGE[code] ?? 'Request failed',
+      details,
     });
   }
 }

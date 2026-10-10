@@ -278,9 +278,9 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       const right = sms.lastCodeFor(phone);
       const wrong = right === '000000' ? '000001' : '000000';
 
-      expect(await errorCode(otp.verifyOtp({ phone, code: wrong, termsAccepted: true }))).toBe(
-        IdentityErrors.otpInvalid,
-      );
+      const error = await errorOf(otp.verifyOtp({ phone, code: wrong, termsAccepted: true }));
+      expect(error.code).toBe(IdentityErrors.otpInvalid);
+      expect(error.details).toEqual({ attemptsLeft: 4 });
       const challenge = await db.getRepository(OtpChallenge).findOneByOrFail({ target: phone });
       expect(challenge.attempts).toBe(1);
       expect(challenge.consumedAt).toBeNull();

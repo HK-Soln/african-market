@@ -60,7 +60,7 @@ delivery is ignored); F0-10 turns that into automated tests.
   > `pnpm infra:up` locally and the CI verify job has a PostGIS service. F0-11 swaps this for the
   > shared Testcontainers helper. It also fails if the entities and migrations ever drift apart.
 
-- [ ] **F0-03 OTP sign-up and sign-in by phone** (depends on F0-02)
+- [x] **F0-03 OTP sign-up and sign-in by phone** (depends on F0-02)
       Patterns `IdentityPatterns.requestOtp` / `verifyOtp`. Normalise phones with `libphonenumber-js`
       (default region AE; accept international numbers too, since many users keep home-country numbers
       for WhatsApp). 6-digit code, argon2 or HMAC-SHA256 hash, 5-minute expiry, 5 attempts, resend
@@ -68,6 +68,18 @@ delivery is ignored); F0-10 turns that into automated tests.
       with `ConsoleSmsProvider` (logs to stdout, dev/test) and a stub for a UAE-licensed aggregator /
       Twilio with a registered sender ID. Verifying a new phone creates the user and publishes
       `user.registered` through the outbox. Never log the code.
+
+  > Note: codes are hashed with HMAC-SHA256 keyed by `OTP_HMAC_SECRET` and bound to the challenge
+  > id. The service refuses to start in staging or production with the development secret or with
+  > the console SMS provider.
+  > Note: creating an account requires `termsAccepted: true` on `verifyOtp` (UAE PDPL consent); the
+  > check happens before the code is consumed, so the client can retry. `requestOtp` answers the
+  > same way whether or not the phone is registered.
+  > Note: the Twilio / UAE aggregator sender is a stub that returns `SMS_PROVIDER_NOT_CONFIGURED`
+  > until a sender ID is registered (a non-engineering task listed at the end of this file).
+  > Note: `DatabaseModule` is now global so feature modules can inject `OutboxService`; a new
+  > `app-module.spec.ts` builds the real module graph so wiring mistakes fail in CI. The CI verify
+  > job gained a Redis service for the rate-limit tests. The HTTP routes are F0-06.
 
 - [ ] **F0-04 Email and password** (depends on F0-02)
       Register with email + password (argon2id, min 10 chars, breached-password check optional),

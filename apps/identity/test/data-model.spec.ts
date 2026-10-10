@@ -1,52 +1,25 @@
-import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
-import { createCliDataSource } from '@am/database';
 import { toGeoJsonPoint, withinMeters } from '@am/geo';
-import { dataSourceConfig } from '../src/data-source';
 import { Address, Credential, OtpChallenge, Session, ShopMember, User } from '../src/entities';
-import { Init1791504000000 } from '../src/migrations/1791504000000-init';
-import { IdentityDataModel1791666774888 } from '../src/migrations/1791666774888-IdentityDataModel';
+import { createTestDatabase, TestDatabase } from './support/test-database';
 
-/**
- * Runs the real migrations against a throwaway database on the Postgres+PostGIS instance in
- * DATABASE_URL (docker compose locally, a service container in CI), then checks the constraints
- * the rest of identity relies on. F0-11 replaces the database bootstrap with the shared
- * Testcontainers helper.
- */
-const baseUrl = process.env.DATABASE_URL ?? 'postgres://am:am@localhost:5432/african_market';
-const dbName = `am_test_identity_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
-
-const withDatabase = (url: string, database: string): string => {
-  const parsed = new URL(url);
-  parsed.pathname = `/${database}`;
-  return parsed.toString();
-};
-
+/** Runs the real migrations on PostGIS, then checks the constraints the rest of identity relies on. */
 describe('identity data model (PostGIS)', () => {
-  let admin: DataSource;
+  let testDb: TestDatabase;
   let db: DataSource;
   let users: Repository<User>;
 
   const createUser = (fields: Partial<User> = {}) => users.save(users.create(fields));
 
   beforeAll(async () => {
-    admin = await new DataSource({ type: 'postgres', url: baseUrl }).initialize();
-    await admin.query(`CREATE DATABASE "${dbName}"`);
-    // The CLI data source, as `migration:run` uses it: it creates the schema on an empty database.
-    db = await createCliDataSource({
-      ...dataSourceConfig,
-      url: withDatabase(baseUrl, dbName),
-      migrations: [Init1791504000000, IdentityDataModel1791666774888],
-    }).initialize();
-    await db.runMigrations();
+    testDb = await createTestDatabase();
+    db = testDb.db;
     users = db.getRepository(User);
   }, 60_000);
 
   afterAll(async () => {
-    await db?.destroy();
-    await admin?.query(`DROP DATABASE IF EXISTS "${dbName}" WITH (FORCE)`);
-    await admin?.destroy();
+    await testDb?.drop();
   });
 
   it('migrations leave nothing for the entities to add (no schema drift)', async () => {

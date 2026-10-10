@@ -18,5 +18,6 @@ paths = [
 # AWS Secrets Manager and GitHub environment secrets, never in the repository.
 regexes = [
   '''dev-only-access-secret-change-me-0123456789''',
+  '''dev-only-otp-hmac-secret-change-me-0123456789''',
   '''am-minio-secret''',
 ]

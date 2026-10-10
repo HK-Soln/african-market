@@ -43,15 +43,15 @@ jobs:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # nx affected needs history to find the merge base
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -62,7 +62,7 @@ jobs:
       # Pull requests compare against their target branch (a feature PR against dev, a promotion
       # PR against stage or main). Pushes compare against the last green run on that branch.
       - name: Derive affected base and head
-        uses: nrwl/nx-set-shas@v4
+        uses: nrwl/nx-set-shas@v5
         with:
           main-branch-name: ${{ github.base_ref || github.ref_name }}
 
@@ -94,13 +94,13 @@ jobs:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm

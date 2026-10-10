@@ -5,6 +5,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { textDirection, type Locale } from '@am/i18n';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { routing } from '@/i18n/routing';
+import { Logo } from '@am/ui';
+import { fontVariables } from '../fonts';
 import '../globals.css';
 
 export function generateStaticParams() {
@@ -25,7 +27,7 @@ export async function generateMetadata({
   };
 }
 
-export const viewport: Viewport = { themeColor: '#c2620a', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#a9500e', width: 'device-width', initialScale: 1 };
 
 export default async function LocaleLayout({
   children,
@@ -39,11 +41,11 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={textDirection(locale as Locale)}>
+    <html lang={locale} dir={textDirection(locale as Locale)} className={fontVariables}>
       <body className="min-h-dvh">
         <NextIntlClientProvider>
-          <header className="flex items-center justify-between px-4 py-3">
-            <span className="font-semibold">African Market</span>
+          <header className="flex items-center justify-between gap-3 px-4 py-3">
+            <Logo size={32} />
             <LanguageSwitcher />
           </header>
           {children}

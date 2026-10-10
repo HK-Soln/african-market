@@ -15,27 +15,26 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-10">
       <section className="flex flex-col gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('tagline')}</h1>
+        <h1 className="text-[28px] leading-9 font-bold">{t('tagline')}</h1>
         <form className="flex gap-2" role="search">
           <input
             name="q"
             type="search"
+            aria-label={t('searchPlaceholder')}
             placeholder={t('searchPlaceholder')}
-            className="min-w-0 flex-1 rounded-xl border border-ink-200 bg-white px-4 py-2.5"
+            className="min-h-12 min-w-0 flex-1 rounded-sm border border-line-strong bg-surface-raised px-4 text-base"
           />
-          <Button type="button" variant="secondary">
-            {t('useMyLocation')}
-          </Button>
+          <Button iconStart="current-location">{t('useMyLocation')}</Button>
         </form>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">{t('browseByEmirate')}</h2>
+        <h2 className="text-lg font-semibold">{t('browseByEmirate')}</h2>
         <ul className="flex flex-wrap gap-2">
           {EMIRATES.map((emirate) => (
             <li
               key={emirate.code}
-              className="rounded-full border border-ink-200 bg-white px-3 py-1 text-sm"
+              className="rounded-full border border-line bg-surface-raised px-3 py-1 text-sm"
             >
               {e(emirate.code)}
             </li>

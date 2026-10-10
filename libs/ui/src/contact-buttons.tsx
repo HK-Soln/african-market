@@ -25,6 +25,8 @@ export function ContactButtons({
     <div className="flex flex-wrap gap-2">
       {whatsapp && (
         <LinkButton
+          variant="whatsapp"
+          iconStart="brand-whatsapp"
           href={buildWhatsAppLink(whatsapp, message)}
           target="_blank"
           rel="noopener"
@@ -34,16 +36,12 @@ export function ContactButtons({
         </LinkButton>
       )}
       {phone && (
-        <LinkButton variant="secondary" href={`tel:${phone}`} onClick={() => onContact?.('call')}>
+        <LinkButton iconStart="phone" href={`tel:${phone}`} onClick={() => onContact?.('call')}>
           {labels.call}
         </LinkButton>
       )}
       {email && (
-        <LinkButton
-          variant="secondary"
-          href={`mailto:${email}`}
-          onClick={() => onContact?.('email')}
-        >
+        <LinkButton iconStart="mail" href={`mailto:${email}`} onClick={() => onContact?.('email')}>
           {labels.email}
         </LinkButton>
       )}

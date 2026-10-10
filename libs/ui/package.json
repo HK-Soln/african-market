@@ -2,12 +2,14 @@
   "name": "@am/ui",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared React components and Tailwind design tokens for the three Next.js apps",
+  "description": "Shared React components, design tokens and component styles for the three Next.js apps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "theme.css"
+    "theme.css",
+    "components.css",
+    "fonts"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
@@ -33,10 +35,13 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./theme.css": "./theme.css"
+    "./theme.css": "./theme.css",
+    "./components.css": "./components.css"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
-    "react": "^19.3.0"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
   }
 }

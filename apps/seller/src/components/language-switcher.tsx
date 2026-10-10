@@ -1,26 +1,21 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { LOCALES } from '@am/i18n';
+import type { Locale } from '@am/i18n';
+import { LanguageSwitcher as LanguageControl } from '@am/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 
+/** Changes the URL locale, which sets `lang`, `dir` and the font stack on `<html>`. */
 export function LanguageSwitcher() {
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const t = useTranslations('language');
   const router = useRouter();
   const pathname = usePathname();
   return (
-    <select
-      aria-label="Language"
-      className="rounded-lg border border-ink-200 bg-white px-2 py-1 text-sm"
+    <LanguageControl
       value={locale}
-      onChange={(e) => router.replace(pathname, { locale: e.target.value })}
-    >
-      {LOCALES.map((l) => (
-        <option key={l} value={l}>
-          {t(l)}
-        </option>
-      ))}
-    </select>
+      label={t('label')}
+      onChange={(next) => router.replace(pathname, { locale: next, scroll: false })}
+    />
   );
 }

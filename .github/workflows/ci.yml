@@ -43,7 +43,7 @@ jobs:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # nx affected needs history to find the merge base
 
@@ -94,7 +94,7 @@ jobs:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

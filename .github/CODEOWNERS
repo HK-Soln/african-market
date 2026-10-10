@@ -1,0 +1,6 @@
+# Default owner for everything. Add team or per-area owners as the team grows.
+*                       @Henson-Kudi
+
+# Changes to the delivery pipeline and branch rules always need the owner.
+/.github/               @Henson-Kudi
+/infra/                 @Henson-Kudi

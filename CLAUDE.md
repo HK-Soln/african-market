@@ -13,6 +13,7 @@ shops, branches and the areas they serve, and customers find them by distance, t
 - Confirmed business decisions and technical decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md).
 - Work is delivered phase by phase from [`docs/directives/`](docs/directives/README.md).
 - Engineering conventions in detail: [`docs/architecture/conventions.md`](docs/architecture/conventions.md).
+- Branch flow, required checks and branch rules: [`docs/architecture/branching-and-cicd.md`](docs/architecture/branching-and-cicd.md).
 
 ## Non-negotiable product rules
 
@@ -72,7 +73,7 @@ pnpm dev                           # all apps and services in watch mode
 pnpm dev:api | pnpm dev:web        # backend only | frontends only
 pnpm nx dev @am/shops              # one project
 pnpm test | pnpm lint | pnpm typecheck
-pnpm affected                      # what CI runs
+pnpm affected                      # what CI runs (compared with dev)
 pnpm nx run @am/gateway:openapi && pnpm nx run @am/api-client:generate   # after any gateway route change
 pnpm nx run @am/<svc>:migration:generate src/migrations/<PascalName>       # after entity changes (build first)
 ```
@@ -144,7 +145,11 @@ Mailpit 8025. Docker credentials are `am` / `am`.
    local database.
 5. Tick the task in the directive (`- [x]`), add a one-line note under it if you made a judgement call,
    and record any new architectural decision in `docs/DECISIONS.md`.
-6. Commit with a conventional message (`feat(shops): branch service areas`), one task per commit.
+6. Commit on a feature branch cut from `dev` (`feat/branch-service-areas`) with a conventional
+   message (`feat(shops): branch service areas`), one task per commit, and open a pull request
+   into `dev`. Never commit to or push `dev`, `stage` or `main` directly: code moves
+   feature → `dev` → `stage` → `main` by pull request only
+   ([`docs/architecture/branching-and-cicd.md`](docs/architecture/branching-and-cicd.md)).
 
 When a directive is ambiguous, choose the option most consistent with `docs/PLAN.md` and the rules
 above, note it under the task, and continue. Stop and ask the human only when a choice would change
@@ -152,6 +157,8 @@ money flow, legal/regulatory posture, personal-data handling, or something irrev
 
 ## Things to never do
 
+- Push to `dev`, `stage` or `main`, or open a pull request that skips a step of feature → `dev` →
+  `stage` → `main`. `main` is production.
 - Hold or move seller funds; build destination charges, separate charges and transfers, or wallets.
 - Add a dependency on another service's tables or code (`apps/*` must not import `apps/*`).
 - Use `synchronize: true`, edit an already-applied migration, or put business logic in migrations.

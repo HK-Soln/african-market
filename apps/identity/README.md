@@ -18,5 +18,5 @@ request patterns to `libs/contracts/src/patterns.ts` before writing the handler.
 pnpm nx dev @am/identity              # watch mode
 pnpm nx run @am/identity:migration:run
 pnpm nx run @am/identity:migration:generate -- src/migrations/AddShopTable   # after build
-pnpm nx test @am/identity
+pnpm nx test @am/identity             # includes test/*.spec.ts, which need Postgres (pnpm infra:up)
 ```

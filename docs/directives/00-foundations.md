@@ -37,7 +37,7 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: the gateway logs one harmless `Unsupported route path: "/api/*"` warning at boot; it comes
   > from a dependency, not from our routes, and Nest converts it automatically.
 
-- [ ] **F0-02 Identity data model** (depends on F0-01)
+- [x] **F0-02 Identity data model** (depends on F0-01)
       Entities in `apps/identity`: `user` (phone E.164 unique nullable, email citext unique nullable,
       name, preferred_language, avatar_media_id, roles text[] default `{customer}`, status
       active/suspended/deleted, phone_verified_at, email_verified_at, marketing_consent_at,
@@ -48,6 +48,17 @@ delivery is ignored); F0-10 turns that into automated tests.
       `shop_member` (user_id, shop_id, role owner/manager/staff, branch_ids uuid[]), `address`
       (user_id, label, emirate, area, building, flat, makani, location geography Point, notes).
       Generate one migration. Partial unique indexes ignore soft-deleted rows.
+
+  > Note: enumerated columns (status, roles, credential type, OTP channel and purpose, shop role,
+  > emirate, language) are `text` with CHECK constraints, not Postgres enum types, so adding a value
+  > later is a one-line migration. F0-04 will need to add a `reset` OTP purpose that way.
+  > Note: beyond the unique indexes the directive names, a user can hold one live credential per
+  > type, one live membership per shop, and refresh token hashes are unique. `credential` enforces
+  > "hash for password, subject for social" with a CHECK.
+  > Note: the integration test (`apps/identity/test/data-model.spec.ts`) runs the real migrations
+  > in a throwaway database on the Postgres in `DATABASE_URL`, so `pnpm test` now needs
+  > `pnpm infra:up` locally and the CI verify job has a PostGIS service. F0-11 swaps this for the
+  > shared Testcontainers helper. It also fails if the entities and migrations ever drift apart.
 
 - [ ] **F0-03 OTP sign-up and sign-in by phone** (depends on F0-02)
       Patterns `IdentityPatterns.requestOtp` / `verifyOtp`. Normalise phones with `libphonenumber-js`

@@ -129,6 +129,8 @@ Mailpit 8025. Docker credentials are `am` / `am`.
 - Unit tests next to code (`*.spec.ts`, Jest + ts-jest).
 - Integration tests in `apps/<svc>/test/` against real Postgres+PostGIS (and RabbitMQ where events
   matter) using Testcontainers; geo queries must be tested against PostGIS, never mocked.
+  Until F0-11 adds the Testcontainers helper they use the Postgres in `DATABASE_URL`
+  (`pnpm infra:up`) and create a throwaway database per run.
 - Event payload contract tests in `libs/contracts`.
 - Playwright end-to-end tests for the three core journeys (find and contact, list a shop, buy) in
   **both English and Arabic**.

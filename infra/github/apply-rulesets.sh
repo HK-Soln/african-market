@@ -5,8 +5,8 @@
 #   infra/github/apply-rulesets.sh [owner/repo]
 #
 # Needs the GitHub CLI (`gh`) logged in as a repository admin, and the dev, stage and main
-# branches to exist. Rulesets on a PRIVATE repository need a paid plan (GitHub Team for an
-# organisation); on the Free plan GitHub answers 403 and nothing is enforced.
+# branches to exist. Rulesets are enforced because the repository is public; on a PRIVATE repository
+# they need GitHub Team, and on the Free plan GitHub answers 403 and nothing is enforced.
 set -euo pipefail
 
 REPO="${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"

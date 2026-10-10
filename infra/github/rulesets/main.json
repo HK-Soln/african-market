@@ -28,6 +28,7 @@
           { "context": "Migrations (PostGIS)", "integration_id": 15368 },
           { "context": "Secret scan (gitleaks)", "integration_id": 15368 },
           { "context": "Dependency audit", "integration_id": 15368 },
+          { "context": "CodeQL (JS/TS SAST)", "integration_id": 15368 },
           { "context": "PR source branch", "integration_id": 15368 }
         ]
       }

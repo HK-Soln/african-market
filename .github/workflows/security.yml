@@ -2,8 +2,7 @@ name: Security
 
 # Secret scanning, dependency audit and static analysis. Runs on every pull request, on pushes
 # to the long-lived branches, and weekly (to catch newly disclosed CVEs in unchanged code).
-# "Secret scan (gitleaks)" and "Dependency audit" are REQUIRED status checks in the branch
-# rulesets (infra/github/rulesets). Container image scanning (Trivy) joins them in F0-12/F0-14,
+# All three jobs are REQUIRED status checks in the branch rulesets (infra/github/rulesets). Container image scanning (Trivy) joins them in F0-12/F0-14,
 # once the Dockerfiles exist.
 
 on:
@@ -71,9 +70,8 @@ jobs:
 
   codeql:
     name: CodeQL (JS/TS SAST)
-    # Code scanning on a private repository needs GitHub Code Security. Until that is bought (or
-    # the repository is public), set the repository variable CODEQL_ENABLED=true to turn this on;
-    # otherwise the job is skipped and is not a required check.
+    # Free on a public repository, where it is a required check. On a private repository code
+    # scanning needs GitHub Code Security: the job is skipped unless CODEQL_ENABLED=true is set.
     if: github.event.repository.private == false || vars.CODEQL_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30

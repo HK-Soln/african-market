@@ -49,7 +49,7 @@ Every pull request, and every push to the three long-lived branches, runs:
 | `Dependency audit`                         | `security.yml`      | No critical advisory in production dependencies (lower severities reported) | dev, stage, main |
 | `PR source branch`                         | `branch-policy.yml` | The pull request comes from the branch the flow allows                      | dev, stage, main |
 | `PR title`                                 | `branch-policy.yml` | Conventional-commit title on pull requests into `dev`                       | dev              |
-| `CodeQL (JS/TS SAST)`                      | `security.yml`      | Static analysis; skipped until code scanning is available (see below)       | not required yet |
+| `CodeQL (JS/TS SAST)`                      | `security.yml`      | Static analysis of the TypeScript code for security and quality problems    | dev, stage, main |
 
 The security workflow also runs every Monday, so a newly disclosed vulnerability shows up even when
 nothing changed. Dependabot opens weekly update pull requests against `dev` (npm and GitHub Actions);
@@ -71,19 +71,19 @@ The rules live in the repository as code:
 
 To change a rule, edit the JSON in a pull request, then run the script after it merges.
 
-**Plan requirement.** GitHub only enforces rulesets on a private repository for organisations on
-the Team plan or higher. On the Free plan the checks above still run and report on every pull
-request, but GitHub will not block a merge or a direct push. Until the plan is upgraded the flow is
-a convention backed by visible checks, not a hard gate.
+**Plan requirement.** The repository is public, which is what lets GitHub enforce these rulesets
+on the organisation's Free plan. If it is ever made private again, enforcement stops (GitHub
+answers 403 for rulesets) until the organisation moves to the Team plan; the checks would still run
+but nothing would block a merge or a direct push.
 
 **Reviews.** The required approval count is 0 because the repository has one maintainer with write
 access and GitHub does not let an author approve their own pull request. Raise
 `required_approving_review_count` and turn on `require_code_owner_review` in the ruleset files once
 a second person has write access.
 
-**CodeQL.** Code scanning on a private repository needs GitHub Code Security. Set the repository
-variable `CODEQL_ENABLED=true` once it is available, then add `CodeQL (JS/TS SAST)` to the required
-checks.
+**CodeQL.** Code scanning is free on a public repository, so the job runs on every pull request
+and is a required check. On a private repository it needs GitHub Code Security: the job is then
+skipped unless the repository variable `CODEQL_ENABLED=true` is set.
 
 ## Renaming a check
 

@@ -24,8 +24,9 @@ jobs:
     name: Format · Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Integration tests in apps/*/test run under `nx test` and create their own throwaway
-    # databases on this instance, so geo and constraint behaviour is tested on real PostGIS.
+    # Integration tests in apps/*/test run under `nx test`. They create their own throwaway
+    # databases on this Postgres (so geo and constraint behaviour is tested on real PostGIS) and
+    # use their own key prefix on this Redis (rate limits).
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -39,8 +40,17 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     env:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
+      REDIS_URL: redis://localhost:6379
     steps:
       - name: Checkout
         uses: actions/checkout@v7

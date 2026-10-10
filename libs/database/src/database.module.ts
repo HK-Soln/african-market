@@ -19,6 +19,8 @@ export class DatabaseModule implements OnModuleInit {
   static forService(config: ServiceDataSourceConfig): DynamicModule {
     return {
       module: DatabaseModule,
+      // Global, so a service's feature modules can inject the DataSource and OutboxService.
+      global: true,
       imports: [
         TypeOrmModule.forRoot(buildDataSourceOptions(config)),
         TypeOrmModule.forFeature(config.entities),

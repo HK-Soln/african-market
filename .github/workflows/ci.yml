@@ -24,6 +24,23 @@ jobs:
     name: Format · Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Integration tests in apps/*/test run under `nx test` and create their own throwaway
+    # databases on this instance, so geo and constraint behaviour is tested on real PostGIS.
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: am
+          POSTGRES_PASSWORD: am
+          POSTGRES_DB: african_market
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U am -d african_market"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://am:am@localhost:5432/african_market
     steps:
       - name: Checkout
         uses: actions/checkout@v4

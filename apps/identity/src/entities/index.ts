@@ -1,6 +1,16 @@
-/**
- * TypeORM entities owned by the identity service (user, credential, otp_challenge, session (refresh token family), shop_member, address).
- * Extend AppBaseEntity from @am/database. See docs/PLAN.md "Data model" and
- * docs/directives for the phase that introduces each one.
- */
-export const entities: Array<new () => unknown> = [];
+import { Address } from './address.entity';
+import { Credential } from './credential.entity';
+import { OtpChallenge } from './otp-challenge.entity';
+import { Session } from './session.entity';
+import { ShopMember } from './shop-member.entity';
+import { User } from './user.entity';
+
+export * from './address.entity';
+export * from './credential.entity';
+export * from './otp-challenge.entity';
+export * from './session.entity';
+export * from './shop-member.entity';
+export * from './user.entity';
+
+/** TypeORM entities owned by the identity service. See docs/PLAN.md "Data model". */
+export const entities = [User, Credential, OtpChallenge, Session, ShopMember, Address];

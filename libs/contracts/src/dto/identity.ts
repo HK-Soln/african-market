@@ -3,7 +3,10 @@
  * The gateway validates its own HTTP DTOs and then sends these.
  */
 
-/** How a one-time code reaches a phone. Email codes arrive with F0-04. */
+/**
+ * How a one-time code reaches a phone. WhatsApp is the default (decision P-09); SMS is an
+ * optional fallback. Email codes arrive with F0-04.
+ */
 export type OtpDeliveryChannel = 'sms' | 'whatsapp';
 
 export interface RequestOtpRequest {
@@ -22,6 +25,7 @@ export interface RequestOtpResponse {
   channel: OtpDeliveryChannel;
   /** ISO-8601 UTC. */
   expiresAt: string;
+  /** Wait before asking again. Starts at 30 and doubles with each code sent in the hour. */
   resendAfterSeconds: number;
 }
 

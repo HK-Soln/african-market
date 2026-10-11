@@ -102,9 +102,10 @@ Location discovery and search, Contact, UAE specifics.
       CRUD, emirate search switches, shop suspend. Regenerate the api-client.
 
 - [ ] **F1-09 Social sign-in** (depends on Phase 0)
-      Google and Apple sign-in on web and seller: verify ID tokens server-side in identity (Google
-      certs, Apple JWKS), link to existing accounts by verified email, `credential` rows of type
-      google/apple. Behind env flags so local dev works without client ids.
+      Google and Facebook sign-in on web and seller (decision P-10; Apple is dropped): verify the
+      Google ID token and the Facebook access token server-side in identity, link to existing
+      accounts by verified email, `credential` rows of type google/facebook (a one-line migration
+      adds `facebook` to the type CHECK). Behind env flags so local dev works without client ids.
 
 ## Web app (customer PWA)
 

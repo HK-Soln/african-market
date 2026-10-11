@@ -1,13 +1,8 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { z } from 'zod';
-import { AppRpcException } from '@am/core';
-import {
-  IdentityErrors,
-  IdentityPatterns,
-  RequestOtpResponse,
-  VerifyOtpResponse,
-} from '@am/contracts';
+import { IdentityPatterns, RequestOtpResponse, VerifyOtpResponse } from '@am/contracts';
+import { parsePayload } from '../validation';
 import { OtpService } from './otp.service';
 
 const requestOtpSchema = z.object({
@@ -26,28 +21,17 @@ const verifyOtpSchema = z.object({
   correlationId: z.string().max(128).optional(),
 });
 
-/** The gateway validates first; the service validates again before it persists anything. */
-function parse<T>(schema: z.ZodType<T>, payload: unknown): T {
-  const result = schema.safeParse(payload);
-  if (result.success) return result.data;
-  throw AppRpcException.badRequest(
-    IdentityErrors.validationFailed,
-    'Invalid request',
-    result.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
-  );
-}
-
 @Controller()
 export class OtpController {
   constructor(private readonly otp: OtpService) {}
 
   @MessagePattern(IdentityPatterns.requestOtp)
   requestOtp(@Payload() payload: unknown): Promise<RequestOtpResponse> {
-    return this.otp.requestOtp(parse(requestOtpSchema, payload));
+    return this.otp.requestOtp(parsePayload(requestOtpSchema, payload));
   }
 
   @MessagePattern(IdentityPatterns.verifyOtp)
   verifyOtp(@Payload() payload: unknown): Promise<VerifyOtpResponse> {
-    return this.otp.verifyOtp(parse(verifyOtpSchema, payload));
+    return this.otp.verifyOtp(parsePayload(verifyOtpSchema, payload));
   }
 }

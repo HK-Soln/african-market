@@ -26,7 +26,8 @@ jobs:
     timeout-minutes: 30
     # Integration tests in apps/*/test run under `nx test`. They create their own throwaway
     # databases on this Postgres (so geo and constraint behaviour is tested on real PostGIS) and
-    # use their own key prefix on this Redis (rate limits).
+    # use their own key prefix on this Redis (rate limits). Mailpit receives the emails the SMTP
+    # adapter sends.
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -48,9 +49,14 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ['1025:1025', '8025:8025']
     env:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
       REDIS_URL: redis://localhost:6379
+      SMTP_URL: smtp://localhost:1025
+      MAILPIT_URL: http://localhost:8025
     steps:
       - name: Checkout
         uses: actions/checkout@v7

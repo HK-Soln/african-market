@@ -8,7 +8,12 @@ export const HEALTH_PATTERN = 'health.check';
 export const IdentityPatterns = {
   requestOtp: 'identity.otp.request',
   verifyOtp: 'identity.otp.verify',
+  registerWithEmail: 'identity.email.register',
+  resendEmailCode: 'identity.email.resend',
+  verifyEmail: 'identity.email.verify',
   loginWithPassword: 'identity.session.password',
+  requestPasswordReset: 'identity.password.reset_request',
+  resetPassword: 'identity.password.reset',
   refreshSession: 'identity.session.refresh',
   logout: 'identity.session.logout',
   getMe: 'identity.user.me',

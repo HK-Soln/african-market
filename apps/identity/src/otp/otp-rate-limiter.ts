@@ -44,12 +44,18 @@ export class OtpRateLimiter {
   ) {}
 
   /**
-   * Records one send for this phone and IP and returns how long the caller must wait before the
-   * next one, or throws 429 with `retryAfterSeconds`.
+   * Records one send to this target (a phone or an email address) from this IP and returns how
+   * long the caller must wait before the next one, or throws 429 with `retryAfterSeconds`.
+   * Each `scope` has its own cooldown and hourly allowance, so a verification code does not
+   * hold up a password reset. The per-IP cap is shared across scopes.
    */
-  async consume(phone: string, ip?: string): Promise<{ resendAfterSeconds: number }> {
-    const phoneKey = this.key('phone', phone);
-    const cooldownKey = this.key('cooldown', phone);
+  async consume(
+    target: string,
+    ip?: string,
+    scope = 'sign-in',
+  ): Promise<{ resendAfterSeconds: number }> {
+    const sentKey = this.key(`sent:${scope}`, target);
+    const cooldownKey = this.key(`cooldown:${scope}`, target);
     const base = this.limits.cooldownSeconds;
 
     // Cooldown first: a refused resend must not use up the hourly allowance. Claiming the key
@@ -64,12 +70,12 @@ export class OtpRateLimiter {
         );
     }
 
-    const sentThisHour = await this.hit(phoneKey);
+    const sentThisHour = await this.hit(sentKey);
     if (sentThisHour > this.limits.maxPerPhonePerHour)
       throw tooMany(
         IdentityErrors.otpRateLimited,
-        'Too many codes requested for this phone',
-        await this.secondsLeft(phoneKey, HOUR_SECONDS),
+        'Too many codes requested',
+        await this.secondsLeft(sentKey, HOUR_SECONDS),
       );
 
     if (ip) {

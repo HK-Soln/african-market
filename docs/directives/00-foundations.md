@@ -84,10 +84,26 @@ delivery is ignored); F0-10 turns that into automated tests.
   > `app-module.spec.ts` builds the real module graph so wiring mistakes fail in CI. The CI verify
   > job gained a Redis service for the rate-limit tests. The HTTP routes are F0-06.
 
-- [ ] **F0-04 Email and password** (depends on F0-02)
+- [x] **F0-04 Email and password** (depends on F0-02)
       Register with email + password (argon2id, min 10 chars, breached-password check optional),
       email verification by OTP sent through an `EmailProvider` (SMTP adapter pointing at Mailpit
       locally; SES adapter for production). Password reset by email OTP. Login with email + password.
+
+  > Note: an email account is created unverified and cannot sign in until its code is confirmed;
+  > `user.registered` is published at confirmation. Registering needs `termsAccepted: true`.
+  > Note: `verifyEmail` takes the registration password as well as the code. Without it, someone
+  > who re-registered a pending address could have their own password confirmed by the inbox
+  > owner. There is a test for exactly that.
+  > Note: nothing reveals whether an address is registered: register, resend and reset-request
+  > always answer the same (an existing owner gets a "you already have an account" email), and
+  > a wrong password and an unknown email give the same 401 in the same time.
+  > Note: sign-in locks an email for 15 minutes after 5 wrong passwords (30 per IP). Passwords are
+  > 10 to 128 characters; the optional breached-password check is not built. A password reset
+  > revokes the user's sessions.
+  > Note: the SMTP adapter is real and tested against Mailpit, and reaches SES through its SMTP
+  > endpoint. The SES API adapter is a stub until the AWS account exists (F0-13).
+  > Note: a hand-written migration adds the `reset` OTP purpose (TypeORM does not detect a changed
+  > CHECK). Verification and reset codes have separate resend timers. The HTTP routes are F0-06.
 
 - [ ] **F0-05 Sessions and tokens** (depends on F0-03)
       Access token: HS256 JWT with `AccessTokenClaims` from `@am/auth` (sub, roles, shops memberships,

@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { textDirection, type Locale } from '@am/i18n';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
 import { AccountMenu } from '@/components/account-menu';
+import { InstallPrompt } from '@/components/install-prompt';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SessionProvider } from '@/components/session-provider';
 import { routing } from '@/i18n/routing';
@@ -27,6 +28,9 @@ export async function generateMetadata({
     title: { default: t('title'), template: `%s · ${t('title')}` },
     description: t('description'),
     manifest: '/manifest.webmanifest',
+    icons: { apple: '/icons/apple-touch-icon.png' },
+    // iOS: open from the home screen without Safari's bars, under this name.
+    appleWebApp: { capable: true, title: t('title'), statusBarStyle: 'default' },
   };
 }
 
@@ -62,6 +66,7 @@ export default async function LocaleLayout({
               </div>
             </header>
             {children}
+            <InstallPrompt />
           </SessionProvider>
           <ServiceWorkerRegistrar />
         </NextIntlClientProvider>

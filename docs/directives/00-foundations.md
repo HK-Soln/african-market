@@ -199,10 +199,25 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: fixed in passing: text and phone fields overflowed the screen in Arabic (the fix is in
   > `@am/ui`, and belongs in the design system's stylesheet too).
 
-- [ ] **F0-09 PWA shell** (depends on F0-07)
+- [x] **F0-09 PWA shell** (depends on F0-07)
       Replace `apps/web/public/sw.js` with a Serwist build (`@serwist/next`): precache the app shell,
       network-first for pages, stale-while-revalidate for images, offline fallback page in en/ar.
       PNG icons 192/512 + maskable, Apple touch icon, splash colours. Lighthouse PWA installability passes.
+
+  > Note: `apps/web/src/sw.ts` is built into `public/sw.js` by `@serwist/next` in production
+  > builds only; the built file is git-ignored. It precaches Next's scripts, styles and fonts and
+  > the three offline pages, serves pages network-first (5 s, then the last copy seen) and images
+  > stale-while-revalidate. Calls to the gateway are never cached.
+  > Note: the offline page exists in French as well as English and Arabic, and reloads by itself
+  > when the connection returns. The recently viewed shops in the Offline design need Phase 1.
+  > Note: the PNG icons are generated from the SVGs by `node tools/generate-pwa-icons.mjs` and
+  > committed. The "Add to your home screen" card from the Install design is included; Safari on
+  > iOS has no install event, so people there use the Share menu.
+  > Note: Lighthouse dropped its PWA category in version 12, so installability was checked with
+  > Chrome's own test instead (no errors), along with offline behaviour with the server stopped.
+  > Note: cached pages are safe to keep because page HTML carries no personal data today (the
+  > session is loaded in the browser). Revisit the `pages` rule if a page is ever rendered on the
+  > server for a signed-in person.
 
 - [ ] **F0-10 Event bus hardening** (depends on F0-01)
       Integration tests (Testcontainers: Postgres+PostGIS and RabbitMQ) proving: an event enqueued in a

@@ -205,7 +205,7 @@ export const EVENT_NAMES = Object.keys(EVENT_CATALOG) as EventName[];
 
 /**
  * The event sections of docs/architecture/events.md, generated so they cannot drift from the
- * types. `UPDATE_EVENT_DOCS=1 pnpm nx test @am/contracts` rewrites the file.
+ * types. `node tools/update-events-doc.mjs` rewrites the file.
  */
 export function renderEventCatalog(): string {
   const sections = EVENT_NAMES.map((name) => {

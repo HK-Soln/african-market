@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   EVENT_CATALOG,
@@ -61,18 +61,12 @@ describe('event contracts', () => {
   });
 
   it('keeps docs/architecture/events.md in step with the catalogue', () => {
-    const generated = renderEventCatalog();
-    const current = existsSync(DOC_PATH) ? readFileSync(DOC_PATH, 'utf8') : '';
+    const current = readFileSync(DOC_PATH, 'utf8');
     const start = current.indexOf(START);
     const end = current.indexOf(END);
     expect([start >= 0, end > start]).toEqual([true, true]);
 
-    if (process.env.UPDATE_EVENT_DOCS === '1') {
-      const updated = `${current.slice(0, start + START.length)}\n\n${generated}\n\n${current.slice(end)}`;
-      writeFileSync(DOC_PATH, updated);
-      return;
-    }
-    // If this fails: UPDATE_EVENT_DOCS=1 pnpm nx test @am/contracts, then pnpm format.
-    expect(squeeze(current.slice(start + START.length, end))).toBe(squeeze(generated));
+    // If this fails, run: pnpm nx build @am/contracts && node tools/update-events-doc.mjs && pnpm format
+    expect(squeeze(current.slice(start + START.length, end))).toBe(squeeze(renderEventCatalog()));
   });
 });

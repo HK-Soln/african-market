@@ -42,7 +42,8 @@ Published outbox rows are deleted after 7 days. Unpublished rows are never delet
   tokens, one-time codes, card data or the text of a message.
 - A new event needs its payload type in `EventPayloads` and its entry in `EVENT_CATALOG`
   (`libs/contracts/src/events.ts`); the compiler insists on both. Then run
-  `UPDATE_EVENT_DOCS=1 pnpm nx test @am/contracts` and `pnpm format` to update the list below.
+  `pnpm nx build @am/contracts && node tools/update-events-doc.mjs && pnpm format` to update the
+  list below.
 
 ## The dead-letter queue
 

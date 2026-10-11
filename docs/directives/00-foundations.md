@@ -219,13 +219,28 @@ delivery is ignored); F0-10 turns that into automated tests.
   > session is loaded in the browser). Revisit the `pages` rule if a page is ever rendered on the
   > server for a signed-in person.
 
-- [ ] **F0-10 Event bus hardening** (depends on F0-01)
+- [x] **F0-10 Event bus hardening** (depends on F0-01)
       Integration tests (Testcontainers: Postgres+PostGIS and RabbitMQ) proving: an event enqueued in a
       transaction that rolls back is never published; an event enqueued while RabbitMQ is down is
       published after it comes back; a duplicate delivery is handled once by `IdempotentConsumer`.
       Add delayed retry before dead-lettering (retry queue with TTL, 3 attempts with backoff, then DLQ)
       and a periodic cleanup of published outbox rows older than 7 days. Add a `libs/contracts` contract
       test that every `EventName` has a documented payload.
+
+  > Note: a failed event waits in `<service>.events.retry.<ms>` and comes back after 5 s, 30 s and
+  > 2 min (`EVENT_RETRY_DELAYS_MS`), then goes to `<service>.events.dlq` with the error. Only the
+  > service that failed gets it again. How it all works is in `docs/architecture/events.md`.
+  > Note: the tests run against the RabbitMQ and Postgres from `pnpm infra:up` (service containers
+  > in CI), not Testcontainers: the helper for that is F0-11. "RabbitMQ is down" is a small proxy
+  > in the test that cuts the connection and restores it.
+  > Note: fixed on the way. Every service's dead-letter queue received every other service's
+  > rejected messages; each now gets only its own. A publish failing part-way through a batch
+  > rolled the whole batch back and re-sent what had already gone out. A publish made as the
+  > connection dropped could hold the outbox transaction open until the broker returned.
+  > Note: `EVENT_CATALOG` in `libs/contracts` documents every event and payload field; the compiler
+  > requires an entry for each, and a test keeps the list in `events.md` in step with it.
+  > Note: only published outbox rows are cleaned up (hourly, older than 7 days). `processed_event`
+  > rows are kept: deleting one would let a late duplicate through.
 
 - [ ] **F0-11 Testing infrastructure** (no dependency)
       Testcontainers helper in `libs/database/src/testing` (start PostGIS, run a service's migrations,

@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { IdentityErrors } from '@am/contracts';
 import { OutboxMessage, OutboxService } from '@am/database';
 import { OtpChallenge, User } from '../src/entities';
+import { OtpChallenges } from '../src/otp/otp-challenges';
 import { OtpRateLimiter, OtpRateLimits } from '../src/otp/otp-rate-limiter';
 import { OtpService } from '../src/otp/otp.service';
 import { SmsMessage, SmsProvider } from '../src/sms/sms-provider';
@@ -83,7 +84,7 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       ),
       sms,
       new OutboxService('identity'),
-      hmacKey,
+      new OtpChallenges(hmacKey),
     );
 
   const registeredEvents = async (userId: string) =>
@@ -186,6 +187,25 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
         await redis.del(cooldownKey);
       }
       expect(waits).toEqual([30, 60, 100, 100]);
+    });
+
+    it('keeps a separate timer for each purpose', async () => {
+      const limiter = new OtpRateLimiter(
+        redis,
+        {
+          cooldownSeconds: 30,
+          maxCooldownSeconds: 900,
+          maxPerPhonePerHour: 5,
+          maxPerIpPerHour: 100,
+        },
+        `${runPrefix}:${randomUUID()}`,
+      );
+      const target = 'someone@example.com';
+      await limiter.consume(target, undefined, 'email-verify');
+      expect(await errorCode(limiter.consume(target, undefined, 'email-verify'))).toBe(
+        IdentityErrors.otpResendTooSoon,
+      );
+      expect((await limiter.consume(target, undefined, 'email-reset')).resendAfterSeconds).toBe(30);
     });
 
     it('does not count a refused resend against the hourly allowance', async () => {

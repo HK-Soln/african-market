@@ -3,6 +3,8 @@ import { APP_ENV, ServiceCoreModule } from '@am/core';
 import { DatabaseModule } from '@am/database';
 import { assertSafeIdentityEnv, IdentityEnv, identityEnvSchema } from './config/identity-env';
 import { dataSourceConfig } from './data-source';
+import { EmailAuthModule } from './email-auth/email-auth.module';
+import { EmailModule } from './email/email.module';
 import { OtpModule } from './otp/otp.module';
 import { RedisModule } from './redis/redis.module';
 import { SmsModule } from './sms/sms.module';
@@ -13,7 +15,9 @@ import { SmsModule } from './sms/sms.module';
     DatabaseModule.forService(dataSourceConfig),
     RedisModule,
     SmsModule,
+    EmailModule,
     OtpModule,
+    EmailAuthModule,
   ],
 })
 export class AppModule implements OnModuleInit {

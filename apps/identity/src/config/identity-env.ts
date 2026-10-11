@@ -10,6 +10,10 @@ export const identityEnvSchema = z.object({
   OTP_HMAC_SECRET: z.string().min(32).default(DEV_OTP_SECRET),
   /** `console` prints the message to stdout and is refused outside development and test. */
   SMS_PROVIDER: z.enum(['console', 'twilio']).default('console'),
+  /** `smtp` is Mailpit locally and also reaches SES through its SMTP endpoint. */
+  EMAIL_PROVIDER: z.enum(['smtp', 'ses']).default('smtp'),
+  SMTP_URL: z.string().default('smtp://localhost:1025'),
+  EMAIL_FROM: z.string().default('African Market <no-reply@africanmarket.local>'),
 });
 
 export type IdentityEnv = BaseEnv & z.infer<typeof identityEnvSchema>;

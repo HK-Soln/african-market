@@ -4,7 +4,7 @@ import { AppBaseEntity } from '@am/database';
 export const OTP_CHANNELS = ['sms', 'whatsapp', 'email'] as const;
 export type OtpChannel = (typeof OTP_CHANNELS)[number];
 
-export const OTP_PURPOSES = ['signup', 'login', 'verify'] as const;
+export const OTP_PURPOSES = ['signup', 'login', 'verify', 'reset'] as const;
 export type OtpPurpose = (typeof OTP_PURPOSES)[number];
 
 /**
@@ -15,7 +15,7 @@ export type OtpPurpose = (typeof OTP_PURPOSES)[number];
 @Entity({ name: 'otp_challenge' })
 @Index('otp_challenge_target_idx', ['target', 'purpose', 'createdAt'])
 @Check('otp_challenge_channel_chk', `channel IN ('sms', 'whatsapp', 'email')`)
-@Check('otp_challenge_purpose_chk', `purpose IN ('signup', 'login', 'verify')`)
+@Check('otp_challenge_purpose_chk', `purpose IN ('signup', 'login', 'verify', 'reset')`)
 @Check('otp_challenge_attempts_chk', `attempts >= 0`)
 export class OtpChallenge extends AppBaseEntity {
   @Column({ type: 'citext' })

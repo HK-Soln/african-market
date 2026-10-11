@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
+import { EmailAuthService } from '../src/email-auth/email-auth.service';
 import { OtpService } from '../src/otp/otp.service';
 
 /**
@@ -12,6 +13,7 @@ describe('identity AppModule', () => {
     const app = await NestFactory.createApplicationContext(AppModule, { logger: false });
     try {
       expect(app.get(OtpService)).toBeInstanceOf(OtpService);
+      expect(app.get(EmailAuthService)).toBeInstanceOf(EmailAuthService);
     } finally {
       await app.close();
     }

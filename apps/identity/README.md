@@ -28,6 +28,29 @@ Phase introduced: **0** (see `docs/directives/`).
   local use and is refused in staging and production; `twilio` is a placeholder until a sender ID is registered.
 - Request and response types and the error codes (`IdentityErrors`) are in `libs/contracts/src/dto/identity.ts`.
 
+## Email and password (F0-04)
+
+| Pattern (`IdentityPatterns`) | What it does                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------- |
+| `registerWithEmail`          | Creates an unverified account with an argon2id password hash and emails a six-digit code.     |
+| `resendEmailCode`            | Sends a fresh code to an address that registered but has not confirmed it.                    |
+| `verifyEmail`                | Confirms the address with the code and the registration password; queues `user.registered`.   |
+| `loginWithPassword`          | Signs in. An unverified address gets `EMAIL_NOT_VERIFIED`, but only after the right password. |
+| `requestPasswordReset`       | Emails a reset code to a verified account.                                                    |
+| `resetPassword`              | Sets a new password with the code and revokes the user's sessions.                            |
+
+- Email codes follow the same rules as phone codes (5 minutes, 5 attempts, single use, escalating
+  resend delay), with separate timers for verification and reset.
+- Nothing reveals whether an address is registered. Register, resend and reset-request always return
+  the same shape; an existing owner is told by email instead. A wrong password and an unknown email
+  give the same `INVALID_CREDENTIALS` in the same time.
+- Sign-in allows 5 wrong passwords per email and 30 per IP in 15 minutes, then `LOGIN_RATE_LIMITED`.
+- Passwords are 10 to 128 characters, hashed with argon2id (19 MiB, 2 passes). Hashes made with
+  older settings are redone at the next sign-in.
+- Emails go through the `EmailProvider` interface, in English, Arabic (right-to-left) and French.
+  `EMAIL_PROVIDER=smtp` is Mailpit locally (inbox at http://localhost:8025) and SES through its SMTP
+  endpoint in production; `ses` is a placeholder for the API adapter.
+
 Rules: never read another service's schema; publish events through `OutboxService.enqueue` inside
 the same transaction as the change; wrap every consumer in `IdempotentConsumer.handle`; add new
 request patterns to `libs/contracts/src/patterns.ts` before writing the handler.

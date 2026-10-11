@@ -5,17 +5,22 @@ import { IdentityErrors } from '@am/contracts';
 import {
   OTP_MAX_PER_IP_PER_HOUR,
   OTP_MAX_PER_PHONE_PER_HOUR,
+  OTP_RESEND_COOLDOWN_MAX_SECONDS,
   OTP_RESEND_COOLDOWN_SECONDS,
 } from './otp.constants';
 
 export interface OtpRateLimits {
+  /** Wait after the first code. Doubles with each further code in the hour. 0 turns it off. */
   cooldownSeconds: number;
+  /** The doubling stops here. */
+  maxCooldownSeconds: number;
   maxPerPhonePerHour: number;
   maxPerIpPerHour: number;
 }
 
 export const DEFAULT_OTP_RATE_LIMITS: OtpRateLimits = {
   cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS,
+  maxCooldownSeconds: OTP_RESEND_COOLDOWN_MAX_SECONDS,
   maxPerPhonePerHour: OTP_MAX_PER_PHONE_PER_HOUR,
   maxPerIpPerHour: OTP_MAX_PER_IP_PER_HOUR,
 };
@@ -27,8 +32,9 @@ const tooMany = (code: string, message: string, retryAfterSeconds: number) =>
 
 /**
  * Limits how often codes are sent, in Redis so every replica shares the counts: a resend
- * cooldown per phone, an hourly cap per phone and an hourly cap per IP. Keys hold a hash of the
- * phone or IP, never the value itself.
+ * cooldown per phone that doubles with every code sent in the hour (30 s, 1 min, 2 min, 4 min),
+ * an hourly cap per phone and an hourly cap per IP. Keys hold a hash of the phone or IP, never
+ * the value itself.
  */
 export class OtpRateLimiter {
   constructor(
@@ -37,23 +43,29 @@ export class OtpRateLimiter {
     private readonly prefix = 'identity:otp',
   ) {}
 
-  /** Records one send for this phone and IP, or throws 429 with `retryAfterSeconds`. */
-  async consume(phone: string, ip?: string): Promise<void> {
+  /**
+   * Records one send for this phone and IP and returns how long the caller must wait before the
+   * next one, or throws 429 with `retryAfterSeconds`.
+   */
+  async consume(phone: string, ip?: string): Promise<{ resendAfterSeconds: number }> {
     const phoneKey = this.key('phone', phone);
+    const cooldownKey = this.key('cooldown', phone);
+    const base = this.limits.cooldownSeconds;
 
-    // Cooldown first: a refused resend must not use up the hourly allowance.
-    if (this.limits.cooldownSeconds > 0) {
-      const cooldownKey = this.key('cooldown', phone);
-      const set = await this.redis.set(cooldownKey, '1', 'EX', this.limits.cooldownSeconds, 'NX');
-      if (set === null)
+    // Cooldown first: a refused resend must not use up the hourly allowance. Claiming the key
+    // with NX also stops two simultaneous requests from both getting through.
+    if (base > 0) {
+      const claimed = await this.redis.set(cooldownKey, '1', 'EX', base, 'NX');
+      if (claimed === null)
         throw tooMany(
           IdentityErrors.otpResendTooSoon,
           'A code was sent a moment ago',
-          await this.secondsLeft(cooldownKey, this.limits.cooldownSeconds),
+          await this.secondsLeft(cooldownKey, base),
         );
     }
 
-    if ((await this.hit(phoneKey)) > this.limits.maxPerPhonePerHour)
+    const sentThisHour = await this.hit(phoneKey);
+    if (sentThisHour > this.limits.maxPerPhonePerHour)
       throw tooMany(
         IdentityErrors.otpRateLimited,
         'Too many codes requested for this phone',
@@ -69,6 +81,15 @@ export class OtpRateLimiter {
           await this.secondsLeft(ipKey, HOUR_SECONDS),
         );
     }
+
+    if (base === 0) return { resendAfterSeconds: 0 };
+    // 1st code: base. 2nd: 2 x base. 3rd: 4 x base, and so on up to the cap.
+    const resendAfterSeconds = Math.min(
+      base * 2 ** (sentThisHour - 1),
+      this.limits.maxCooldownSeconds,
+    );
+    await this.redis.expire(cooldownKey, resendAfterSeconds);
+    return { resendAfterSeconds };
   }
 
   /** Increments an hourly counter; the hour starts at the first hit. */

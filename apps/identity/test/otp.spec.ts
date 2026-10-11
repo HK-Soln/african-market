@@ -72,7 +72,13 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       db,
       new OtpRateLimiter(
         redis,
-        { cooldownSeconds: 0, maxPerPhonePerHour: 100, maxPerIpPerHour: 100, ...limits },
+        {
+          cooldownSeconds: 0,
+          maxCooldownSeconds: 900,
+          maxPerPhonePerHour: 100,
+          maxPerIpPerHour: 100,
+          ...limits,
+        },
         `${runPrefix}:${randomUUID()}`,
       ),
       sms,
@@ -108,8 +114,8 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       const result = await otp.requestOtp({ phone: '050 765 4321', locale: 'en' });
 
       expect(result.phone).toBe('+971507654321');
-      expect(result.channel).toBe('sms');
-      expect(result.resendAfterSeconds).toBe(30);
+      expect(result.channel).toBe('whatsapp');
+      expect(result.resendAfterSeconds).toBe(0);
       const lifetimeMs = new Date(result.expiresAt).getTime() - Date.now();
       expect(lifetimeMs).toBeGreaterThan(4 * 60_000);
       expect(lifetimeMs).toBeLessThanOrEqual(5 * 60_000);
@@ -139,15 +145,67 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       expect(sms.sent).toHaveLength(0);
     });
 
-    it('enforces the 30-second resend cooldown', async () => {
+    it('sends by SMS only when asked', async () => {
+      const otp = serviceWith();
+      const phone = nextPhone();
+      expect((await otp.requestOtp({ phone, channel: 'sms' })).channel).toBe('sms');
+      expect(sms.sent.at(-1)?.channel).toBe('sms');
+      await otp.requestOtp({ phone });
+      expect(sms.sent.at(-1)?.channel).toBe('whatsapp');
+    });
+
+    it('refuses a resend during the cooldown', async () => {
       const otp = serviceWith({ cooldownSeconds: 30 });
       const phone = nextPhone();
-      await otp.requestOtp({ phone });
+      expect((await otp.requestOtp({ phone })).resendAfterSeconds).toBe(30);
       const error = await errorOf(otp.requestOtp({ phone }));
       expect(error.status).toBe(429);
       expect(error.code).toBe(IdentityErrors.otpResendTooSoon);
-      expect((error.details as { retryAfterSeconds: number }).retryAfterSeconds).toBeGreaterThan(0);
+      const { retryAfterSeconds } = error.details as { retryAfterSeconds: number };
+      expect(retryAfterSeconds).toBeGreaterThan(0);
+      expect(retryAfterSeconds).toBeLessThanOrEqual(30);
       expect(sms.sent).toHaveLength(1);
+    });
+
+    it('doubles the wait with every code sent, up to the cap', async () => {
+      const prefix = `${runPrefix}:${randomUUID()}`;
+      const limits = {
+        cooldownSeconds: 30,
+        maxCooldownSeconds: 100,
+        maxPerPhonePerHour: 100,
+        maxPerIpPerHour: 100,
+      };
+      const limiter = new OtpRateLimiter(redis, limits, prefix);
+      const phone = nextPhone();
+      const waits: number[] = [];
+      for (let i = 0; i < 4; i++) {
+        waits.push((await limiter.consume(phone)).resendAfterSeconds);
+        // Stand in for the wait having passed, without sleeping through it.
+        const [cooldownKey] = await redis.keys(`${prefix}:cooldown:*`);
+        expect(await redis.ttl(cooldownKey)).toBeGreaterThan(waits[i] - 5);
+        await redis.del(cooldownKey);
+      }
+      expect(waits).toEqual([30, 60, 100, 100]);
+    });
+
+    it('does not count a refused resend against the hourly allowance', async () => {
+      const prefix = `${runPrefix}:${randomUUID()}`;
+      const limiter = new OtpRateLimiter(
+        redis,
+        {
+          cooldownSeconds: 30,
+          maxCooldownSeconds: 900,
+          maxPerPhonePerHour: 2,
+          maxPerIpPerHour: 100,
+        },
+        prefix,
+      );
+      const phone = nextPhone();
+      await limiter.consume(phone);
+      for (let i = 0; i < 5; i++)
+        expect(await errorCode(limiter.consume(phone))).toBe(IdentityErrors.otpResendTooSoon);
+      await redis.del(...(await redis.keys(`${prefix}:cooldown:*`)));
+      await limiter.consume(phone);
     });
 
     it('allows five codes per phone per hour and refuses the sixth', async () => {

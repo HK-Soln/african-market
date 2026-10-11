@@ -69,6 +69,9 @@ delivery is ignored); F0-10 turns that into automated tests.
       Twilio with a registered sender ID. Verifying a new phone creates the user and publishes
       `user.registered` through the outbox. Never log the code.
 
+  > Note: after the owner's decision P-09, WhatsApp is the default channel (`sms` only when the
+  > caller asks) and the resend wait doubles with each code sent in the hour: 30 s, 1 min,
+  > 2 min, 4 min, capped at 15 min. `requestOtp` returns the wait as `resendAfterSeconds`.
   > Note: codes are hashed with HMAC-SHA256 keyed by `OTP_HMAC_SECRET` and bound to the challenge
   > id. The service refuses to start in staging or production with the development secret or with
   > the console SMS provider.
@@ -187,6 +190,7 @@ delivery is ignored); F0-10 turns that into automated tests.
 
 **Non-engineering tasks to start now (owner: Henson):** company trade licence with an e-commerce
 activity, corporate bank account, Stripe account and a written request to Stripe about Connect for a
-UAE platform with UAE connected accounts using direct charges and application fees, SMS sender ID
-registration with a UAE-licensed provider, Google Maps Platform billing account, Apple developer and
-Google OAuth clients for social sign-in.
+UAE platform with UAE connected accounts using direct charges and application fees, a WhatsApp
+Business account with an approved authentication (one-time code) template (P-09), SMS sender ID
+registration with a UAE-licensed provider only if the SMS fallback is kept, Google Maps Platform
+billing account, Google and Facebook (Meta) OAuth apps for social sign-in (P-10).

@@ -18,7 +18,7 @@ import { toUserDto } from '../users/user.mapper';
 import { generateOtpCode, hashOtpCode, isOtpCodeFormat, otpCodeMatches } from './otp-code';
 import { otpMessage } from './otp-message';
 import { OtpRateLimiter } from './otp-rate-limiter';
-import { OTP_MAX_ATTEMPTS, OTP_RESEND_COOLDOWN_SECONDS, OTP_TTL_SECONDS } from './otp.constants';
+import { DEFAULT_OTP_CHANNEL, OTP_MAX_ATTEMPTS, OTP_TTL_SECONDS } from './otp.constants';
 
 type VerifyOutcome =
   | { user: User; isNewUser: boolean }
@@ -53,9 +53,9 @@ export class OtpService {
    */
   async requestOtp(input: RequestOtpRequest): Promise<RequestOtpResponse> {
     const phone = this.requirePhone(input.phone);
-    await this.limiter.consume(phone, input.ip);
+    const { resendAfterSeconds } = await this.limiter.consume(phone, input.ip);
 
-    const channel = input.channel ?? 'sms';
+    const channel = input.channel ?? DEFAULT_OTP_CHANNEL;
     const id = randomUUID();
     const code = generateOtpCode();
     const expiresAt = new Date(Date.now() + OTP_TTL_SECONDS * 1000);
@@ -90,7 +90,7 @@ export class OtpService {
       phone,
       channel,
       expiresAt: expiresAt.toISOString(),
-      resendAfterSeconds: OTP_RESEND_COOLDOWN_SECONDS,
+      resendAfterSeconds,
     };
   }
 

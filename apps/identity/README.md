@@ -18,7 +18,10 @@ Phase introduced: **0** (see `docs/directives/`).
 | `verifyOtp` `identity.otp.verify`   | Checks the code. An unknown phone becomes a new user and `user.registered` is queued in the same transaction; a known phone signs in. |
 
 - A code lives 5 minutes, allows 5 wrong attempts and works once. Requesting a new one cancels the old one.
-- Limits (Redis): one code per phone every 30 seconds, 5 per phone per hour, 20 per IP per hour.
+- Codes go out on WhatsApp unless the caller passes `channel: 'sms'` (decision P-09).
+- Limits (Redis): 5 codes per phone per hour and 20 per IP per hour. The wait before a resend
+  starts at 30 seconds and doubles with each code sent in the hour (30 s, 1 min, 2 min, 4 min,
+  capped at 15 min); `requestOtp` returns it as `resendAfterSeconds`.
 - Only an HMAC-SHA256 of the code is stored (`OTP_HMAC_SECRET`). Codes are never logged.
 - Creating an account requires `termsAccepted: true`; the time is recorded, and marketing consent only when given.
 - Messages go through the `SmsProvider` interface. `SMS_PROVIDER=console` prints the message to stdout for

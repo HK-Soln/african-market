@@ -18,3 +18,7 @@ infra/terraform/**/*.tfstate*
 apps/web/public/sw.js
 apps/web/public/sw.js.map
 apps/web/public/swe-worker-*.js
+# End-to-end tests (Playwright)
+.next-e2e
+e2e/test-results
+e2e/playwright-report

@@ -9,6 +9,7 @@ import { ClientsRegistryModule } from './clients.module';
 import { CommonModule } from './common/common.module';
 import { gatewayEnvSchema } from './env';
 import { GatewayHealthController } from './health/health.controller';
+import { testSupportModules } from './test-support/test-support.module';
 
 const env = loadEnv(gatewayEnvSchema);
 
@@ -27,6 +28,7 @@ const env = loadEnv(gatewayEnvSchema);
     // Per IP. Routes override this with `@Throttle()`, see auth/auth.throttles.ts.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     AuthModule,
+    ...testSupportModules(process.env.NODE_ENV),
     // Further feature modules (shops, catalog, search, media, ...) are added per phase; see docs/directives.
   ],
   controllers: [GatewayHealthController],

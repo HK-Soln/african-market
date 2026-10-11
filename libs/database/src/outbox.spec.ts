@@ -5,18 +5,17 @@ import { Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import type { EventEnvelope } from '@am/contracts';
 import { baseEnvSchema, EventBus, HealthService } from '@am/core';
-import { buildDataSourceOptions } from './data-source';
 import { createServiceSchema } from './migration-helpers';
 import { OutboxMessage, ProcessedEvent } from './outbox.entity';
 import { IdempotentConsumer, OutboxRelay, OutboxService } from './outbox.service';
+import { createTestDatabase, type TestDatabase } from './testing';
 
-// Integration tests against a real Postgres and RabbitMQ: docker compose locally
-// (`pnpm infra:up`), service containers in CI. They use a throwaway database and their own
-// exchange and queues. F0-11 moves this onto the shared Testcontainers helper.
+// Integration tests against a real Postgres (Testcontainers, see ./testing) and RabbitMQ (docker
+// compose locally, a service container in CI). They use a throwaway database and their own
+// exchange and queues.
 
 jest.setTimeout(90_000);
 
-const databaseUrl = process.env.DATABASE_URL ?? 'postgres://am:am@localhost:5432/african_market';
 const brokerUrl = process.env.RABBITMQ_URL ?? 'amqp://am:am@localhost:5672';
 const run = randomUUID().replace(/-/g, '').slice(0, 10);
 const exchange = `am.events.test.${run}`;
@@ -81,9 +80,8 @@ class BrokerProxy {
 }
 
 describe('transactional outbox (Postgres + RabbitMQ)', () => {
-  let admin: DataSource;
+  let testDb: TestDatabase;
   let db: DataSource;
-  const databaseName = `am_test_outbox_${run}`;
   const outbox = new OutboxService('outbox-test');
   const buses: EventBus[] = [];
   let serviceSeq = 0;
@@ -120,21 +118,13 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
 
   beforeAll(async () => {
     Logger.overrideLogger(false);
-    admin = await new DataSource({ type: 'postgres', url: databaseUrl }).initialize();
-    await admin.query(`CREATE DATABASE "${databaseName}"`);
-    const url = new URL(databaseUrl);
-    url.pathname = `/${databaseName}`;
-
-    const setup = await new DataSource({ type: 'postgres', url: url.toString() }).initialize();
-    const runner = setup.createQueryRunner();
     // The same DDL every service's first migration runs.
-    await createServiceSchema(runner, SCHEMA);
-    await runner.release();
-    await setup.destroy();
-
-    db = await new DataSource(
-      buildDataSourceOptions({ schema: SCHEMA, entities: [], url: url.toString() }),
-    ).initialize();
+    testDb = await createTestDatabase({
+      schema: SCHEMA,
+      entities: [],
+      setup: (runner) => createServiceSchema(runner, SCHEMA),
+    });
+    db = testDb.db;
   });
 
   beforeEach(async () => {
@@ -144,9 +134,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
 
   afterAll(async () => {
     for (const bus of buses) await bus.onModuleDestroy();
-    await db?.destroy();
-    await admin.query(`DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`);
-    await admin.destroy();
+    await testDb?.drop();
   });
 
   describe('publishing', () => {

@@ -9,3 +9,6 @@ apps/gateway/openapi.json
 apps/web/tsconfig.json
 apps/seller/tsconfig.json
 apps/admin/tsconfig.json
+.next-e2e
+e2e/test-results
+e2e/playwright-report

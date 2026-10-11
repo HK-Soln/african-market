@@ -1,0 +1,7 @@
+{
+  "name": "@am/database-testing-entry",
+  "private": true,
+  "description": "Lets TypeScript (node resolution) find @am/database/testing; Node itself uses the exports map.",
+  "main": "../dist/testing/index.js",
+  "types": "../dist/testing/index.d.ts"
+}

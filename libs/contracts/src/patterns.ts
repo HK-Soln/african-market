@@ -20,6 +20,15 @@ export const IdentityPatterns = {
   updateMe: 'identity.user.update',
 } as const;
 
+/**
+ * Handlers that exist only when a service runs with NODE_ENV=test, for end-to-end tests. They
+ * are not registered in development, staging or production.
+ */
+export const IdentityTestPatterns = {
+  /** The one-time code most recently "sent" to a phone by the in-memory SMS provider. */
+  lastOtp: 'identity.test.last_otp',
+} as const;
+
 export const ShopsPatterns = {
   create: 'shops.shop.create',
   update: 'shops.shop.update',

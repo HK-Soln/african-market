@@ -30,6 +30,23 @@ export class ConsoleSmsProvider implements SmsProvider {
 }
 
 /**
+ * End-to-end tests only: keeps the last message per phone in memory so a test can read the code
+ * it would have received. Chosen with SMS_PROVIDER=memory, which `assertSafeIdentityEnv` refuses
+ * unless NODE_ENV=test.
+ */
+export class MemorySmsProvider implements SmsProvider {
+  private readonly last = new Map<string, SmsMessage>();
+
+  async send(message: SmsMessage): Promise<void> {
+    this.last.set(message.to, message);
+  }
+
+  lastTo(phone: string): SmsMessage | undefined {
+    return this.last.get(phone);
+  }
+}
+
+/**
  * Placeholder for the production sender (Twilio or a UAE-licensed aggregator with a registered
  * sender ID). Sending is not implemented until the sender ID is registered and credentials
  * exist; it fails loudly rather than pretending a message went out.

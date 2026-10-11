@@ -25,6 +25,8 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+  // The end-to-end run builds into its own folder, so it can run beside `pnpm dev`.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   output: 'standalone',
   reactStrictMode: true,
   poweredByHeader: false,

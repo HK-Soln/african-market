@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"],
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["**/*.ts", "../apps/web/messages/*.json"],
+  "exclude": ["node_modules", "test-results", "playwright-report"]
+}

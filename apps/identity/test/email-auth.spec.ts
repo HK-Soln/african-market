@@ -465,12 +465,16 @@ describe('email and password (Postgres + Redis)', () => {
         provider.close();
       }
 
-      const search = await fetch(
-        `${mailpitUrl}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`,
-      );
-      const body = (await search.json()) as {
-        messages: Array<{ Subject: string; From: { Address: string } }>;
-      };
+      // Mailpit indexes a message a moment after accepting it, so ask until it shows up.
+      type Found = { messages: Array<{ Subject: string; From: { Address: string } }> };
+      let body: Found = { messages: [] };
+      for (let attempt = 0; attempt < 40 && body.messages.length === 0; attempt++) {
+        const search = await fetch(
+          `${mailpitUrl}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`,
+        );
+        body = (await search.json()) as Found;
+        if (body.messages.length === 0) await new Promise((resolve) => setTimeout(resolve, 250));
+      }
       expect(body.messages).toHaveLength(1);
       expect(body.messages[0].Subject).toBe('Your African Market code');
       expect(body.messages[0].From.Address).toBe('no-reply@africanmarket.local');

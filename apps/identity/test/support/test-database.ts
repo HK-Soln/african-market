@@ -6,6 +6,7 @@ import { dataSourceConfig } from '../../src/data-source';
 import { Init1791504000000 } from '../../src/migrations/1791504000000-init';
 import { IdentityDataModel1791666774888 } from '../../src/migrations/1791666774888-IdentityDataModel';
 import { OtpResetPurpose1791720000000 } from '../../src/migrations/1791720000000-OtpResetPurpose';
+import { UserHomeEmirate1791800000000 } from '../../src/migrations/1791800000000-UserHomeEmirate';
 
 const baseUrl = process.env.DATABASE_URL ?? 'postgres://am:am@localhost:5432/african_market';
 
@@ -33,7 +34,12 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   const db = await createCliDataSource({
     ...dataSourceConfig,
     url: withDatabase(baseUrl, name),
-    migrations: [Init1791504000000, IdentityDataModel1791666774888, OtpResetPurpose1791720000000],
+    migrations: [
+      Init1791504000000,
+      IdentityDataModel1791666774888,
+      OtpResetPurpose1791720000000,
+      UserHomeEmirate1791800000000,
+    ],
   }).initialize();
   await db.runMigrations();
   return {

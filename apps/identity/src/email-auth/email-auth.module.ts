@@ -8,6 +8,7 @@ import { OtpChallenges } from '../otp/otp-challenges';
 import { OtpRateLimiter } from '../otp/otp-rate-limiter';
 import { LoginRateLimiter } from '../password/login-rate-limiter';
 import { REDIS } from '../redis/redis.module';
+import { SessionService } from '../sessions/session.service';
 import { EmailAuthController } from './email-auth.controller';
 import { EmailAuthService } from './email-auth.service';
 
@@ -28,6 +29,7 @@ import { EmailAuthService } from './email-auth.service';
         EMAIL_PROVIDER,
         OutboxService,
         OtpChallenges,
+        SessionService,
       ],
       useFactory: (
         dataSource: DataSource,
@@ -36,7 +38,17 @@ import { EmailAuthService } from './email-auth.service';
         email: EmailProvider,
         outbox: OutboxService,
         challenges: OtpChallenges,
-      ) => new EmailAuthService(dataSource, codeLimiter, loginLimiter, email, outbox, challenges),
+        sessions: SessionService,
+      ) =>
+        new EmailAuthService(
+          dataSource,
+          codeLimiter,
+          loginLimiter,
+          email,
+          outbox,
+          challenges,
+          sessions,
+        ),
     },
   ],
 })

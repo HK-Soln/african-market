@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { z } from 'zod';
 import { IdentityPatterns, RequestOtpResponse, VerifyOtpResponse } from '@am/contracts';
-import { parsePayload } from '../validation';
+import { fields, parsePayload } from '../validation';
 import { OtpService } from './otp.service';
 
 const requestOtpSchema = z.object({
@@ -19,6 +19,8 @@ const verifyOtpSchema = z.object({
   termsAccepted: z.boolean().optional(),
   marketingConsent: z.boolean().optional(),
   correlationId: z.string().max(128).optional(),
+  ip: fields.ip,
+  userAgent: fields.userAgent,
 });
 
 @Controller()

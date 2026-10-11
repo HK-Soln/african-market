@@ -6,6 +6,7 @@ import {
   normalizePhone,
   RequestOtpRequest,
   RequestOtpResponse,
+  SessionTokens,
   VerifyOtpRequest,
   VerifyOtpResponse,
 } from '@am/contracts';
@@ -13,6 +14,7 @@ import { OutboxService } from '@am/database';
 import { DEFAULT_LOCALE, isLocale } from '@am/i18n';
 import { User } from '../entities';
 import { identityError } from '../errors';
+import { SessionService } from '../sessions/session.service';
 import { SmsProvider } from '../sms/sms-provider';
 import { toUserDto } from '../users/user.mapper';
 import { OtpChallenges } from './otp-challenges';
@@ -22,7 +24,7 @@ import { OtpRateLimiter } from './otp-rate-limiter';
 import { DEFAULT_OTP_CHANNEL } from './otp.constants';
 
 type VerifyOutcome =
-  | { user: User; isNewUser: boolean }
+  | { user: User; isNewUser: boolean; session: SessionTokens }
   | { error: IdentityErrorCode; details?: Record<string, unknown> };
 
 /** Phone sign-up and sign-in by one-time code. */
@@ -33,6 +35,7 @@ export class OtpService {
     private readonly sms: SmsProvider,
     private readonly outbox: OutboxService,
     private readonly challenges: OtpChallenges,
+    private readonly sessions: SessionService,
   ) {}
 
   /**
@@ -68,7 +71,8 @@ export class OtpService {
 
   /**
    * Checks a code. A correct code for an unknown phone creates the account and publishes
-   * `user.registered` in the same transaction; for a known phone it signs the user in.
+   * `user.registered` in the same transaction; for a known phone it signs the user in. Either
+   * way a session starts.
    */
   async verifyOtp(input: VerifyOtpRequest): Promise<VerifyOtpResponse> {
     const phone = this.requirePhone(input.phone);
@@ -119,11 +123,15 @@ export class OtpService {
       }
 
       await this.challenges.consume(manager, checked.challenge.id);
-      return { user, isNewUser };
+      return { user, isNewUser, session: await this.sessions.start(manager, user, input) };
     });
 
     if ('error' in outcome) throw identityError(outcome.error, outcome.details);
-    return { user: toUserDto(outcome.user), isNewUser: outcome.isNewUser };
+    return {
+      user: toUserDto(outcome.user),
+      isNewUser: outcome.isNewUser,
+      session: outcome.session,
+    };
   }
 
   private requirePhone(input: string): string {

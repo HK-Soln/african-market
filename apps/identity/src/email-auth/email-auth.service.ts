@@ -1,4 +1,4 @@
-import { DataSource, EntityManager, IsNull } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { AppRpcException } from '@am/core';
 import {
   AuthenticatedUserResponse,
@@ -12,6 +12,7 @@ import {
   RequestPasswordResetRequest,
   ResendEmailCodeRequest,
   ResetPasswordRequest,
+  SessionTokens,
   VerifyEmailRequest,
   VerifyOtpResponse,
 } from '@am/contracts';
@@ -23,7 +24,7 @@ import {
   passwordResetEmail,
   verificationEmail,
 } from '../email/email-templates';
-import { Credential, Session, User } from '../entities';
+import { Credential, User } from '../entities';
 import { identityError } from '../errors';
 import { IssuedChallenge, OtpChallenges } from '../otp/otp-challenges';
 import { isOtpCodeFormat } from '../otp/otp-code';
@@ -36,6 +37,7 @@ import {
   passwordNeedsRehash,
   verifyPassword,
 } from '../password/password-hasher';
+import { SessionService } from '../sessions/session.service';
 import { toUserDto } from '../users/user.mapper';
 
 type Outcome<T> = T | { error: IdentityErrorCode; details?: Record<string, unknown> };
@@ -57,6 +59,7 @@ export class EmailAuthService {
     private readonly email: EmailProvider,
     private readonly outbox: OutboxService,
     private readonly challenges: OtpChallenges,
+    private readonly sessions: SessionService,
   ) {}
 
   /**
@@ -144,7 +147,7 @@ export class EmailAuthService {
 
   /**
    * Confirms the address with the emailed code and the password chosen at registration. The
-   * account becomes real here, so `user.registered` is published.
+   * account becomes real here, so `user.registered` is published, and a session starts.
    */
   async verifyEmail(input: VerifyEmailRequest): Promise<VerifyOtpResponse> {
     const email = this.requireEmail(input.email);
@@ -155,7 +158,9 @@ export class EmailAuthService {
     }
 
     const outcome = await this.dataSource.transaction(
-      async (manager): Promise<Outcome<{ user: User; isNewUser: boolean }>> => {
+      async (
+        manager,
+      ): Promise<Outcome<{ user: User; isNewUser: boolean; session: SessionTokens }>> => {
         const checked = await this.challenges.check(manager, {
           target: email,
           purposes: ['signup'],
@@ -190,12 +195,16 @@ export class EmailAuthService {
           );
         }
         await this.challenges.consume(manager, checked.challenge.id);
-        return { user, isNewUser };
+        return { user, isNewUser, session: await this.sessions.start(manager, user, input) };
       },
     );
 
     if ('error' in outcome) throw identityError(outcome.error, outcome.details);
-    return { user: toUserDto(outcome.user), isNewUser: outcome.isNewUser };
+    return {
+      user: toUserDto(outcome.user),
+      isNewUser: outcome.isNewUser,
+      session: outcome.session,
+    };
   }
 
   /**
@@ -235,7 +244,10 @@ export class EmailAuthService {
         { secretHash: await hashPassword(password) },
       );
     }
-    return { user: toUserDto(user) };
+    return {
+      user: toUserDto(user),
+      session: await this.sessions.start(this.dataSource.manager, user, input),
+    };
   }
 
   /**
@@ -267,7 +279,10 @@ export class EmailAuthService {
     return this.codeResponse(email, result?.issued ?? null, resendAfterSeconds);
   }
 
-  /** Sets a new password with the emailed code and signs every existing session out. */
+  /**
+   * Sets a new password with the emailed code, signs every existing session out and starts a
+   * fresh one for the person who just reset it.
+   */
   async resetPassword(input: ResetPasswordRequest): Promise<AuthenticatedUserResponse> {
     const email = this.requireEmail(input.email);
     if (!isOtpCodeFormat(input.code)) throw identityError(IdentityErrors.otpInvalid);
@@ -275,7 +290,7 @@ export class EmailAuthService {
     const secretHash = await hashPassword(input.newPassword);
 
     const outcome = await this.dataSource.transaction(
-      async (manager): Promise<Outcome<{ user: User }>> => {
+      async (manager): Promise<Outcome<{ user: User; session: SessionTokens }>> => {
         const checked = await this.challenges.check(manager, {
           target: email,
           purposes: ['reset'],
@@ -289,19 +304,15 @@ export class EmailAuthService {
 
         await this.setPassword(manager, user.id, secretHash);
         // Whoever knew the old password, or held a stolen session, is signed out.
-        await manager.update(
-          Session,
-          { userId: user.id, revokedAt: IsNull() },
-          { revokedAt: new Date() },
-        );
+        await this.sessions.revokeAllForUser(manager, user.id);
         await this.challenges.consume(manager, checked.challenge.id);
-        return { user };
+        return { user, session: await this.sessions.start(manager, user, input) };
       },
     );
 
     if ('error' in outcome) throw identityError(outcome.error, outcome.details);
     await this.loginLimiter.reset(email);
-    return { user: toUserDto(outcome.user) };
+    return { user: toUserDto(outcome.user), session: outcome.session };
   }
 
   private async setPassword(

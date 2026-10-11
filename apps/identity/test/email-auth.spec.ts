@@ -10,6 +10,8 @@ import { Credential, OtpChallenge, Session, User } from '../src/entities';
 import { OtpChallenges } from '../src/otp/otp-challenges';
 import { OtpRateLimiter } from '../src/otp/otp-rate-limiter';
 import { LoginRateLimiter, LoginRateLimits } from '../src/password/login-rate-limiter';
+import { hashRefreshToken } from '../src/sessions/refresh-token';
+import { SessionService } from '../src/sessions/session.service';
 import { createTestDatabase, TestDatabase } from './support/test-database';
 
 /** Captures emails instead of sending them, and can be told to fail. */
@@ -88,6 +90,7 @@ describe('email and password (Postgres + Redis)', () => {
       mail,
       new OutboxService('identity'),
       new OtpChallenges(`${randomUUID()}${randomUUID()}`),
+      new SessionService(db, `${randomUUID()}${randomUUID()}`),
     );
   };
 
@@ -368,12 +371,10 @@ describe('email and password (Postgres + Redis)', () => {
       const auth = serviceWith();
       const email = await verifiedAccount(auth);
       const user = await db.getRepository(User).findOneByOrFail({ email });
-      await db.getRepository(Session).save({
-        userId: user.id,
-        familyId: randomUUID(),
-        refreshTokenHash: randomUUID(),
-        expiresAt: new Date(Date.now() + 3600_000),
-      });
+      // Verifying the address signed in once; this is a second device.
+      await auth.login({ email, password });
+      const before = await db.getRepository(Session).findBy({ userId: user.id });
+      expect(before).toHaveLength(2);
 
       await auth.requestPasswordReset({ email });
       expect(mail.lastTo(email).subject).toBe('Reset your African Market password');
@@ -384,10 +385,16 @@ describe('email and password (Postgres + Redis)', () => {
       });
       expect(result.user.email).toBe(email);
 
+      // Every earlier session is signed out; the one the reset started is the only live one.
+      const after = await db.getRepository(Session).findBy({ userId: user.id });
+      const oldIds = before.map((s) => s.id);
+      expect(after.filter((s) => oldIds.includes(s.id)).every((s) => s.revokedAt)).toBe(true);
+      const live = after.filter((s) => !s.revokedAt);
+      expect(live).toHaveLength(1);
+      expect(live[0].refreshTokenHash).toBe(hashRefreshToken(result.session.refreshToken));
+
       await auth.login({ email, password: otherPassword });
       expect(await codeOf(auth.login({ email, password }))).toBe(IdentityErrors.invalidCredentials);
-      const session = await db.getRepository(Session).findOneByOrFail({ userId: user.id });
-      expect(session.revokedAt).toBeInstanceOf(Date);
     });
 
     it('answers the same for an unknown address and sends nothing', async () => {

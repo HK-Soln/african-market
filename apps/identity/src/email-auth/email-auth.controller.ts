@@ -28,14 +28,23 @@ const verifySchema = z.object({
   code: fields.code,
   password: fields.password,
   correlationId: fields.correlationId,
+  ip: fields.ip,
+  userAgent: fields.userAgent,
 });
 
-const loginSchema = z.object({ email: fields.email, password: fields.password, ip: fields.ip });
+const loginSchema = z.object({
+  email: fields.email,
+  password: fields.password,
+  ip: fields.ip,
+  userAgent: fields.userAgent,
+});
 
 const resetSchema = z.object({
   email: fields.email,
   code: fields.code,
   newPassword: fields.password,
+  ip: fields.ip,
+  userAgent: fields.userAgent,
 });
 
 @Controller()

@@ -51,6 +51,25 @@ Phase introduced: **0** (see `docs/directives/`).
   `EMAIL_PROVIDER=smtp` is Mailpit locally (inbox at http://localhost:8025) and SES through its SMTP
   endpoint in production; `ses` is a placeholder for the API adapter.
 
+## Sessions, tokens and the profile (F0-05)
+
+| Pattern (`IdentityPatterns`) | What it does                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------ |
+| `refreshSession`             | Swaps a refresh token for a new access and refresh token.                            |
+| `logout`                     | Signs out the device the refresh token belongs to. Same answer for an unknown token. |
+| `getMe`                      | The signed-in person and their shop memberships.                                     |
+| `updateMe`                   | Changes name, language, home emirate and marketing consent.                          |
+
+- Every sign-in returns `session`: an HS256 access token (15 minutes, signed with
+  `JWT_ACCESS_SECRET`, which the gateway shares) and an opaque refresh token (32 random bytes, 30
+  days). Only the SHA-256 of the refresh token is stored.
+- A refresh token works once. Using it creates the next one in the same family; a replaced token
+  that comes back more than 10 seconds later signs the whole family out (`SESSION_REUSED`). The 10
+  seconds let two tabs refresh at the same moment.
+- The access token carries `sub`, `roles`, `shops` and `locale`, read from the database each time
+  one is issued, so role and membership changes arrive at the next refresh.
+- A suspended user cannot refresh, and trying signs that session out.
+
 Rules: never read another service's schema; publish events through `OutboxService.enqueue` inside
 the same transaction as the change; wrap every consumer in `IdempotentConsumer.handle`; add new
 request patterns to `libs/contracts/src/patterns.ts` before writing the handler.

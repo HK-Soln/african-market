@@ -22,4 +22,7 @@ export const fields = {
   locale: z.string().max(8).optional(),
   ip: z.string().max(64).optional(),
   correlationId: z.string().max(128).optional(),
+  userAgent: z.string().max(2048).optional(),
+  refreshToken: z.string().min(1).max(256),
+  userId: z.string().uuid(),
 };

@@ -7,7 +7,9 @@ import { EmailAuthModule } from './email-auth/email-auth.module';
 import { EmailModule } from './email/email.module';
 import { OtpModule } from './otp/otp.module';
 import { RedisModule } from './redis/redis.module';
+import { SessionModule } from './sessions/session.module';
 import { SmsModule } from './sms/sms.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -16,8 +18,10 @@ import { SmsModule } from './sms/sms.module';
     RedisModule,
     SmsModule,
     EmailModule,
+    SessionModule,
     OtpModule,
     EmailAuthModule,
+    UsersModule,
   ],
 })
 export class AppModule implements OnModuleInit {

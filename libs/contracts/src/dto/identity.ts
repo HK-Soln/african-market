@@ -39,6 +39,9 @@ export interface VerifyOtpRequest {
   marketingConsent?: boolean;
   /** Request id from the gateway, carried onto the `user.registered` event. */
   correlationId?: string;
+  /** Recorded on the session that a successful call starts. */
+  ip?: string;
+  userAgent?: string;
 }
 
 export interface UserDto {
@@ -50,14 +53,33 @@ export interface UserDto {
   roles: Array<'customer' | 'seller' | 'admin'>;
   phoneVerified: boolean;
   emailVerified: boolean;
+  /** Emirate code (`DXB`, `AUH`, ...) the person chose as home, or null. */
+  homeEmirate: string | null;
+  marketingConsent: boolean;
   /** ISO-8601 UTC. */
   createdAt: string;
+}
+
+/**
+ * What a sign-in hands back. The gateway puts both tokens in httpOnly cookies; the refresh token
+ * never reaches page scripts.
+ */
+export interface SessionTokens {
+  /** HS256 JWT carrying `AccessTokenClaims`; 15 minutes. */
+  accessToken: string;
+  /** ISO-8601 UTC. */
+  accessTokenExpiresAt: string;
+  /** Opaque and single use: every refresh returns a new one. 30 days. */
+  refreshToken: string;
+  /** ISO-8601 UTC. */
+  refreshTokenExpiresAt: string;
 }
 
 export interface VerifyOtpResponse {
   user: UserDto;
   /** True when this verification created the account. */
   isNewUser: boolean;
+  session: SessionTokens;
 }
 
 /** Stable error codes returned by identity; frontends map them to translated messages. */
@@ -82,6 +104,11 @@ export const IdentityErrors = {
   emailNotVerified: 'EMAIL_NOT_VERIFIED',
   loginRateLimited: 'LOGIN_RATE_LIMITED',
   emailSendFailed: 'EMAIL_SEND_FAILED',
+  /** The refresh token is unknown, expired or signed out; sign in again. */
+  sessionInvalid: 'SESSION_INVALID',
+  /** An already-used refresh token came back, so every session in its family was signed out. */
+  sessionReused: 'SESSION_REUSED',
+  userNotFound: 'USER_NOT_FOUND',
 } as const;
 
 export type IdentityErrorCode = (typeof IdentityErrors)[keyof typeof IdentityErrors];
@@ -131,16 +158,20 @@ export interface VerifyEmailRequest {
   password: string;
   /** Request id from the gateway, carried onto the `user.registered` event. */
   correlationId?: string;
+  ip?: string;
+  userAgent?: string;
 }
 
 export interface LoginWithPasswordRequest {
   email: string;
   password: string;
   ip?: string;
+  userAgent?: string;
 }
 
 export interface AuthenticatedUserResponse {
   user: UserDto;
+  session: SessionTokens;
 }
 
 export interface RequestPasswordResetRequest {
@@ -153,8 +184,55 @@ export interface ResetPasswordRequest {
   email: string;
   code: string;
   newPassword: string;
+  ip?: string;
+  userAgent?: string;
 }
 
 export const PASSWORD_MIN_LENGTH = 10;
 /** Upper bound so a huge password cannot be used to tie up the hashing. */
 export const PASSWORD_MAX_LENGTH = 128;
+
+// ---- Sessions and profile (F0-05)
+
+export interface RefreshSessionRequest {
+  refreshToken: string;
+  ip?: string;
+  userAgent?: string;
+}
+
+export interface LogoutRequest {
+  refreshToken: string;
+}
+
+/** Always the same, whether or not the token was a live session. */
+export interface LogoutResponse {
+  loggedOut: true;
+}
+
+export interface GetMeRequest {
+  userId: string;
+}
+
+export interface ShopMembershipDto {
+  shopId: string;
+  role: 'owner' | 'manager' | 'staff';
+  /** Empty means every branch. */
+  branchIds: string[];
+}
+
+export interface MeResponse {
+  user: UserDto;
+  shops: ShopMembershipDto[];
+}
+
+/** Only the fields present are changed. Phone and email change through their own verified flows. */
+export interface UpdateMeRequest {
+  userId: string;
+  /** Null or an empty string clears the name. */
+  name?: string | null;
+  preferredLanguage?: string;
+  /** Emirate code, or null to clear it. */
+  homeEmirate?: string | null;
+  /** True records consent now; false withdraws it. */
+  marketingConsent?: boolean;
+}

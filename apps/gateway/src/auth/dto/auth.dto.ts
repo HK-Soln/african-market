@@ -13,7 +13,7 @@ export class RequestOtpDto {
   @MaxLength(32)
   phone!: string;
 
-  @ApiPropertyOptional({ enum: ['whatsapp', 'sms'], default: 'whatsapp' })
+  @ApiPropertyOptional({ enum: ['whatsapp', 'sms'], description: 'WhatsApp when left out.' })
   @IsOptional()
   @IsIn(['whatsapp', 'sms'])
   channel?: 'whatsapp' | 'sms';

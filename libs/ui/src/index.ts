@@ -1,3 +1,4 @@
+export * from './auth';
 export * from './badge';
 export * from './button';
 export * from './chip';

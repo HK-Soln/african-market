@@ -38,14 +38,22 @@ export class OutboxService {
   }
 }
 
+/** Published rows are kept this long, for tracing what was sent, then deleted. */
+export const OUTBOX_RETENTION_DAYS = 7;
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+
 /**
  * Polls the outbox and publishes unpublished rows. Safe with several replicas:
  * rows are claimed with FOR UPDATE SKIP LOCKED.
+ *
+ * Delivery is at least once. A row is marked published only after the broker has confirmed it;
+ * if the service stops between the two, the event is published again on the next tick.
  */
 @Injectable()
 export class OutboxRelay implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(OutboxRelay.name);
   private timer?: NodeJS.Timeout;
+  private cleanupTimer?: NodeJS.Timeout;
   private running = false;
 
   constructor(
@@ -56,12 +64,18 @@ export class OutboxRelay implements OnApplicationBootstrap, OnModuleDestroy {
   onApplicationBootstrap(): void {
     const interval = Number(process.env.OUTBOX_POLL_MS ?? 500);
     this.timer = setInterval(() => void this.tick(), interval);
+    this.cleanupTimer = setInterval(() => void this.cleanup(), CLEANUP_INTERVAL_MS);
+    // Housekeeping must never be what keeps a stopping process alive.
+    this.cleanupTimer.unref();
+    void this.cleanup();
   }
 
   onModuleDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    if (this.cleanupTimer) clearInterval(this.cleanupTimer);
   }
 
+  /** Publishes the oldest unpublished rows and returns how many went out. */
   async tick(batchSize = 100): Promise<number> {
     if (this.running) return 0;
     this.running = true;
@@ -76,21 +90,50 @@ export class OutboxRelay implements OnApplicationBootstrap, OnModuleDestroy {
           .setLock('pessimistic_write')
           .setOnLocked('skip_locked')
           .getMany();
+        let published = 0;
         for (const row of rows) {
-          await this.bus.publish(row.envelope as unknown as EventEnvelope);
+          try {
+            await this.bus.publish(row.envelope as unknown as EventEnvelope);
+          } catch (err) {
+            // Stop here and keep what did go out: throwing would roll those rows back to
+            // "unpublished" and send them all a second time. Order is kept for the next tick.
+            await manager.increment(OutboxMessage, { id: row.id }, 'attempts', 1);
+            this.logger.warn(`Outbox publish failed, will retry: ${(err as Error).message}`);
+            break;
+          }
           await manager.update(
             OutboxMessage,
             { id: row.id },
             { publishedAt: new Date(), attempts: row.attempts + 1 },
           );
+          published++;
         }
-        return rows.length;
+        return published;
       });
     } catch (err) {
       this.logger.warn(`Outbox relay tick failed: ${(err as Error).message}`);
       return 0;
     } finally {
       this.running = false;
+    }
+  }
+
+  /** Deletes rows published more than `olderThanDays` ago. Unpublished rows are never touched. */
+  async cleanup(olderThanDays = OUTBOX_RETENTION_DAYS): Promise<number> {
+    try {
+      const result = await this.dataSource
+        .createQueryBuilder()
+        .delete()
+        .from(OutboxMessage)
+        .where('published_at IS NOT NULL')
+        .andWhere('published_at < now() - make_interval(days => :days)', { days: olderThanDays })
+        .execute();
+      const removed = result.affected ?? 0;
+      if (removed > 0) this.logger.log(`Outbox cleanup removed ${removed} published rows`);
+      return removed;
+    } catch (err) {
+      this.logger.warn(`Outbox cleanup failed: ${(err as Error).message}`);
+      return 0;
     }
   }
 }

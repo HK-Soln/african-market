@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EVENTS_EXCHANGE } from '@am/contracts';
 
 /** Variables every backend process needs. Services extend this with their own keys. */
 export const baseEnvSchema = z.object({
@@ -7,6 +8,16 @@ export const baseEnvSchema = z.object({
   DATABASE_URL: z.string().url().default('postgres://am:am@localhost:5432/african_market'),
   RABBITMQ_URL: z.string().default('amqp://am:am@localhost:5672'),
   REDIS_URL: z.string().default('redis://localhost:6379'),
+  /** The topic exchange events are published to. Only tests change it, to stay out of the way. */
+  EVENTS_EXCHANGE: z.string().min(1).default(EVENTS_EXCHANGE),
+  /**
+   * How long a failed event waits before each new try, in ms. When the list runs out the event
+   * goes to the dead-letter queue: by default three retries, after 5 s, 30 s and 2 min.
+   */
+  EVENT_RETRY_DELAYS_MS: z
+    .string()
+    .regex(/^\d+(,\d+)*$/)
+    .default('5000,30000,120000'),
 });
 
 export type BaseEnv = z.infer<typeof baseEnvSchema>;

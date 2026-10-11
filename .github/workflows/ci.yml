@@ -27,7 +27,7 @@ jobs:
     # Integration tests in apps/*/test run under `nx test`. They create their own throwaway
     # databases on this Postgres (so geo and constraint behaviour is tested on real PostGIS) and
     # use their own key prefix on this Redis (rate limits). Mailpit receives the emails the SMTP
-    # adapter sends.
+    # adapter sends. The event bus and outbox tests use their own exchange and queues on RabbitMQ.
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -52,11 +52,23 @@ jobs:
       mailpit:
         image: axllent/mailpit:latest
         ports: ['1025:1025', '8025:8025']
+      rabbitmq:
+        image: rabbitmq:3.13-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: am
+          RABBITMQ_DEFAULT_PASS: am
+        ports: ['5672:5672']
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 12
     env:
       DATABASE_URL: postgres://am:am@localhost:5432/african_market
       REDIS_URL: redis://localhost:6379
       SMTP_URL: smtp://localhost:1025
       MAILPIT_URL: http://localhost:8025
+      RABBITMQ_URL: amqp://am:am@localhost:5672
     steps:
       - name: Checkout
         uses: actions/checkout@v7

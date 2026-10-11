@@ -241,6 +241,29 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     });
   });
 
+  describe('test-only support', () => {
+    it('serves the code route under NODE_ENV=test, which this run is', async () => {
+      const res = await http().get('/api/v1/test/otp').query({ phone: '+971501234567' });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ code: FAKE_OTP_CODE });
+    });
+
+    it('loads no test-only module under any other NODE_ENV', async () => {
+      const { testSupportModules } = await import('../src/test-support/test-support.module');
+      for (const env of ['development', 'staging', 'production', '', undefined]) {
+        expect(testSupportModules(env)).toEqual([]);
+      }
+      expect(testSupportModules('test')).toHaveLength(1);
+    });
+
+    it('keeps the route out of the published API description', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { join } = await import('node:path');
+      const spec = readFileSync(join(__dirname, '..', 'openapi.json'), 'utf8');
+      expect(spec).not.toContain('/api/v1/test/');
+    });
+  });
+
   describe('errors and limits', () => {
     it('answers an unknown route in the same error shape', async () => {
       const res = await http().get('/api/v1/nope').expect(404);

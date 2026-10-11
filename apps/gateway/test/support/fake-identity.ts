@@ -7,6 +7,7 @@ import {
   AuthenticatedUserResponse,
   IdentityErrors,
   IdentityPatterns,
+  IdentityTestPatterns,
   MeResponse,
   RequestOtpResponse,
   SessionTokens,
@@ -54,6 +55,12 @@ export class FakeIdentityController {
       expiresAt: new Date(Date.now() + 300_000).toISOString(),
       resendAfterSeconds: 30,
     };
+  }
+
+  @MessagePattern(IdentityTestPatterns.lastOtp)
+  lastOtp(@Payload() data: Data): { code: string | null } {
+    this.record(IdentityTestPatterns.lastOtp, data);
+    return { code: FAKE_OTP_CODE };
   }
 
   @MessagePattern(IdentityPatterns.verifyOtp)

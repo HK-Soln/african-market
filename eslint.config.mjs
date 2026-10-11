@@ -8,6 +8,9 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/.next/**',
+      '**/.next-e2e/**',
+      'e2e/test-results/**',
+      'e2e/playwright-report/**',
       '**/node_modules/**',
       '**/coverage/**',
       '**/*.js',

@@ -9,6 +9,7 @@ import { OtpModule } from './otp/otp.module';
 import { RedisModule } from './redis/redis.module';
 import { SessionModule } from './sessions/session.module';
 import { SmsModule } from './sms/sms.module';
+import { testSupportModules } from './test-support/test-support.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { UsersModule } from './users/users.module';
     OtpModule,
     EmailAuthModule,
     UsersModule,
+    ...testSupportModules(process.env.NODE_ENV),
   ],
 })
 export class AppModule implements OnModuleInit {

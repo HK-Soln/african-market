@@ -11,8 +11,11 @@ export const identityEnvSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32).default(DEV_ACCESS_SECRET),
   /** Key for the HMAC that turns a one-time code into the stored hash. */
   OTP_HMAC_SECRET: z.string().min(32).default(DEV_OTP_SECRET),
-  /** `console` prints the message to stdout and is refused outside development and test. */
-  SMS_PROVIDER: z.enum(['console', 'twilio']).default('console'),
+  /**
+   * `console` prints the message to stdout and is refused outside development and test.
+   * `memory` keeps it for end-to-end tests to read and is refused unless NODE_ENV=test.
+   */
+  SMS_PROVIDER: z.enum(['console', 'memory', 'twilio']).default('console'),
   /** `smtp` is Mailpit locally and also reaches SES through its SMTP endpoint. */
   EMAIL_PROVIDER: z.enum(['smtp', 'ses']).default('smtp'),
   SMTP_URL: z.string().default('smtp://localhost:1025'),
@@ -26,6 +29,10 @@ const isDeployed = (env: IdentityEnv): boolean =>
 
 /** Fails fast on settings that are only acceptable on a developer machine. */
 export function assertSafeIdentityEnv(env: IdentityEnv): void {
+  if (env.SMS_PROVIDER === 'memory' && env.NODE_ENV !== 'test')
+    throw new Error(
+      'SMS_PROVIDER=memory exposes codes to the test endpoint; it needs NODE_ENV=test',
+    );
   if (!isDeployed(env)) return;
   if (env.JWT_ACCESS_SECRET === DEV_ACCESS_SECRET)
     throw new Error('JWT_ACCESS_SECRET must be set to a real secret in staging and production');

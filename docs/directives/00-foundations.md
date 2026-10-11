@@ -242,12 +242,29 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: only published outbox rows are cleaned up (hourly, older than 7 days). `processed_event`
   > rows are kept: deleting one would let a late duplicate through.
 
-- [ ] **F0-11 Testing infrastructure** (no dependency)
+- [x] **F0-11 Testing infrastructure** (no dependency)
       Testcontainers helper in `libs/database/src/testing` (start PostGIS, run a service's migrations,
       return a DataSource). Playwright project at `e2e/` with a fixture that signs in through the API,
       running against `pnpm dev` locally and staging in CI. First e2e: sign up by phone OTP in `/en` and
       `/ar` (read the OTP from the console SMS provider via a test-only endpoint enabled only when
       `NODE_ENV=test`).
+
+  > Note: `createTestDatabase` (`@am/database/testing`) starts one PostGIS container per test run
+  > through Jest's global setup, and gives each test file its own migrated database. Identity's
+  > tests and the outbox tests use it. `TEST_DATABASE_URL` skips the container and uses a server
+  > that is already running. RabbitMQ, Redis and Mailpit still come from `pnpm infra:up` or CI
+  > service containers.
+  > Note: the e2e stack runs on its own ports with `NODE_ENV=test`, so it runs beside `pnpm dev`
+  > rather than against it: `pnpm dev` runs as development, where the code route must not exist.
+  > How to run and write tests is in `e2e/README.md`.
+  > Note: the route that returns a code is registered only under `NODE_ENV=test`, in the gateway
+  > and in identity, and identity refuses `SMS_PROVIDER=memory` under any other `NODE_ENV`. So the
+  > tests cannot sign up on staging as written. F0-14 has to decide how they will (for example a
+  > fixed code for an allow-listed test number); that is a security decision for the owner.
+  > Note: CI runs the e2e tests on the runner in a new job, `E2E (Playwright)`, which is not a
+  > required check yet. Three tests: sign up in `/en`, in `/ar`, and sign out.
+  > Note: the backend moved to zod 4 (decision T-18). Installing `@serwist/next` had left two zod
+  > versions, and locally the web app picked the wrong one and would not start.
 
 - [ ] **F0-12 Containers** (depends on F0-01)
       One multi-stage Dockerfile for Nest services (build arg `APP`) and one for Next apps (standalone

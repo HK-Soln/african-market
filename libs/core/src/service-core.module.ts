@@ -2,7 +2,7 @@ import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { APP_ENV, baseEnvSchema, loadEnv, SERVICE_NAME } from './env';
+import { APP_ENV, BaseEnv, baseEnvSchema, loadEnv, SERVICE_NAME } from './env';
 import { EventBus } from './event-bus';
 import { HealthController, HealthService } from './health';
 
@@ -10,7 +10,7 @@ export interface ServiceCoreOptions {
   /** Service name, e.g. 'identity'. Used for logs, queues and health. */
   name: string;
   /** Extra env keys this service needs, merged into the base schema. */
-  envSchema?: z.AnyZodObject;
+  envSchema?: z.ZodObject;
 }
 
 /**
@@ -22,8 +22,11 @@ export interface ServiceCoreOptions {
 @Module({})
 export class ServiceCoreModule {
   static forRoot(options: ServiceCoreOptions): DynamicModule {
-    const schema = options.envSchema ? baseEnvSchema.merge(options.envSchema) : baseEnvSchema;
-    const env = loadEnv(schema);
+    const schema = options.envSchema
+      ? baseEnvSchema.extend(options.envSchema.shape)
+      : baseEnvSchema;
+    // Whatever a service adds, the base keys are always there; this module only reads those.
+    const env: BaseEnv = loadEnv(schema) as BaseEnv;
     return {
       module: ServiceCoreModule,
       imports: [

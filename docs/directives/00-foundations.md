@@ -105,12 +105,27 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: a hand-written migration adds the `reset` OTP purpose (TypeORM does not detect a changed
   > CHECK). Verification and reset codes have separate resend timers. The HTTP routes are F0-06.
 
-- [ ] **F0-05 Sessions and tokens** (depends on F0-03)
+- [x] **F0-05 Sessions and tokens** (depends on F0-03)
       Access token: HS256 JWT with `AccessTokenClaims` from `@am/auth` (sub, roles, shops memberships,
       locale), 15 minutes, secret `JWT_ACCESS_SECRET` shared with the gateway. Refresh token: 32 random
       bytes, stored hashed in `session`, 30 days, rotated on every refresh; reuse of a rotated token
       revokes the whole family. Patterns `refreshSession`, `logout`, `getMe`, `updateMe`. Memberships in
       the token are refreshed on each refresh (and after `membership.changed`).
+
+  > Note: every sign-in (`verifyOtp`, `verifyEmail`, `loginWithPassword`, `resetPassword`) now
+  > returns `session` with both tokens; the gateway turns them into cookies in F0-06.
+  > Note: a replaced refresh token is accepted once more for 10 seconds, so two tabs refreshing
+  > at the same moment do not sign the person out everywhere. After that, reuse revokes the
+  > family. The 30 days restart at each refresh. Signing out revokes that device's family only;
+  > a password reset revokes every session and starts a fresh one.
+  > Note: the access token is rebuilt from the database at each refresh, so a new role or shop
+  > membership reaches the browser within 15 minutes. Nothing writes `shop_member` yet: the
+  > `shop.created` consumer and the `membership.changed` publisher arrive with shops (Phase 1).
+  > Note: `updateMe` changes name, language, home emirate and marketing consent. `home_emirate`
+  > is a new column, added for the profile screen in the design. Changing phone or email is not
+  > here; each needs its own verified flow.
+  > Note: identity now reads `JWT_ACCESS_SECRET` and refuses to start in staging or production
+  > with the development value. SMTP sends give up after 10 to 15 seconds instead of minutes.
 
 - [ ] **F0-06 Gateway auth module** (depends on F0-05)
       `apps/gateway/src/auth`: `POST /auth/otp/request`, `POST /auth/otp/verify`, `POST /auth/register`,

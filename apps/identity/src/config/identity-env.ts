@@ -3,9 +3,12 @@ import { BaseEnv } from '@am/core';
 
 /** Local-only default; staging and production must set their own secret. */
 const DEV_OTP_SECRET = 'dev-only-otp-hmac-secret-change-me-0123456789';
+const DEV_ACCESS_SECRET = 'dev-only-access-secret-change-me-0123456789';
 
 /** Environment the identity service needs on top of the base keys. */
 export const identityEnvSchema = z.object({
+  /** Signs access tokens. The gateway verifies them with the same value (decision T-11). */
+  JWT_ACCESS_SECRET: z.string().min(32).default(DEV_ACCESS_SECRET),
   /** Key for the HMAC that turns a one-time code into the stored hash. */
   OTP_HMAC_SECRET: z.string().min(32).default(DEV_OTP_SECRET),
   /** `console` prints the message to stdout and is refused outside development and test. */
@@ -24,6 +27,8 @@ const isDeployed = (env: IdentityEnv): boolean =>
 /** Fails fast on settings that are only acceptable on a developer machine. */
 export function assertSafeIdentityEnv(env: IdentityEnv): void {
   if (!isDeployed(env)) return;
+  if (env.JWT_ACCESS_SECRET === DEV_ACCESS_SECRET)
+    throw new Error('JWT_ACCESS_SECRET must be set to a real secret in staging and production');
   if (env.OTP_HMAC_SECRET === DEV_OTP_SECRET)
     throw new Error('OTP_HMAC_SECRET must be set to a real secret in staging and production');
   if (env.SMS_PROVIDER === 'console')

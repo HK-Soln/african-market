@@ -6,6 +6,7 @@ import { APP_ENV } from '@am/core';
 import { OutboxService } from '@am/database';
 import { IdentityEnv } from '../config/identity-env';
 import { REDIS } from '../redis/redis.module';
+import { SessionService } from '../sessions/session.service';
 import { SMS_PROVIDER, SmsProvider } from '../sms/sms-provider';
 import { OtpChallenges } from './otp-challenges';
 import { OtpRateLimiter } from './otp-rate-limiter';
@@ -29,14 +30,22 @@ import { OtpService } from './otp.service';
     },
     {
       provide: OtpService,
-      inject: [getDataSourceToken(), OtpRateLimiter, SMS_PROVIDER, OutboxService, OtpChallenges],
+      inject: [
+        getDataSourceToken(),
+        OtpRateLimiter,
+        SMS_PROVIDER,
+        OutboxService,
+        OtpChallenges,
+        SessionService,
+      ],
       useFactory: (
         dataSource: DataSource,
         limiter: OtpRateLimiter,
         sms: SmsProvider,
         outbox: OutboxService,
         challenges: OtpChallenges,
-      ) => new OtpService(dataSource, limiter, sms, outbox, challenges),
+        sessions: SessionService,
+      ) => new OtpService(dataSource, limiter, sms, outbox, challenges, sessions),
     },
   ],
   exports: [OtpRateLimiter, OtpChallenges],

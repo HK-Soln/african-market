@@ -7,6 +7,7 @@ import { OtpChallenge, User } from '../src/entities';
 import { OtpChallenges } from '../src/otp/otp-challenges';
 import { OtpRateLimiter, OtpRateLimits } from '../src/otp/otp-rate-limiter';
 import { OtpService } from '../src/otp/otp.service';
+import { SessionService } from '../src/sessions/session.service';
 import { SmsMessage, SmsProvider } from '../src/sms/sms-provider';
 import { createTestDatabase, TestDatabase } from './support/test-database';
 
@@ -85,6 +86,7 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       sms,
       new OutboxService('identity'),
       new OtpChallenges(hmacKey),
+      new SessionService(db, hmacKey),
     );
 
   const registeredEvents = async (userId: string) =>

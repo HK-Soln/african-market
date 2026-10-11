@@ -3,6 +3,9 @@ import { IdentityErrorCode, IdentityErrors } from '@am/contracts';
 
 const STATUS: Partial<Record<IdentityErrorCode, number>> = {
   [IdentityErrors.invalidCredentials]: 401,
+  [IdentityErrors.sessionInvalid]: 401,
+  [IdentityErrors.sessionReused]: 401,
+  [IdentityErrors.userNotFound]: 404,
   [IdentityErrors.userSuspended]: 403,
   [IdentityErrors.emailNotVerified]: 403,
   [IdentityErrors.otpTooManyAttempts]: 429,
@@ -32,6 +35,9 @@ const MESSAGE: Record<IdentityErrorCode, string> = {
   [IdentityErrors.emailNotVerified]: 'This email address has not been verified yet',
   [IdentityErrors.loginRateLimited]: 'Too many sign-in attempts; try again later',
   [IdentityErrors.emailSendFailed]: 'The email could not be sent',
+  [IdentityErrors.sessionInvalid]: 'The session has ended; sign in again',
+  [IdentityErrors.sessionReused]: 'This session was used twice and has been signed out',
+  [IdentityErrors.userNotFound]: 'No such user',
 };
 
 /** The one place identity turns an error code into what goes back over TCP. */

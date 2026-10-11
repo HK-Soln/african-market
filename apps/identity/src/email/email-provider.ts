@@ -29,7 +29,13 @@ export class SmtpEmailProvider implements EmailProvider {
     smtpUrl: string,
     private readonly from: string,
   ) {
-    this.transport = createTransport(smtpUrl);
+    // Nodemailer waits minutes by default; a sign-up must fail fast when the mail server is down.
+    this.transport = createTransport({
+      url: smtpUrl,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
+    });
   }
 
   async send(message: EmailMessage): Promise<void> {

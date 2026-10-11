@@ -31,6 +31,15 @@ export class ServiceCoreModule {
           pinoHttp: {
             level: env.LOG_LEVEL,
             name: options.name,
+            // Request logs must never carry a session: these hold the access and refresh tokens.
+            redact: {
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'res.headers["set-cookie"]',
+              ],
+              censor: '[redacted]',
+            },
             genReqId: (req) => (req.headers['x-request-id'] as string) ?? randomUUID(),
             transport:
               env.NODE_ENV === 'development'

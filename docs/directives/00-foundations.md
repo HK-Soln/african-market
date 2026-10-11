@@ -127,13 +127,30 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: identity now reads `JWT_ACCESS_SECRET` and refuses to start in staging or production
   > with the development value. SMTP sends give up after 10 to 15 seconds instead of minutes.
 
-- [ ] **F0-06 Gateway auth module** (depends on F0-05)
+- [x] **F0-06 Gateway auth module** (depends on F0-05)
       `apps/gateway/src/auth`: `POST /auth/otp/request`, `POST /auth/otp/verify`, `POST /auth/register`,
       `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /me`, `PATCH /me`. Set
       `am_at` (access, 15 min) and `am_rt` (refresh, path `/api/v1/auth`, 30 days) as httpOnly, Secure
       in non-dev, SameSite=Lax cookies; also return the access token in the body for future native apps.
       Named throttles on OTP and login routes. DTOs with class-validator and Swagger decorators.
       Regenerate `@am/api-client`. Integration test of the full OTP flow through the gateway.
+
+  > Note: the email flow needs four more routes than the list above, so they are here too:
+  > `POST /auth/email/resend`, `/auth/email/verify`, `/auth/password/forgot` and
+  > `/auth/password/reset`.
+  > Note: the body of a sign-in carries the access token but never the refresh token, which only
+  > travels in its cookie. A native app will need its own way to hold one (Phase 4).
+  > Note: every error now leaves the gateway as `{ statusCode, code, message, details? }`, including
+  > validation (`VALIDATION_FAILED`), throttling (`RATE_LIMITED`) and unknown routes.
+  > Note: the per-route throttles (5 a minute to send a code, 10 to check one or sign in) are per
+  > IP and held in memory by each gateway instance. They blunt bursts; the limits that matter are
+  > identity's, in Redis. `TRUST_PROXY_HOPS` must be set to 1 behind the load balancer (F0-13) or
+  > every caller will share the balancer's IP. `COOKIE_DOMAIN` is for the deployed subdomains.
+  > Note: the integration test runs HTTP -> gateway -> TCP -> a stand-in identity service, because
+  > an app may not import another app. The real pair was checked by hand; an automated test across
+  > both arrives with F0-11.
+  > Note: request logs now redact the `Authorization`, `Cookie` and `Set-Cookie` headers in every
+  > service. Without that, the gateway's logs held live tokens.
 
 - [x] **F0-07 Design system** (no dependency)
       Replace placeholder brand tokens in `libs/ui/theme.css` (ask the human for brand colours and logo;

@@ -14,3 +14,7 @@ coverage
 next-env.d.ts
 infra/terraform/**/.terraform
 infra/terraform/**/*.tfstate*
+# Built from apps/web/src/sw.ts by @serwist/next
+apps/web/public/sw.js
+apps/web/public/sw.js.map
+apps/web/public/swe-worker-*.js

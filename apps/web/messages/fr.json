@@ -135,5 +135,17 @@
     "privacyTitle": "Politique de confidentialité",
     "pending": "Ce document est en cours de finalisation et sera publié ici avant le lancement.",
     "backHome": "Retour à l’accueil"
+  },
+  "offline": {
+    "title": "Vous êtes hors ligne",
+    "body": "Cette page nécessite une connexion. Nous vous y ramènerons dès votre retour en ligne.",
+    "retry": "Réessayer"
+  },
+  "install": {
+    "title": "Ajoutez African Market à votre écran d’accueil",
+    "body": "Plus rapide, disponible hors ligne et presque aucun espace utilisé.",
+    "close": "Fermer",
+    "install": "Installer",
+    "later": "Plus tard"
   }
 }

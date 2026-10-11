@@ -135,5 +135,17 @@
     "privacyTitle": "Privacy policy",
     "pending": "This document is being finalised and will be published here before launch.",
     "backHome": "Back to the home page"
+  },
+  "offline": {
+    "title": "You’re offline",
+    "body": "This page needs a connection. We’ll bring you back as soon as you’re online again.",
+    "retry": "Retry"
+  },
+  "install": {
+    "title": "Add African Market to your home screen",
+    "body": "It opens faster, works offline and takes up almost no space.",
+    "close": "Dismiss",
+    "install": "Install",
+    "later": "Not now"
   }
 }

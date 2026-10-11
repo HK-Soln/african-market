@@ -4,9 +4,9 @@
   "private": true,
   "description": "Manage your shop, branches, products and orders",
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start -p 3001",
+    "dev": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3001",
+    "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
+    "start": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next start -p 3001",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "echo \"no unit tests yet\""

@@ -434,7 +434,7 @@
               "whatsapp",
               "sms"
             ],
-            "default": "whatsapp"
+            "description": "WhatsApp when left out."
           }
         },
         "required": [

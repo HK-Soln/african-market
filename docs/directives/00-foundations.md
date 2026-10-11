@@ -172,11 +172,32 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: the country picker sheet behind PhoneInput, and flag images in place of emoji flags
   > (which show as letters on Windows), are left for F0-08 and Phase 1.
 
-- [ ] **F0-08 Auth screens in web and seller** (depends on F0-06, F0-07)
+- [x] **F0-08 Auth screens in web and seller** (depends on F0-06, F0-07)
       Sign up / sign in with phone OTP (primary) and email (secondary), consent checkboxes (terms and
       privacy, optional marketing) recorded on the user, profile completion (name, preferred language).
       Seller app requires sign-in and grants the `seller` role on first shop creation (Phase 1).
       Language preference syncs with the URL locale. Every string in en/ar/fr.
+
+  > Note: built from the SignIn, Otp and Profile screens of the Customer app design. The flow is
+  > one shared component, `AuthFlow` in `@am/ui`; each app gives it its words, its API calls and
+  > its navigation, at `/<locale>/sign-in`.
+  > Note: a new phone account is created on the profile screen, where the terms box is, not when
+  > the code is checked. The checked code is held in memory until then; if it runs out (5
+  > minutes) the person is sent back for a new one.
+  > Note: left out on purpose: passkey, Google and Apple buttons (Phase 1 does Google and
+  > Facebook, decision P-10) and "Send by SMS instead" (SMS may be dropped, decision P-09).
+  > The email screens (sign in, register, forgot and reset password) have no design yet and
+  > follow the same system.
+  > Note: the Terms and Privacy policy links lead to placeholder pages in `apps/web`. The real
+  > text is a non-engineering task and must be in place before launch (F0-16).
+  > Note: signing in moves the person to their account's language; changing language while
+  > signed in saves it to the account. The session is checked in the browser (`SessionProvider`):
+  > the refresh cookie is only sent to the gateway, so Next's server cannot renew a session.
+  > The seller app's gate is therefore in the browser too; the gateway protects the data.
+  > Note: the header account control is an icon on phones, and the logo is the mark alone, because
+  > the wordmark, a sign-in button and the language switcher do not fit in 390px.
+  > Note: fixed in passing: text and phone fields overflowed the screen in Arabic (the fix is in
+  > `@am/ui`, and belongs in the design system's stylesheet too).
 
 - [ ] **F0-09 PWA shell** (depends on F0-07)
       Replace `apps/web/public/sw.js` with a Serwist build (`@serwist/next`): precache the app shell,

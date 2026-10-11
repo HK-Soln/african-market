@@ -235,10 +235,10 @@ export interface components {
              */
             phone: string;
             /**
-             * @default whatsapp
+             * @description WhatsApp when left out.
              * @enum {string}
              */
-            channel: "whatsapp" | "sms";
+            channel?: "whatsapp" | "sms";
         };
         OtpRequestedDto: {
             /** @description The phone in E.164; send this back when verifying. */

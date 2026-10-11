@@ -44,10 +44,20 @@ palette is switched off, so only design-system colours exist.
 `Stepper`, `Toast`, `EmptyState`, `BottomSheet`, `Modal`, `LanguageSwitcher`, `ContactButtons`,
 plus `formatAED`, `COUNTRIES` and `cx`.
 
+`AuthFlow` (`src/auth/`) is the whole sign-up and sign-in flow from the Customer app design:
+phone number, WhatsApp code, a short profile for a new account, and email and password as the
+second way in. It holds no words and no fetch code. The app passes `labels` (one string per key in
+`AUTH_LABEL_KEYS`, from its messages), `errorText` (error code to sentence), `actions` (from
+`createAuthActions` in `@am/api-client`) and `onDone`. The steps (`PhoneStep`, `CodeStep`,
+`ProfileStep`, `EmailStep`, `ForgotStep`, `ResetStep`) are exported for previews and tests.
+
 The design system also defines `SearchBar`, `ShopCard`, `ProductCard`, `BranchRow`, `ContactBar`,
 `MapPin`, `MapCluster`, `StatusTimeline`, `DataTable`, `StatTile`, `BarChart` and `ChatBubble`.
 Their styles are already in `components.css`; the React components are added by the phase that
 first uses them.
+
+The apps import the built package (`dist`), so run `pnpm nx build @am/ui` after changing a
+component while a dev server is running.
 
 ## Rules
 

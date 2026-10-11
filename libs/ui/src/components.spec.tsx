@@ -157,7 +157,7 @@ describe('form fields', () => {
 
   it('keeps the phone field left-to-right and defaults to the UAE', () => {
     const markup = html(<PhoneInput label="Mobile number" countryLabel="Country code" />);
-    expect(markup).toContain('class="am-phone" dir="ltr"');
+    expect(markup).toContain('class="am-phone min-w-0" dir="ltr"');
     expect(markup).toContain(COUNTRIES.AE.dial);
     expect(markup).toContain('aria-label="Country code: UAE +971"');
     expect(markup).toContain('type="tel"');

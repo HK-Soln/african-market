@@ -42,7 +42,7 @@ export function PhoneInput({
   const selected = COUNTRIES[country];
   return (
     <Field id={fieldId} label={label} hint={hint} error={error} className={className}>
-      <div className="am-phone" dir="ltr">
+      <div className="am-phone min-w-0" dir="ltr">
         <button
           type="button"
           className="am-phone-country"

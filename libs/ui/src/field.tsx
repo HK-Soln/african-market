@@ -76,7 +76,7 @@ export function Input({
       optional={optional}
       className={className}
     >
-      <div className={cx('am-input', iconStart && 'am-input-hasicon')}>
+      <div className={cx('am-input min-w-0', iconStart && 'am-input-hasicon')}>
         {iconStart && <Icon name={iconStart} className="am-input-icon" />}
         <input
           id={fieldId}
@@ -123,7 +123,7 @@ export function Select({
       optional={optional}
       className={className}
     >
-      <div className="am-input am-select">
+      <div className="am-input am-select min-w-0">
         <select
           id={fieldId}
           aria-invalid={error ? true : undefined}

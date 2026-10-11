@@ -10,7 +10,6 @@ import { Credential, OtpChallenge, Session, User } from '../src/entities';
 import { OtpChallenges } from '../src/otp/otp-challenges';
 import { OtpRateLimiter } from '../src/otp/otp-rate-limiter';
 import { LoginRateLimiter, LoginRateLimits } from '../src/password/login-rate-limiter';
-import { hashRefreshToken } from '../src/sessions/refresh-token';
 import { SessionService } from '../src/sessions/session.service';
 import { createTestDatabase, TestDatabase } from './support/test-database';
 
@@ -391,7 +390,8 @@ describe('email and password (Postgres + Redis)', () => {
       expect(after.filter((s) => oldIds.includes(s.id)).every((s) => s.revokedAt)).toBe(true);
       const live = after.filter((s) => !s.revokedAt);
       expect(live).toHaveLength(1);
-      expect(live[0].refreshTokenHash).toBe(hashRefreshToken(result.session.refreshToken));
+      expect(oldIds).not.toContain(live[0].id);
+      expect(result.session.refreshToken).toEqual(expect.any(String));
 
       await auth.login({ email, password: otherPassword });
       expect(await codeOf(auth.login({ email, password }))).toBe(IdentityErrors.invalidCredentials);

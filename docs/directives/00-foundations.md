@@ -266,10 +266,24 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: the backend moved to zod 4 (decision T-18). Installing `@serwist/next` had left two zod
   > versions, and locally the web app picked the wrong one and would not start.
 
-- [ ] **F0-12 Containers** (depends on F0-01)
+- [x] **F0-12 Containers** (depends on F0-01)
       One multi-stage Dockerfile for Nest services (build arg `APP`) and one for Next apps (standalone
       output), both using `pnpm deploy` or Nx-pruned lockfiles, non-root user, healthcheck on `/health`.
       `docker compose --profile apps up` runs the whole stack in containers.
+
+  > Note: `infra/docker/service.Dockerfile` and `next.Dockerfile`, on `node:22-alpine`, run as the
+  > `node` user. `pnpm fetch` from the lockfile alone gives one dependency layer shared by all
+  > thirteen images. NestJS images use `pnpm deploy --prod --legacy` (the non-legacy deploy needs
+  > `inject-workspace-packages`, which would change how the libs are linked in development).
+  > Note: one image entrypoint for migrations: `migrate` (the one-off task F0-14 will run before a
+  > rollout), `start` (default) and `migrate-and-start` (docker compose only).
+  > Note: the Next apps gained `GET /health` outside the locale middleware, and set
+  > `outputFileTracingRoot` to the repository root so standalone output includes the hoisted
+  > packages. `NEXT_PUBLIC_*` are build arguments, so each environment gets its own web images.
+  > Note: successful `GET /health` requests are no longer logged by the backends; container and load
+  > balancer probes would otherwise fill the logs every few seconds.
+  > Note: the compose stack runs with `NODE_ENV=development` (console SMS, Mailpit, dev secrets) on
+  > the same ports as `pnpm dev`; `pnpm stack:up` / `pnpm stack:down`.
 
 - [ ] **F0-13 Terraform for staging** (depends on F0-12)
       `infra/terraform` with modules for: VPC (3 AZs, private subnets), ECR, ECS Fargate cluster and one

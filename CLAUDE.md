@@ -80,7 +80,8 @@ pnpm nx run @am/<svc>:migration:generate src/migrations/<PascalName>       # aft
 
 Local URLs: web 3000, seller 3001, admin 3002, gateway 4000 (`/docs` Swagger), services TCP 41xx / HTTP
 `/health` 42xx (see `libs/contracts/src/services.ts`), RabbitMQ UI 15672, MinIO console 9001,
-Mailpit 8025. Docker credentials are `am` / `am`.
+Mailpit 8025. Docker credentials are `am` / `am`, except MinIO: `am-minio` / `am-minio-secret`.
+`pnpm stack:up` runs the whole stack in containers on the same ports instead (`infra/docker/README.md`).
 
 ## How the pieces talk (do not bypass)
 

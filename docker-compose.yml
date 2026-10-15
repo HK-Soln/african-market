@@ -1,6 +1,56 @@
-# Local infrastructure only. Services and frontends run on the host with `pnpm dev`.
-# Production equivalents: RDS PostgreSQL 16 + PostGIS, ElastiCache Redis, Amazon MQ (RabbitMQ), S3 + CloudFront, SES.
+# Local infrastructure. `pnpm infra:up` starts only these; services and frontends run on the host
+# with `pnpm dev`.
+#
+# The `apps` profile also runs every app in a container, built from infra/docker:
+#   pnpm stack:up      (docker compose --profile apps up -d --build)
+# It uses the same host ports as `pnpm dev` (3000-3002, 4000), so run one or the other.
+#
+# Production equivalents: RDS PostgreSQL 16 + PostGIS, ElastiCache Redis, Amazon MQ (RabbitMQ),
+# S3 + CloudFront, SES.
 name: african-market
+
+x-backend-env: &backend-env
+  NODE_ENV: development # the containers stand in for a developer machine: console SMS, Mailpit
+  LOG_LEVEL: info
+  CURRENT_PHASE: ${CURRENT_PHASE:-0}
+  DATABASE_URL: postgres://am:am@postgres:5432/african_market
+  RABBITMQ_URL: amqp://am:am@rabbitmq:5672
+  REDIS_URL: redis://redis:6379
+  SMTP_URL: smtp://mailpit:1025
+  S3_ENDPOINT: http://minio:9000
+  S3_ACCESS_KEY_ID: am-minio
+  S3_SECRET_ACCESS_KEY: am-minio-secret
+  IDENTITY_HOST: identity
+  SHOPS_HOST: shops
+  CATALOG_HOST: catalog
+  DISCOVERY_HOST: discovery
+  MEDIA_HOST: media
+  MESSAGING_HOST: messaging
+  NOTIFICATIONS_HOST: notifications
+  ORDERS_HOST: orders
+  PAYMENTS_HOST: payments
+
+x-backend-deps: &backend-deps
+  postgres: { condition: service_healthy }
+  rabbitmq: { condition: service_healthy }
+  redis: { condition: service_started }
+
+# A service: applies its migrations, then starts. Each one has its own schema, so they can migrate
+# side by side.
+x-service: &service
+  profiles: [apps]
+  command: ['migrate-and-start']
+  environment: *backend-env
+  depends_on: *backend-deps
+  restart: unless-stopped
+
+x-next: &next
+  profiles: [apps]
+  environment:
+    GATEWAY_URL: http://gateway:4000 # server-side calls; the browser uses NEXT_PUBLIC_GATEWAY_URL
+  depends_on:
+    gateway: { condition: service_healthy }
+  restart: unless-stopped
 
 services:
   postgres:
@@ -40,12 +90,91 @@ services:
     environment:
       MINIO_ROOT_USER: am-minio # MinIO requires at least 3 characters
       MINIO_ROOT_PASSWORD: am-minio-secret
-    ports: ['9000:9000', '9001:9001'] # 9001 = console
+    ports: ['9000:9000', '9001:9001'] # 9001 = console (am-minio / am-minio-secret)
     volumes: [miniodata:/data]
 
   mailpit:
     image: axllent/mailpit:latest
     ports: ['1025:1025', '8025:8025'] # 8025 = inbox UI for OTP and notification emails
+
+  # ── apps profile: the whole stack in containers ──────────────────────────────────────────────
+
+  gateway:
+    profiles: [apps]
+    image: african-market/gateway:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: gateway } }
+    environment:
+      <<: *backend-env
+      GATEWAY_PORT: 4000
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
+    ports: ['4000:4000'] # /docs for Swagger
+    depends_on:
+      <<: *backend-deps
+      identity: { condition: service_healthy }
+    restart: unless-stopped
+
+  identity:
+    <<: *service
+    image: african-market/identity:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: identity } }
+
+  shops:
+    <<: *service
+    image: african-market/shops:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: shops } }
+
+  catalog:
+    <<: *service
+    image: african-market/catalog:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: catalog } }
+
+  discovery:
+    <<: *service
+    image: african-market/discovery:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: discovery } }
+
+  media:
+    <<: *service
+    image: african-market/media:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: media } }
+
+  messaging:
+    <<: *service
+    image: african-market/messaging:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: messaging } }
+
+  notifications:
+    <<: *service
+    image: african-market/notifications:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: notifications } }
+
+  orders:
+    <<: *service
+    image: african-market/orders:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: orders } }
+
+  payments:
+    <<: *service
+    image: african-market/payments:local
+    build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: payments } }
+
+  web:
+    <<: *next
+    image: african-market/web:local
+    build: { context: ., dockerfile: infra/docker/next.Dockerfile, args: { APP: web } }
+    ports: ['3000:3000']
+
+  seller:
+    <<: *next
+    image: african-market/seller:local
+    build: { context: ., dockerfile: infra/docker/next.Dockerfile, args: { APP: seller } }
+    ports: ['3001:3000']
+
+  admin:
+    <<: *next
+    image: african-market/admin:local
+    build: { context: ., dockerfile: infra/docker/next.Dockerfile, args: { APP: admin } }
+    ports: ['3002:3000']
 
 volumes:
   pgdata:

@@ -237,11 +237,16 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
     it('handles a duplicate delivery once', async () => {
       const once = new IdempotentConsumer(db);
       let handled = 0;
+      // Counted when a delivery has been dealt with, not when it arrives: the first one may still
+      // be inside its transaction when the second arrives.
       let deliveries = 0;
       const listener = await startBus();
       listener.subscribe('user.registered', async (event) => {
-        deliveries++;
-        await once.handle(event, 'test.welcome-message', async () => void handled++);
+        try {
+          await once.handle(event, 'test.welcome-message', async () => void handled++);
+        } finally {
+          deliveries++;
+        }
       });
       await listener.onApplicationBootstrap();
       await listener.waitForConnect();

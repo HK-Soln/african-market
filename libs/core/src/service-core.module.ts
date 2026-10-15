@@ -6,6 +6,10 @@ import { APP_ENV, BaseEnv, baseEnvSchema, loadEnv, SERVICE_NAME } from './env';
 import { EventBus } from './event-bus';
 import { HealthController, HealthService } from './health';
 
+/** Liveness checks: a service's `/health` and the gateway's `/api/v1/health`. */
+export const isHealthProbe = (req: { method?: string; url?: string }): boolean =>
+  req.method === 'GET' && /^(\/api\/v1)?\/health\/?(\?.*)?$/.test(req.url ?? '');
+
 export interface ServiceCoreOptions {
   /** Service name, e.g. 'identity'. Used for logs, queues and health. */
   name: string;
@@ -43,6 +47,9 @@ export class ServiceCoreModule {
               ],
               censor: '[redacted]',
             },
+            // Containers and the load balancer call these every few seconds and report failures
+            // themselves; logging each one would bury everything else.
+            autoLogging: { ignore: (req) => isHealthProbe(req) },
             genReqId: (req) => (req.headers['x-request-id'] as string) ?? randomUUID(),
             transport:
               env.NODE_ENV === 'development'

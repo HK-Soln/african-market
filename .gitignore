@@ -22,3 +22,5 @@ apps/web/public/swe-worker-*.js
 .next-e2e
 e2e/test-results
 e2e/playwright-report
+# Editor local history (VS Code extension): copies of every saved file, .env included
+.history/

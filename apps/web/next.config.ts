@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
@@ -28,6 +29,8 @@ const nextConfig: NextConfig = {
   // The end-to-end run builds into its own folder, so it can run beside `pnpm dev`.
   distDir: process.env.NEXT_DIST_DIR ?? '.next',
   output: 'standalone',
+  // The monorepo root, so the standalone build also traces the hoisted node_modules and the libs.
+  outputFileTracingRoot: path.join(__dirname, '../..'),
   reactStrictMode: true,
   poweredByHeader: false,
   images: {

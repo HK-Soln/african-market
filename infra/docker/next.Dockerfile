@@ -32,8 +32,9 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --offline
 ARG APP
 RUN test -n "$APP" || (echo "Build with --build-arg APP=<web|seller|admin>" && exit 1)
-ARG NEXT_PUBLIC_GATEWAY_URL=http://localhost:4000
-ARG NEXT_PUBLIC_WEB_URL=http://localhost:3000
+# Required: where the browser finds the gateway and the customer site in this environment.
+ARG NEXT_PUBLIC_GATEWAY_URL
+ARG NEXT_PUBLIC_WEB_URL
 ARG NEXT_PUBLIC_GOOGLE_MAPS_KEY=
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 # Names this build, so a new deploy replaces the pages the service worker precached.
@@ -43,6 +44,8 @@ ENV NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL} \
     NEXT_PUBLIC_GOOGLE_MAPS_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_KEY} \
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY} \
     BUILD_ID=${BUILD_ID}
+RUN test -n "$NEXT_PUBLIC_GATEWAY_URL" && test -n "$NEXT_PUBLIC_WEB_URL" \
+ || (echo "Build with --build-arg NEXT_PUBLIC_GATEWAY_URL=... --build-arg NEXT_PUBLIC_WEB_URL=..." && exit 1)
 # Builds the libs the app depends on, then `next build` (standalone output).
 RUN pnpm nx run "@am/${APP}:build" --output-style=static
 # The standalone server does not include static assets; put them where it looks for them.

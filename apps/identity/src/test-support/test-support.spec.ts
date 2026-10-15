@@ -7,8 +7,19 @@ import {
   testSupportModules,
 } from './test-support.module';
 
+/** Everything identity requires, as on a laptop; each test sets what it is about. */
+const required = {
+  DATABASE_URL: 'postgres://am:am@localhost:5432/african_market',
+  RABBITMQ_URL: 'amqp://am:am@localhost:5672',
+  REDIS_URL: 'redis://localhost:6379',
+  JWT_ACCESS_SECRET: 'test-access-secret-0123456789-0123456789',
+  OTP_HMAC_SECRET: 'test-otp-hmac-secret-0123456789-0123456789',
+  SMTP_URL: 'smtp://localhost:1025',
+  EMAIL_FROM: 'African Market <no-reply@africanmarket.local>',
+};
+
 const envWith = (values: Record<string, string>): IdentityEnv =>
-  baseEnvSchema.extend(identityEnvSchema.shape).parse(values);
+  baseEnvSchema.extend(identityEnvSchema.shape).parse({ ...required, ...values });
 
 describe('test-only support for end-to-end tests', () => {
   it('is loaded under NODE_ENV=test and nowhere else', () => {

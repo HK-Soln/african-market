@@ -1,25 +1,25 @@
 import { z } from 'zod';
 import { BaseEnv } from '@am/core';
 
-/** Local-only default; staging and production must set their own secret. */
+/** The example values in .env.example. Fine on a laptop; refused in staging and production. */
 const DEV_OTP_SECRET = 'dev-only-otp-hmac-secret-change-me-0123456789';
 const DEV_ACCESS_SECRET = 'dev-only-access-secret-change-me-0123456789';
 
 /** Environment the identity service needs on top of the base keys. */
 export const identityEnvSchema = z.object({
   /** Signs access tokens. The gateway verifies them with the same value (decision T-11). */
-  JWT_ACCESS_SECRET: z.string().min(32).default(DEV_ACCESS_SECRET),
+  JWT_ACCESS_SECRET: z.string().min(32),
   /** Key for the HMAC that turns a one-time code into the stored hash. */
-  OTP_HMAC_SECRET: z.string().min(32).default(DEV_OTP_SECRET),
+  OTP_HMAC_SECRET: z.string().min(32),
   /**
    * `console` prints the message to stdout and is refused outside development and test.
    * `memory` keeps it for end-to-end tests to read and is refused unless NODE_ENV=test.
    */
-  SMS_PROVIDER: z.enum(['console', 'memory', 'twilio']).default('console'),
+  SMS_PROVIDER: z.enum(['console', 'memory', 'twilio']),
   /** `smtp` is Mailpit locally and also reaches SES through its SMTP endpoint. */
   EMAIL_PROVIDER: z.enum(['smtp', 'ses']).default('smtp'),
-  SMTP_URL: z.string().default('smtp://localhost:1025'),
-  EMAIL_FROM: z.string().default('African Market <no-reply@africanmarket.local>'),
+  SMTP_URL: z.url(),
+  EMAIL_FROM: z.string().min(3),
 });
 
 export type IdentityEnv = BaseEnv & z.infer<typeof identityEnvSchema>;

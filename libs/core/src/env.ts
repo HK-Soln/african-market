@@ -3,14 +3,24 @@ import { EVENTS_EXCHANGE, SERVICE_NAMES, SERVICES, ServiceName } from '@am/contr
 
 // The only place backend code reads process.env: everything else receives typed values from
 // loadEnv (or APP_ENV in Nest). The lint rule `no-restricted-properties` keeps it that way.
+//
+// Defaults only for values that are the same in every environment (ports, log level, timings).
+// Anything that differs between a laptop, staging and production (where the database is, which
+// provider to use, secrets) has no default: a missing value stops the process at start, instead
+// of it quietly connecting to localhost.
 
 /** Variables every backend process needs. Services extend this with their own keys. */
 export const baseEnvSchema = z.object({
+  /**
+   * The one exception to "no default for what differs": Nx loads .env into `next build` too, so
+   * .env cannot set it. The images set NODE_ENV=production, so a deployed container never falls
+   * back to development.
+   */
   NODE_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
-  DATABASE_URL: z.url().default('postgres://am:am@localhost:5432/african_market'),
-  RABBITMQ_URL: z.string().default('amqp://am:am@localhost:5672'),
-  REDIS_URL: z.string().default('redis://localhost:6379'),
+  DATABASE_URL: z.url(),
+  RABBITMQ_URL: z.url(),
+  REDIS_URL: z.url(),
   /** The topic exchange events are published to. Only tests change it, to stay out of the way. */
   EVENTS_EXCHANGE: z.string().min(1).default(EVENTS_EXCHANGE),
   /**
@@ -55,13 +65,14 @@ export interface ServiceEndpoint {
 const envPrefix = (name: ServiceName) => name.toUpperCase();
 
 /**
- * `<NAME>_HOST`, `<NAME>_TCP_PORT` and `<NAME>_HTTP_PORT` for every service, defaulting to
- * localhost and the ports in SERVICES (libs/contracts).
+ * `<NAME>_TCP_PORT` and `<NAME>_HTTP_PORT` for every service, defaulting to the ports in SERVICES
+ * (libs/contracts), plus `<NAME>_HOST`, which has no default: where a service runs differs
+ * between environments.
  */
 export const serviceEndpointsSchema = z.object(
   Object.fromEntries(
     SERVICE_NAMES.flatMap((name) => [
-      [`${envPrefix(name)}_HOST`, z.string().min(1).default('localhost')],
+      [`${envPrefix(name)}_HOST`, z.string().min(1)],
       [
         `${envPrefix(name)}_TCP_PORT`,
         z.coerce.number().int().positive().default(SERVICES[name].tcpPort),
@@ -74,7 +85,7 @@ export const serviceEndpointsSchema = z.object(
   ),
 );
 
-/** Where each service listens (for itself) and is reached (for the gateway). */
+/** Where each service is reached: for the gateway. Every `<NAME>_HOST` must be set. */
 export function loadServiceEndpoints(
   source: NodeJS.ProcessEnv = process.env,
 ): Record<ServiceName, ServiceEndpoint> {
@@ -90,6 +101,19 @@ export function loadServiceEndpoints(
       },
     ]),
   ) as Record<ServiceName, ServiceEndpoint>;
+}
+
+/** The ports a service listens on: for the service itself, which needs no host. */
+export function loadServicePorts(
+  name: ServiceName,
+  source: NodeJS.ProcessEnv = process.env,
+): Omit<ServiceEndpoint, 'host'> {
+  const prefix = envPrefix(name);
+  const env = loadEnv(
+    serviceEndpointsSchema.pick({ [`${prefix}_TCP_PORT`]: true, [`${prefix}_HTTP_PORT`]: true }),
+    source,
+  ) as Record<string, number>;
+  return { tcpPort: env[`${prefix}_TCP_PORT`], httpPort: env[`${prefix}_HTTP_PORT`] };
 }
 
 export const APP_ENV = Symbol('APP_ENV');

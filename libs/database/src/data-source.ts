@@ -14,18 +14,22 @@ export interface ServiceDataSourceConfig {
   url?: string;
 }
 
+// This file also runs in the TypeORM CLI, outside Nest, so it loads what it needs itself.
+const loggingEnvSchema = baseEnvSchema.pick({ TYPEORM_LOGGING: true });
+const urlEnvSchema = baseEnvSchema.pick({ DATABASE_URL: true });
+
 /**
  * One factory for both the Nest runtime and the TypeORM CLI (`src/data-source.ts` in each service).
  * `synchronize` is always false: schema changes ship as migrations only.
+ *
+ * Without `config.url` the options have no URL yet: DATABASE_URL (required, no default) is read
+ * when a connection is opened, not when a file imports this one.
  */
-/** The keys this file needs. It also runs in the TypeORM CLI, outside Nest, so it loads them itself. */
-const databaseEnvSchema = baseEnvSchema.pick({ DATABASE_URL: true, TYPEORM_LOGGING: true });
-
 export function buildDataSourceOptions(config: ServiceDataSourceConfig): DataSourceOptions {
-  const env = loadEnv(databaseEnvSchema);
+  const env = loadEnv(loggingEnvSchema);
   return {
     type: 'postgres',
-    url: config.url ?? env.DATABASE_URL,
+    url: config.url,
     schema: config.schema,
     entities: [...config.entities, OutboxMessage, ProcessedEvent],
     migrations: config.migrations ?? [],
@@ -44,6 +48,9 @@ export function buildDataSourceOptions(config: ServiceDataSourceConfig): DataSou
  */
 class CliDataSource extends DataSource {
   override async initialize(): Promise<this> {
+    if (!(this.options as { url?: string }).url) {
+      this.setOptions({ url: loadEnv(urlEnvSchema).DATABASE_URL });
+    }
     const { schema, url } = this.options as { schema?: string; url?: string };
     if (schema && url) await ensureSchema(url, schema);
     return super.initialize();

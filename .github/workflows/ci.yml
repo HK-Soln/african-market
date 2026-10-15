@@ -18,6 +18,31 @@ permissions:
 
 env:
   NX_NO_CLOUD: 'true'
+  # Throwaway values for the ephemeral CI services, not secrets. The apps have no defaults for
+  # these (they differ per environment), so every job gets the full set.
+  DATABASE_URL: postgres://am:am@localhost:5432/african_market
+  REDIS_URL: redis://localhost:6379
+  RABBITMQ_URL: amqp://am:am@localhost:5672
+  SMTP_URL: smtp://localhost:1025
+  MAILPIT_URL: http://localhost:8025
+  EMAIL_FROM: African Market <no-reply@africanmarket.local>
+  SMS_PROVIDER: console
+  JWT_ACCESS_SECRET: dev-only-access-secret-change-me-0123456789
+  OTP_HMAC_SECRET: dev-only-otp-hmac-secret-change-me-0123456789
+  CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
+  CURRENT_PHASE: '0'
+  TRUST_PROXY_HOPS: '0'
+  NEXT_PUBLIC_GATEWAY_URL: http://localhost:4000
+  NEXT_PUBLIC_WEB_URL: http://localhost:3000
+  IDENTITY_HOST: localhost
+  SHOPS_HOST: localhost
+  CATALOG_HOST: localhost
+  DISCOVERY_HOST: localhost
+  MEDIA_HOST: localhost
+  MESSAGING_HOST: localhost
+  NOTIFICATIONS_HOST: localhost
+  ORDERS_HOST: localhost
+  PAYMENTS_HOST: localhost
 
 jobs:
   verify:
@@ -64,12 +89,6 @@ jobs:
           --health-interval 10s
           --health-timeout 10s
           --health-retries 12
-    env:
-      DATABASE_URL: postgres://am:am@localhost:5432/african_market
-      REDIS_URL: redis://localhost:6379
-      SMTP_URL: smtp://localhost:1025
-      MAILPIT_URL: http://localhost:8025
-      RABBITMQ_URL: amqp://am:am@localhost:5672
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -118,9 +137,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-    env:
-      # Throwaway values for the ephemeral CI database, not secrets.
-      DATABASE_URL: postgres://am:am@localhost:5432/african_market
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -183,11 +199,6 @@ jobs:
           --health-interval 10s
           --health-timeout 10s
           --health-retries 12
-    env:
-      # Throwaway values for the ephemeral CI services, not secrets.
-      DATABASE_URL: postgres://am:am@localhost:5432/african_market
-      REDIS_URL: redis://localhost:6379
-      RABBITMQ_URL: amqp://am:am@localhost:5672
     steps:
       - name: Checkout
         uses: actions/checkout@v7

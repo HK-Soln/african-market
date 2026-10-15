@@ -2,6 +2,8 @@ import { z } from 'zod';
 import type { BaseEnv } from '@am/core';
 
 export const gatewayEnvSchema = z.object({
+  /** /health/services checks the services of this phase and earlier. */
+  CURRENT_PHASE: z.coerce.number().int().min(0).default(0),
   GATEWAY_PORT: z.coerce.number().default(4000),
   /** HS256 secret for access tokens, shared with identity. Production: from AWS Secrets Manager. */
   JWT_ACCESS_SECRET: z.string().min(32).default('dev-only-access-secret-change-me-0123456789'),

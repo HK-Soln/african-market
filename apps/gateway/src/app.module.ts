@@ -3,7 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard, RolesGuard, ACCESS_TOKEN_TTL_SECONDS } from '@am/auth';
-import { loadEnv, ServiceCoreModule } from '@am/core';
+import { loadEnv, loadNodeEnv, ServiceCoreModule } from '@am/core';
 import { AuthModule } from './auth/auth.module';
 import { ClientsRegistryModule } from './clients.module';
 import { CommonModule } from './common/common.module';
@@ -28,7 +28,7 @@ const env = loadEnv(gatewayEnvSchema);
     // Per IP. Routes override this with `@Throttle()`, see auth/auth.throttles.ts.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     AuthModule,
-    ...testSupportModules(process.env.NODE_ENV),
+    ...testSupportModules(loadNodeEnv()),
     // Further feature modules (shops, catalog, search, media, ...) are added per phase; see docs/directives.
   ],
   controllers: [GatewayHealthController],

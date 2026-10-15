@@ -8,9 +8,10 @@ import { AUTH_LABEL_KEYS, AuthFlow, safeNextPath, type AuthLabels } from '@am/ui
 import { useSession } from '@/components/session-provider';
 import { useRouter } from '@/i18n/navigation';
 import { auth } from '@/lib/browser-api';
+import { config } from '@/lib/config';
 
 /** The customer site: where the Terms and Privacy policy live, and where "Not now" leads. */
-const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+const WEB_URL = config.webUrl;
 
 /** Values every error message may use, so a missing detail never breaks the sentence. */
 const DETAIL_DEFAULTS = { attemptsLeft: 0, minLength: 10, retryAfterSeconds: 30 };

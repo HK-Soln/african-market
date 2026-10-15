@@ -1,5 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { baseEnvSchema, loadEnv } from '@am/core';
 import { OutboxMessage, ProcessedEvent } from './outbox.entity';
 
 export interface ServiceDataSourceConfig {
@@ -17,10 +18,14 @@ export interface ServiceDataSourceConfig {
  * One factory for both the Nest runtime and the TypeORM CLI (`src/data-source.ts` in each service).
  * `synchronize` is always false: schema changes ship as migrations only.
  */
+/** The keys this file needs. It also runs in the TypeORM CLI, outside Nest, so it loads them itself. */
+const databaseEnvSchema = baseEnvSchema.pick({ DATABASE_URL: true, TYPEORM_LOGGING: true });
+
 export function buildDataSourceOptions(config: ServiceDataSourceConfig): DataSourceOptions {
+  const env = loadEnv(databaseEnvSchema);
   return {
     type: 'postgres',
-    url: config.url ?? process.env.DATABASE_URL ?? 'postgres://am:am@localhost:5432/african_market',
+    url: config.url ?? env.DATABASE_URL,
     schema: config.schema,
     entities: [...config.entities, OutboxMessage, ProcessedEvent],
     migrations: config.migrations ?? [],
@@ -28,7 +33,7 @@ export function buildDataSourceOptions(config: ServiceDataSourceConfig): DataSou
     synchronize: false,
     migrationsRun: false,
     namingStrategy: new SnakeNamingStrategy(),
-    logging: process.env.TYPEORM_LOGGING === 'true' ? ['query', 'error'] : ['error'],
+    logging: env.TYPEORM_LOGGING ? ['query', 'error'] : ['error'],
   };
 }
 

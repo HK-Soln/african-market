@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { EVENTS_EXCHANGE } from '@am/contracts';
+import { EVENTS_EXCHANGE, SERVICE_NAMES, SERVICES, ServiceName } from '@am/contracts';
+
+// The only place backend code reads process.env: everything else receives typed values from
+// loadEnv (or APP_ENV in Nest). The lint rule `no-restricted-properties` keeps it that way.
 
 /** Variables every backend process needs. Services extend this with their own keys. */
 export const baseEnvSchema = z.object({
@@ -18,6 +21,10 @@ export const baseEnvSchema = z.object({
     .string()
     .regex(/^\d+(,\d+)*$/)
     .default('5000,30000,120000'),
+  /** Log every SQL query (`true`) or only errors. */
+  TYPEORM_LOGGING: z.stringbool().default(false),
+  /** How often the outbox relay looks for events to publish, in ms. */
+  OUTBOX_POLL_MS: z.coerce.number().int().positive().default(500),
 });
 
 export type BaseEnv = z.infer<typeof baseEnvSchema>;
@@ -33,6 +40,56 @@ export function loadEnv<T extends z.ZodType>(
     throw new Error(`Invalid environment:\n${issues}`);
   }
   return parsed.data;
+}
+
+/** NODE_ENV alone, for code that runs before Nest is up (choosing test-only modules). */
+export const loadNodeEnv = (source: NodeJS.ProcessEnv = process.env): BaseEnv['NODE_ENV'] =>
+  loadEnv(baseEnvSchema.pick({ NODE_ENV: true }), source).NODE_ENV;
+
+export interface ServiceEndpoint {
+  host: string;
+  tcpPort: number;
+  httpPort: number;
+}
+
+const envPrefix = (name: ServiceName) => name.toUpperCase();
+
+/**
+ * `<NAME>_HOST`, `<NAME>_TCP_PORT` and `<NAME>_HTTP_PORT` for every service, defaulting to
+ * localhost and the ports in SERVICES (libs/contracts).
+ */
+export const serviceEndpointsSchema = z.object(
+  Object.fromEntries(
+    SERVICE_NAMES.flatMap((name) => [
+      [`${envPrefix(name)}_HOST`, z.string().min(1).default('localhost')],
+      [
+        `${envPrefix(name)}_TCP_PORT`,
+        z.coerce.number().int().positive().default(SERVICES[name].tcpPort),
+      ],
+      [
+        `${envPrefix(name)}_HTTP_PORT`,
+        z.coerce.number().int().positive().default(SERVICES[name].httpPort),
+      ],
+    ]),
+  ),
+);
+
+/** Where each service listens (for itself) and is reached (for the gateway). */
+export function loadServiceEndpoints(
+  source: NodeJS.ProcessEnv = process.env,
+): Record<ServiceName, ServiceEndpoint> {
+  // The schema's keys are built from SERVICE_NAMES, so TypeScript only knows them as strings.
+  const env = loadEnv(serviceEndpointsSchema, source) as Record<string, string | number>;
+  return Object.fromEntries(
+    SERVICE_NAMES.map((name) => [
+      name,
+      {
+        host: env[`${envPrefix(name)}_HOST`] as string,
+        tcpPort: env[`${envPrefix(name)}_TCP_PORT`] as number,
+        httpPort: env[`${envPrefix(name)}_HTTP_PORT`] as number,
+      },
+    ]),
+  ) as Record<ServiceName, ServiceEndpoint>;
 }
 
 export const APP_ENV = Symbol('APP_ENV');

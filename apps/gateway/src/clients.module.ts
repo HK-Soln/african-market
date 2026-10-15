@@ -1,6 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { SERVICE_NAMES, SERVICES, serviceClientToken } from '@am/contracts';
+import { SERVICE_NAMES, serviceClientToken } from '@am/contracts';
+import { loadServiceEndpoints } from '@am/core';
+
+const endpoints = loadServiceEndpoints();
 
 /** One lazy TCP client per backend service. Inject with `@Inject(serviceClientToken('shops'))`. */
 @Global()
@@ -11,8 +14,8 @@ import { SERVICE_NAMES, SERVICES, serviceClientToken } from '@am/contracts';
         name: serviceClientToken(name),
         transport: Transport.TCP,
         options: {
-          host: process.env[`${name.toUpperCase()}_HOST`] ?? 'localhost',
-          port: Number(process.env[`${name.toUpperCase()}_TCP_PORT`] ?? SERVICES[name].tcpPort),
+          host: endpoints[name].host,
+          port: endpoints[name].tcpPort,
         },
       })),
     ),

@@ -9,7 +9,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
 import { DataSource, EntityManager, IsNull } from 'typeorm';
 import { EventEnvelope, EventName, EventPayloads } from '@am/contracts';
-import { EventBus, SERVICE_NAME } from '@am/core';
+import { APP_ENV, BaseEnv, EventBus, SERVICE_NAME } from '@am/core';
 import { OutboxMessage, ProcessedEvent } from './outbox.entity';
 
 /** Adds events to the outbox inside the caller's transaction. */
@@ -59,11 +59,11 @@ export class OutboxRelay implements OnApplicationBootstrap, OnModuleDestroy {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly bus: EventBus,
+    @Inject(APP_ENV) private readonly env: Pick<BaseEnv, 'OUTBOX_POLL_MS'>,
   ) {}
 
   onApplicationBootstrap(): void {
-    const interval = Number(process.env.OUTBOX_POLL_MS ?? 500);
-    this.timer = setInterval(() => void this.tick(), interval);
+    this.timer = setInterval(() => void this.tick(), this.env.OUTBOX_POLL_MS);
     this.cleanupTimer = setInterval(() => void this.cleanup(), CLEANUP_INTERVAL_MS);
     // Housekeeping must never be what keeps a stopping process alive.
     this.cleanupTimer.unref();

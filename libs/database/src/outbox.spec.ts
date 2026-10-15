@@ -17,6 +17,7 @@ import { createTestDatabase, type TestDatabase } from './testing';
 jest.setTimeout(90_000);
 
 const brokerUrl = process.env.RABBITMQ_URL ?? 'amqp://am:am@localhost:5672';
+const relayEnv = { OUTBOX_POLL_MS: 500 };
 const run = randomUUID().replace(/-/g, '').slice(0, 10);
 const exchange = `am.events.test.${run}`;
 const SCHEMA = 'outbox_test';
@@ -143,7 +144,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
       const bus = await startBus();
       await bus.onApplicationBootstrap();
       await bus.waitForConnect();
-      const relay = new OutboxRelay(db, bus);
+      const relay = new OutboxRelay(db, bus, relayEnv);
 
       const lost = randomUUID();
       await expect(
@@ -181,7 +182,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
       const bus = await startBus(proxy.url);
       await bus.onApplicationBootstrap();
       await bus.waitForConnect();
-      const relay = new OutboxRelay(db, bus);
+      const relay = new OutboxRelay(db, bus, relayEnv);
 
       await proxy.stop();
       await waitUntil(() => !bus.isConnected());
@@ -215,7 +216,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
           published.push(envelope.id);
         },
       } as unknown as EventBus;
-      const relay = new OutboxRelay(db, bus);
+      const relay = new OutboxRelay(db, bus, relayEnv);
 
       const first = await enqueue(randomUUID());
       const second = await enqueue(randomUUID());
@@ -254,7 +255,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
       const publisher = await startBus();
       await publisher.onApplicationBootstrap();
       await publisher.waitForConnect();
-      const relay = new OutboxRelay(db, publisher);
+      const relay = new OutboxRelay(db, publisher, relayEnv);
 
       // The relay stopped after the broker took the event but before the row was marked: the
       // same event, with the same id, goes out again.
@@ -313,7 +314,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
 
   describe('cleanup', () => {
     it('deletes rows published more than 7 days ago and nothing else', async () => {
-      const relay = new OutboxRelay(db, {} as EventBus);
+      const relay = new OutboxRelay(db, {} as EventBus, relayEnv);
       const old = await enqueue(randomUUID());
       const recent = await enqueue(randomUUID());
       const stuck = await enqueue(randomUUID());

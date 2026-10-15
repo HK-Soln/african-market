@@ -1,13 +1,18 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HEALTH_PATTERN, HealthResponse, SERVICE_NAMES, SERVICES } from '@am/contracts';
 import { Public } from '@am/auth';
+import { APP_ENV } from '@am/core';
+import type { GatewayEnv } from '../env';
 import { ServiceCaller } from '../common/service-caller';
 
 @ApiTags('health')
 @Controller('health')
 export class GatewayHealthController {
-  constructor(private readonly caller: ServiceCaller) {}
+  constructor(
+    private readonly caller: ServiceCaller,
+    @Inject(APP_ENV) private readonly env: Pick<GatewayEnv, 'CURRENT_PHASE'>,
+  ) {}
 
   /** Liveness of the gateway itself. */
   @Public()
@@ -20,8 +25,7 @@ export class GatewayHealthController {
   @Public()
   @Get('services')
   async services() {
-    const phase = Number(process.env.CURRENT_PHASE ?? 0);
-    const names = SERVICE_NAMES.filter((n) => SERVICES[n].phase <= phase);
+    const names = SERVICE_NAMES.filter((n) => SERVICES[n].phase <= this.env.CURRENT_PHASE);
     const results = await Promise.all(
       names.map((name) =>
         this.caller.call<HealthResponse>(name, HEALTH_PATTERN, {}, 1500).catch(() => ({

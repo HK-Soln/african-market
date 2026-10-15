@@ -1,5 +1,5 @@
 import { Inject, Module, OnModuleInit } from '@nestjs/common';
-import { APP_ENV, ServiceCoreModule } from '@am/core';
+import { APP_ENV, loadNodeEnv, ServiceCoreModule } from '@am/core';
 import { DatabaseModule } from '@am/database';
 import { assertSafeIdentityEnv, IdentityEnv, identityEnvSchema } from './config/identity-env';
 import { dataSourceConfig } from './data-source';
@@ -23,7 +23,7 @@ import { UsersModule } from './users/users.module';
     OtpModule,
     EmailAuthModule,
     UsersModule,
-    ...testSupportModules(process.env.NODE_ENV),
+    ...testSupportModules(loadNodeEnv()),
   ],
 })
 export class AppModule implements OnModuleInit {

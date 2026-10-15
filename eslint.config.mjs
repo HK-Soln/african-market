@@ -41,4 +41,26 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Configuration comes in typed and validated: loadEnv / APP_ENV in the backends (libs/core),
+    // src/lib/config.ts in the Next apps. Tests and test helpers may set and read it directly.
+    files: ['apps/*/src/**/*.{ts,tsx}', 'libs/*/src/**/*.{ts,tsx}'],
+    ignores: [
+      'libs/core/src/env.ts',
+      'apps/*/src/lib/config.ts',
+      'libs/database/src/testing/**',
+      '**/*.spec.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'process',
+          property: 'env',
+          message:
+            'Read configuration through loadEnv / APP_ENV (@am/core), or src/lib/config.ts in a Next app.',
+        },
+      ],
+    },
+  },
 );

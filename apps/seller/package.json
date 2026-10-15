@@ -4,8 +4,8 @@
   "private": true,
   "description": "Manage your shop, branches, products and orders",
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3001",
-    "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
+    "dev": "node ../../tools/copy-flags.mjs && node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3001",
+    "build": "node ../../tools/copy-flags.mjs && node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
     "start": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next start -p 3001",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",

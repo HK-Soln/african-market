@@ -18,6 +18,11 @@ export const IdentityPatterns = {
   logout: 'identity.session.logout',
   getMe: 'identity.user.me',
   updateMe: 'identity.user.update',
+  /** Countries for pickers and badges: those enabled for phone sign-up or as an origin. */
+  listCountries: 'identity.country.list',
+  /** Every country, for admins. */
+  listAllCountries: 'identity.country.list_all',
+  updateCountry: 'identity.country.update',
 } as const;
 
 /**

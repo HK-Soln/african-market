@@ -241,6 +241,75 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     });
   });
 
+  describe('countries', () => {
+    /** An access token with the given roles, signed like identity signs them. */
+    const tokenWith = (roles: string[]) =>
+      new JwtService({ secret: accessKey }).signAsync(
+        { sub: randomUUID(), roles, shops: [], locale: 'en' },
+        { expiresIn: 300 },
+      );
+
+    it('lists the enabled countries for anyone, and lets caches keep them for five minutes', async () => {
+      const res = await agent().get('/api/v1/countries').expect(200);
+      expect(res.body.countries.map((c: { code: string }) => c.code)).toEqual(['AE']);
+      expect(res.headers['cache-control']).toBe('public, max-age=300');
+    });
+
+    it('keeps the admin list and edits to admins', async () => {
+      await agent().get('/api/v1/admin/countries').expect(401);
+      const customer = await tokenWith(['customer']);
+      await agent()
+        .get('/api/v1/admin/countries')
+        .set('Authorization', `Bearer ${customer}`)
+        .expect(403);
+      await agent()
+        .patch('/api/v1/admin/countries/FR')
+        .set('Authorization', `Bearer ${customer}`)
+        .send({ phoneEnabled: true })
+        .expect(403);
+
+      const admin = await tokenWith(['customer', 'admin']);
+      const all = await agent()
+        .get('/api/v1/admin/countries')
+        .set('Authorization', `Bearer ${admin}`)
+        .expect(200);
+      expect(all.body.countries).toHaveLength(2);
+      expect(all.headers['cache-control']).toBe('no-store');
+
+      const updated = await agent()
+        .patch('/api/v1/admin/countries/fr')
+        .set('Authorization', `Bearer ${admin}`)
+        .send({ phoneEnabled: true, name: { en: 'France' } })
+        .expect(200);
+      expect(updated.body).toMatchObject({ code: 'FR', phoneEnabled: true });
+      expect(FakeIdentityController.last(IdentityPatterns.updateCountry)).toEqual({
+        code: 'fr',
+        phoneEnabled: true,
+        name: { en: 'France' },
+      });
+    });
+
+    it('refuses an edit with unknown or malformed fields before calling identity', async () => {
+      const admin = await tokenWith(['admin']);
+      const res = await agent()
+        .patch('/api/v1/admin/countries/AE')
+        .set('Authorization', `Bearer ${admin}`)
+        .send({ sortOrder: -1, dialCode: '+1' })
+        .expect(400);
+      expect(res.body.code).toBe('VALIDATION_FAILED');
+    });
+
+    it('passes a missing country through as 404', async () => {
+      const admin = await tokenWith(['admin']);
+      const res = await agent()
+        .patch('/api/v1/admin/countries/QQ')
+        .set('Authorization', `Bearer ${admin}`)
+        .send({ phoneEnabled: true })
+        .expect(404);
+      expect(res.body.code).toBe('COUNTRY_NOT_FOUND');
+    });
+  });
+
   describe('test-only support', () => {
     it('serves the code route under NODE_ENV=test, which this run is', async () => {
       const res = await http().get('/api/v1/test/otp').query({ phone: '+971501234567' });

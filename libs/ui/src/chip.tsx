@@ -1,13 +1,13 @@
 import type { ButtonHTMLAttributes } from 'react';
-import { COUNTRIES, type CountryCode } from './countries';
+import { CountryFlag } from './country-flag';
 import { cx } from './cx';
 import { Icon, type IconName } from './icon';
 
 export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   selected?: boolean;
   icon?: IconName;
-  /** Shows the country's flag before the label. */
-  flag?: CountryCode;
+  /** Shows this country's flag before the label (ISO code, e.g. NG). */
+  flag?: string;
   count?: number;
   /** The chip opens a sheet or menu instead of toggling. */
   dropdown?: boolean;
@@ -39,11 +39,7 @@ export function Chip({
       {...rest}
       className={cx('am-chip', selected && 'am-chip-on', className)}
     >
-      {flag && (
-        <span className="am-flag" aria-hidden>
-          {COUNTRIES[flag].flag}
-        </span>
-      )}
+      {flag && <CountryFlag code={flag} className="am-flag" />}
       {icon && <Icon name={icon} size={18} />}
       <span>{children}</span>
       {count ? <span className="am-chip-count">{count}</span> : null}

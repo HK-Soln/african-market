@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { textDirection, type Locale } from '@am/i18n';
+import { AccountMenu } from '@/components/account-menu';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { SessionProvider } from '@/components/session-provider';
 import { routing } from '@/i18n/routing';
 import { Logo } from '@am/ui';
 import { fontVariables } from '../fonts';
@@ -44,11 +46,21 @@ export default async function LocaleLayout({
     <html lang={locale} dir={textDirection(locale as Locale)} className={fontVariables}>
       <body className="min-h-dvh">
         <NextIntlClientProvider>
-          <header className="flex items-center justify-between gap-3 px-4 py-3">
-            <Logo size={32} />
-            <LanguageSwitcher />
-          </header>
-          {children}
+          <SessionProvider>
+            <header className="flex min-h-16 items-center justify-between gap-3 px-4 py-2">
+              <span className="sm:hidden">
+                <Logo variant="mark" size={36} />
+              </span>
+              <span className="max-sm:hidden">
+                <Logo size={32} />
+              </span>
+              <div className="flex items-center gap-2">
+                <AccountMenu />
+                <LanguageSwitcher />
+              </div>
+            </header>
+            {children}
+          </SessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

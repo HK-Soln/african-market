@@ -6,6 +6,7 @@ const STATUS: Partial<Record<IdentityErrorCode, number>> = {
   [IdentityErrors.sessionInvalid]: 401,
   [IdentityErrors.sessionReused]: 401,
   [IdentityErrors.userNotFound]: 404,
+  [IdentityErrors.countryNotFound]: 404,
   [IdentityErrors.userSuspended]: 403,
   [IdentityErrors.emailNotVerified]: 403,
   [IdentityErrors.otpTooManyAttempts]: 429,
@@ -38,6 +39,9 @@ const MESSAGE: Record<IdentityErrorCode, string> = {
   [IdentityErrors.sessionInvalid]: 'The session has ended; sign in again',
   [IdentityErrors.sessionReused]: 'This session was used twice and has been signed out',
   [IdentityErrors.userNotFound]: 'No such user',
+  [IdentityErrors.phoneCountryNotSupported]:
+    'New accounts cannot sign up with a phone number from this country yet',
+  [IdentityErrors.countryNotFound]: 'No such country',
 };
 
 /** The one place identity turns an error code into what goes back over TCP. */

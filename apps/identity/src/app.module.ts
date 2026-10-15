@@ -2,6 +2,7 @@ import { Inject, Module, OnModuleInit } from '@nestjs/common';
 import { APP_ENV, loadNodeEnv, ServiceCoreModule } from '@am/core';
 import { DatabaseModule } from '@am/database';
 import { assertSafeIdentityEnv, IdentityEnv, identityEnvSchema } from './config/identity-env';
+import { CountriesModule } from './countries/countries.module';
 import { dataSourceConfig } from './data-source';
 import { EmailAuthModule } from './email-auth/email-auth.module';
 import { EmailModule } from './email/email.module';
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module';
     SmsModule,
     EmailModule,
     SessionModule,
+    CountriesModule,
     OtpModule,
     EmailAuthModule,
     UsersModule,

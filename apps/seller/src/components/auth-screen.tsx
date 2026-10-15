@@ -4,7 +4,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { EMIRATES } from '@am/geo';
 import { isLocale, type Locale } from '@am/i18n';
-import { AUTH_LABEL_KEYS, AuthFlow, safeNextPath, type AuthLabels } from '@am/ui';
+import {
+  AUTH_LABEL_KEYS,
+  AuthFlow,
+  safeNextPath,
+  type AuthLabels,
+  type CountryOption,
+} from '@am/ui';
 import { useSession } from '@/components/session-provider';
 import { useRouter } from '@/i18n/navigation';
 import { auth } from '@/lib/browser-api';
@@ -17,7 +23,7 @@ const WEB_URL = config.webUrl;
 const DETAIL_DEFAULTS = { attemptsLeft: 0, minLength: 10, retryAfterSeconds: 30 };
 
 /** The sign-in screens from `@am/ui`, given this app's words, API calls and navigation. */
-export function AuthScreen({ next }: { next?: string }) {
+export function AuthScreen({ next, countries }: { next?: string; countries: CountryOption[] }) {
   const locale = useLocale() as Locale;
   const t = useTranslations('auth');
   const errors = useTranslations('errors');
@@ -48,6 +54,7 @@ export function AuthScreen({ next }: { next?: string }) {
       labels={labels}
       locale={locale}
       emirates={emirates}
+      countries={countries}
       termsHref={`${WEB_URL}/${locale}/legal/terms`}
       privacyHref={`${WEB_URL}/${locale}/legal/privacy`}
       errorText={(code, details) =>

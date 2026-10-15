@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AuthScreen } from '@/components/auth-screen';
+import { phoneCountries } from '@/lib/countries';
 
 export async function generateMetadata({
   params,
@@ -24,9 +25,10 @@ export default async function SignInPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const { next } = await searchParams;
+  const countries = await phoneCountries(locale);
   return (
     <main>
-      <AuthScreen next={typeof next === 'string' ? next : undefined} />
+      <AuthScreen next={typeof next === 'string' ? next : undefined} countries={countries} />
     </main>
   );
 }

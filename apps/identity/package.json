@@ -12,7 +12,8 @@
     "test": "jest --passWithNoTests",
     "migration:run": "typeorm migration:run -d dist/data-source.js",
     "migration:revert": "typeorm migration:revert -d dist/data-source.js",
-    "migration:generate": "typeorm migration:generate -d dist/data-source.js"
+    "migration:generate": "typeorm migration:generate -d dist/data-source.js",
+    "grant-role": "node --env-file-if-exists=../../.env dist/scripts/grant-role.js"
   },
   "nx": {
     "tags": [

@@ -74,6 +74,15 @@ body:lang(ar),
   font-size: 1.05em;
   line-height: 1;
 }
+/* Flag images (CountryFlag): a hairline keeps white flags visible on white. */
+.am-flag-img {
+  display: inline-block;
+  flex: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--color-line);
+  object-fit: cover;
+  vertical-align: middle;
+}
 bdi[dir='ltr'] {
   unicode-bidi: isolate;
 }

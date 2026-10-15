@@ -4,8 +4,8 @@
   "private": true,
   "description": "Verification, moderation and categories",
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3002",
-    "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
+    "dev": "node ../../tools/copy-flags.mjs && node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3002",
+    "build": "node ../../tools/copy-flags.mjs && node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
     "start": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next start -p 3002",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",

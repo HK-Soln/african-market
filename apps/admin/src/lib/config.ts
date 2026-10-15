@@ -20,4 +20,6 @@ export const config = {
    * as the browser's address when unset (locally).
    */
   serverGatewayUrl: process.env.GATEWAY_URL ?? gatewayUrl,
+  /** The customer site: where the Terms and Privacy policy live. */
+  webUrl: required(process.env.NEXT_PUBLIC_WEB_URL, 'NEXT_PUBLIC_WEB_URL'),
 } as const;

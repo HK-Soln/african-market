@@ -4,8 +4,8 @@
   "private": true,
   "description": "Find African shops, products and services near you in the UAE",
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3000",
-    "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
+    "dev": "node ../../tools/copy-flags.mjs && node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next dev -p 3000",
+    "build": "node ../../tools/copy-flags.mjs && node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
     "start": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next start -p 3000",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",

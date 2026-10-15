@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { APP_ENV } from '@am/core';
 import { OutboxService } from '@am/database';
 import { IdentityEnv } from '../config/identity-env';
+import { CountriesService } from '../countries/countries.service';
 import { REDIS } from '../redis/redis.module';
 import { SessionService } from '../sessions/session.service';
 import { SMS_PROVIDER, SmsProvider } from '../sms/sms-provider';
@@ -39,6 +40,7 @@ import { OtpService } from './otp.service';
         OtpChallenges,
         SessionService,
         APP_ENV,
+        CountriesService,
       ],
       useFactory: (
         dataSource: DataSource,
@@ -48,6 +50,7 @@ import { OtpService } from './otp.service';
         challenges: OtpChallenges,
         sessions: SessionService,
         env: IdentityEnv,
+        countries: CountriesService,
       ) =>
         new OtpService(
           dataSource,
@@ -57,6 +60,7 @@ import { OtpService } from './otp.service';
           challenges,
           sessions,
           OtpTestNumbers.parse(env.OTP_TEST_NUMBERS),
+          countries,
         ),
     },
   ],

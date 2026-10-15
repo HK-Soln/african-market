@@ -5,6 +5,7 @@ export * from './chip';
 export * from './choice';
 export * from './contact-buttons';
 export * from './countries';
+export * from './country-flag';
 export * from './cx';
 export * from './feedback';
 export * from './field';

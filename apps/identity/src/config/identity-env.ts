@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseEnv } from '@am/core';
+import { OtpTestNumbers } from '../otp/otp-test-numbers';
 
 /** The example values in .env.example. Fine on a laptop; refused in staging and production. */
 const DEV_OTP_SECRET = 'dev-only-otp-hmac-secret-change-me-0123456789';
@@ -20,6 +21,11 @@ export const identityEnvSchema = z.object({
   EMAIL_PROVIDER: z.enum(['smtp', 'ses']).default('smtp'),
   SMTP_URL: z.url(),
   EMAIL_FROM: z.string().min(3),
+  /**
+   * Numbers with a fixed code that is never sent, `<phone>:<code>,...`: for the end-to-end tests
+   * on staging. Optional, since most environments have none; refused in production.
+   */
+  OTP_TEST_NUMBERS: z.string().default(''),
 });
 
 export type IdentityEnv = BaseEnv & z.infer<typeof identityEnvSchema>;
@@ -32,6 +38,12 @@ export function assertSafeIdentityEnv(env: IdentityEnv): void {
   if (env.SMS_PROVIDER === 'memory' && env.NODE_ENV !== 'test')
     throw new Error(
       'SMS_PROVIDER=memory exposes codes to the test endpoint; it needs NODE_ENV=test',
+    );
+  // Parsed here too, so a malformed list stops the service at start.
+  const testNumbers = OtpTestNumbers.parse(env.OTP_TEST_NUMBERS);
+  if (env.NODE_ENV === 'production' && testNumbers.size > 0)
+    throw new Error(
+      'OTP_TEST_NUMBERS signs in without a real code; it must be empty in production',
     );
   if (!isDeployed(env)) return;
   if (env.JWT_ACCESS_SECRET === DEV_ACCESS_SECRET)

@@ -6,6 +6,7 @@ import { OutboxMessage, OutboxService } from '@am/database';
 import { OtpChallenge, User } from '../src/entities';
 import { OtpChallenges } from '../src/otp/otp-challenges';
 import { OtpRateLimiter, OtpRateLimits } from '../src/otp/otp-rate-limiter';
+import { OtpTestNumbers } from '../src/otp/otp-test-numbers';
 import { OtpService } from '../src/otp/otp.service';
 import { SessionService } from '../src/sessions/session.service';
 import { SmsMessage, SmsProvider } from '../src/sms/sms-provider';
@@ -69,7 +70,10 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
   const runPrefix = `test:otp:${randomUUID()}`;
 
   /** A service with its own Redis key space, so tests cannot trip each other's limits. */
-  const serviceWith = (limits: Partial<OtpRateLimits> = {}) =>
+  const serviceWith = (
+    limits: Partial<OtpRateLimits> = {},
+    testNumbers: OtpTestNumbers = OtpTestNumbers.none(),
+  ) =>
     new OtpService(
       db,
       new OtpRateLimiter(
@@ -87,6 +91,7 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
       new OutboxService('identity'),
       new OtpChallenges(hmacKey),
       new SessionService(db, hmacKey),
+      testNumbers,
     );
 
   const registeredEvents = async (userId: string) =>
@@ -109,6 +114,33 @@ describe('phone OTP sign-up and sign-in (Postgres + Redis)', () => {
     if (keys.length) await redis.del(...keys);
     await redis.quit();
     await testDb?.drop();
+  });
+
+  describe('test numbers (staging end-to-end tests)', () => {
+    it('gives a test number its fixed code without sending anything, once', async () => {
+      const phone = nextPhone();
+      const otp = serviceWith({}, OtpTestNumbers.parse(`${phone}:246810`));
+
+      await otp.requestOtp({ phone, locale: 'en' });
+      expect(sms.sent).toHaveLength(0);
+
+      expect(await errorCode(otp.verifyOtp({ phone, code: '135791', termsAccepted: true }))).toBe(
+        IdentityErrors.otpInvalid,
+      );
+      const verified = await otp.verifyOtp({ phone, code: '246810', termsAccepted: true });
+      expect(verified.isNewUser).toBe(true);
+      // Used once, like any code.
+      expect(await errorCode(otp.verifyOtp({ phone, code: '246810' }))).toBe(
+        IdentityErrors.otpExpired,
+      );
+    });
+
+    it('sends a real, random code to every other number', async () => {
+      const phone = nextPhone();
+      const otp = serviceWith({}, OtpTestNumbers.parse('+971500000099:246810'));
+      await otp.requestOtp({ phone, locale: 'en' });
+      expect(sms.lastCodeFor(phone)).toMatch(/^\d{6}$/);
+    });
   });
 
   describe('requesting a code', () => {

@@ -2,11 +2,20 @@
   "name": "main: production branch",
   "target": "branch",
   "enforcement": "active",
-  "conditions": { "ref_name": { "include": ["refs/heads/main"], "exclude": [] } },
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
   "bypass_actors": [],
   "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
     {
       "type": "pull_request",
       "parameters": {
@@ -24,13 +33,41 @@
         "strict_required_status_checks_policy": false,
         "do_not_enforce_on_create": false,
         "required_status_checks": [
-          { "context": "Format · Lint · Typecheck · Test · Build", "integration_id": 15368 },
-          { "context": "Migrations (PostGIS)", "integration_id": 15368 },
-          { "context": "Secret scan (gitleaks)", "integration_id": 15368 },
-          { "context": "Dependency audit", "integration_id": 15368 },
-          { "context": "CodeQL (JS/TS SAST)", "integration_id": 15368 },
-          { "context": "PR source branch", "integration_id": 15368 }
+          {
+            "context": "Format · Lint · Typecheck · Test · Build",
+            "integration_id": 15368
+          },
+          {
+            "context": "Migrations (PostGIS)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Secret scan (gitleaks)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Dependency audit",
+            "integration_id": 15368
+          },
+          {
+            "context": "CodeQL (JS/TS SAST)",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR source branch",
+            "integration_id": 15368
+          },
+          {
+            "context": "E2E (Playwright)",
+            "integration_id": 15368
+          }
         ]
+      }
+    },
+    {
+      "type": "required_deployments",
+      "parameters": {
+        "required_deployment_environments": ["staging"]
       }
     }
   ]

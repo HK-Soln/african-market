@@ -14,6 +14,15 @@ docker build -f infra/docker/next.Dockerfile --build-arg APP=web \
   --build-arg NEXT_PUBLIC_GATEWAY_URL=https://api.example.ae -t african-market/web .
 ```
 
+`docker-bake.hcl` lists every image with its arguments; CI and the deploy build through it:
+
+```bash
+docker buildx bake -f infra/docker/docker-bake.hcl                # the current phase's apps, :local
+docker buildx bake -f infra/docker/docker-bake.hcl identity web   # some of them
+```
+
+The Next apps need `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_WEB_URL` set (there is no default).
+
 ## How they are built
 
 1. `pnpm fetch` downloads every package in the lockfile. That layer depends only on the lockfile,

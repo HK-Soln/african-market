@@ -1,0 +1,69 @@
+name: Staging on / off
+
+# Staging runs 08:00-20:00 Dubai time, Monday to Friday, on its own (EventBridge Scheduler,
+# infra/terraform/modules/schedule). This turns it on or off outside those hours, e.g. for a
+# demo on a Saturday. The schedule takes over again at its next time.
+#
+# Run it from the `stage` branch: only `stage` may use the staging environment.
+
+on:
+  workflow_dispatch:
+    inputs:
+      power:
+        description: Turn staging on or off
+        type: choice
+        options: ['on', 'off']
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  power:
+    name: Staging ${{ inputs.power }}
+    if: ${{ vars.AWS_STAGING_ROLE_ARN != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: me-central-1
+      CLUSTER: am-staging
+      DB_INSTANCE: am-staging
+      # Working-hours task counts (envs/staging): one task per app.
+      SERVICES: gateway identity web seller admin
+    steps:
+      - name: AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_STAGING_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Turn on
+        if: ${{ inputs.power == 'on' }}
+        run: |
+          status="$(aws rds describe-db-instances --db-instance-identifier "$DB_INSTANCE" \
+            --query 'DBInstances[0].DBInstanceStatus' --output text)"
+          [ "$status" = "stopped" ] && aws rds start-db-instance --db-instance-identifier "$DB_INSTANCE" > /dev/null
+          aws rds wait db-instance-available --db-instance-identifier "$DB_INSTANCE"
+          for service in $SERVICES; do
+            aws ecs update-service --cluster "$CLUSTER" --service "$service" --desired-count 1 > /dev/null
+          done
+          # shellcheck disable=SC2086
+          aws ecs wait services-stable --cluster "$CLUSTER" --services $SERVICES
+          echo "::notice::Staging is on."
+
+      - name: Turn off
+        if: ${{ inputs.power == 'off' }}
+        run: |
+          for service in $SERVICES; do
+            aws ecs update-service --cluster "$CLUSTER" --service "$service" --desired-count 0 > /dev/null
+          done
+          # shellcheck disable=SC2086
+          aws ecs wait services-stable --cluster "$CLUSTER" --services $SERVICES
+          status="$(aws rds describe-db-instances --db-instance-identifier "$DB_INSTANCE" \
+            --query 'DBInstances[0].DBInstanceStatus' --output text)"
+          [ "$status" = "available" ] && aws rds stop-db-instance --db-instance-identifier "$DB_INSTANCE" > /dev/null
+          echo "::notice::Staging is off."

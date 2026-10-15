@@ -313,7 +313,7 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: phone sign-up cannot work on staging until identity has a real WhatsApp provider; the
   > console provider is refused outside development. That blocks part of F0-17.
 
-- [ ] **F0-14 CI/CD** (depends on F0-11, F0-12)
+- [x] **F0-14 CI/CD** (depends on F0-11, F0-12)
       Extend `.github/workflows/ci.yml`: Nx affected with remote cache optional, Playwright e2e against the
       compose stack, container image builds for affected apps, push to ECR and deploy to staging on
       `stage` and to production on `main` behind a manual approval (OIDC role, no long-lived AWS
@@ -321,6 +321,29 @@ delivery is ignored); F0-10 turns that into automated tests.
       scanning (Trivy) as non-blocking at first. Add the `staging` required deployment to the `main`
       ruleset. The branch flow, required checks, secret scan and dependency audit already exist
       (T-16, `docs/architecture/branching-and-cicd.md`).
+
+  > Note: owner decisions (2026-10-16): staging end-to-end tests sign in with **test numbers** (a
+  > fixed code, never sent, refused in production); production deploys need one approval, by
+  > Henson; `E2E (Playwright)` is now required on dev, stage and main; no Nx remote cache until CI
+  > gets slow; Multi-AZ Postgres in production only; staging runs only 08:00-20:00 Dubai time,
+  > Monday to Friday.
+  > Note: the e2e job now runs against the real images (`docker-compose.e2e.yml`, built with
+  > Buildx and the GitHub Actions cache), which also proves the images on every pull request.
+  > Note: deploys (`deploy.yml`): images tagged with the commit -> new task definitions only
+  > (`terraform apply -target`) -> migrations as one-off tasks (`infra/deploy/run-migrations.sh`)
+  > -> full `terraform apply` -> wait until stable -> `@smoke` tests on staging. CI applies
+  > Terraform, so infrastructure changes deploy the same way as code (decision T-20).
+  > Note: AWS access is OIDC to a role per account (`bootstrap/`), trusted only by its GitHub
+  > environment; it is an administrator because it applies Terraform. Deploys are skipped, not
+  > failed, until the role exists. Nothing has run against AWS yet: no account.
+  > Note: Trivy scans the affected images on every pull request (`Images (build · scan)`),
+  > non-blocking, with findings in the Security tab. ECR also scans on push.
+  > Note: `envs/production` exists (Multi-AZ, NAT and Redis replica per zone, RabbitMQ cluster,
+  > deletion protection, no test numbers, always on); production images are rebuilt from `main`
+  > rather than copied from staging, since the Next images differ per environment anyway.
+  > Note: `main` now requires a successful `staging` deployment, so nothing merges into `main`
+  > until staging exists. The rulesets and environments take effect when
+  > `infra/github/apply-rulesets.sh` is run after this merges.
 
 - [ ] **F0-15 Observability** (depends on F0-01)
       OpenTelemetry SDK in `libs/core` (HTTP, Nest, pg, amqplib instrumentation), trace id propagated

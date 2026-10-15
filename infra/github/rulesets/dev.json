@@ -2,12 +2,23 @@
   "name": "dev: integration branch",
   "target": "branch",
   "enforcement": "active",
-  "conditions": { "ref_name": { "include": ["refs/heads/dev"], "exclude": [] } },
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/dev"],
+      "exclude": []
+    }
+  },
   "bypass_actors": [],
   "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
-    { "type": "required_linear_history" },
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_linear_history"
+    },
     {
       "type": "pull_request",
       "parameters": {
@@ -25,13 +36,38 @@
         "strict_required_status_checks_policy": true,
         "do_not_enforce_on_create": false,
         "required_status_checks": [
-          { "context": "Format · Lint · Typecheck · Test · Build", "integration_id": 15368 },
-          { "context": "Migrations (PostGIS)", "integration_id": 15368 },
-          { "context": "Secret scan (gitleaks)", "integration_id": 15368 },
-          { "context": "Dependency audit", "integration_id": 15368 },
-          { "context": "CodeQL (JS/TS SAST)", "integration_id": 15368 },
-          { "context": "PR source branch", "integration_id": 15368 },
-          { "context": "PR title", "integration_id": 15368 }
+          {
+            "context": "Format · Lint · Typecheck · Test · Build",
+            "integration_id": 15368
+          },
+          {
+            "context": "Migrations (PostGIS)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Secret scan (gitleaks)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Dependency audit",
+            "integration_id": 15368
+          },
+          {
+            "context": "CodeQL (JS/TS SAST)",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR source branch",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR title",
+            "integration_id": 15368
+          },
+          {
+            "context": "E2E (Playwright)",
+            "integration_id": 15368
+          }
         ]
       }
     }

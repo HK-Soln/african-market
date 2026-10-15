@@ -17,6 +17,21 @@ export function newPhone(): { national: string; e164: string } {
   return { national, e164: `+971${national}` };
 }
 
+/**
+ * One of the test numbers from E2E_TEST_NUMBERS (`<phone>:<code>,...`, the same list identity
+ * has as OTP_TEST_NUMBERS): a number whose code is fixed and never sent.
+ */
+export function testNumber(index: number): { national: string; e164: string; code: string } {
+  const entries = (process.env.E2E_TEST_NUMBERS ?? '').split(',').filter(Boolean);
+  const entry = entries[index];
+  if (!entry)
+    throw new Error(`E2E_TEST_NUMBERS needs at least ${index + 1} <phone>:<code> entries`);
+  const [e164, code] = entry.trim().split(':');
+  if (!e164?.startsWith('+971') || !/^\d{6}$/.test(code ?? ''))
+    throw new Error('E2E_TEST_NUMBERS: each entry is +971<number>:<six-digit code>');
+  return { e164, national: e164.slice('+971'.length), code };
+}
+
 export interface Api {
   /**
    * The code the backend "sent" to a phone. Only works against a backend running with

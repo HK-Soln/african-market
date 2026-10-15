@@ -53,6 +53,26 @@ variable "email_provider" {
   }
 }
 
+variable "otp_test_numbers" {
+  description = <<-EOT
+    Phone numbers that sign in with a fixed code, never sent: for the end-to-end tests. Terraform
+    generates each code and stores OTP_TEST_NUMBERS for identity; the tests read the same secret.
+    Must stay empty in production (identity refuses to start otherwise).
+  EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "working_hours" {
+  description = "Run the apps and database only during these hours (Asia/Dubai), or null for always on."
+  type = object({
+    on_at  = string
+    off_at = string
+    days   = string
+  })
+  default = null
+}
+
 variable "manual_secrets" {
   description = "Secrets a person sets by hand (third-party credentials), given to every backend."
   type        = list(string)

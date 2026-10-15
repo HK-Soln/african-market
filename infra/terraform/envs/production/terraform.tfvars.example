@@ -1,0 +1,3 @@
+# Copy to terraform.tfvars. Nothing here is secret.
+domain = "africanmarket.ae"
+# route53_zone_id = "Z0123456789ABCDEFGHIJ"

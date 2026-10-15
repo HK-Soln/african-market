@@ -29,7 +29,8 @@ for (const { locale, dir, emirate } of cases) {
     const code = await api.otpFor(phone.e164);
     const wrong = code === '000000' ? '111111' : '000000';
     await page.getByLabel(`${t.auth.digit} 1`).fill(wrong);
-    await expect(page.getByRole('alert')).toBeVisible();
+    // The form's own message; Next's route announcer is an alert too.
+    await expect(page.getByRole('alert').and(page.locator('.am-field-msg'))).toBeVisible();
 
     // Filling the boxes with the right one submits by itself.
     await page.getByLabel(`${t.auth.digit} 1`).fill(code);

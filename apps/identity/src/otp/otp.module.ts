@@ -10,6 +10,7 @@ import { SessionService } from '../sessions/session.service';
 import { SMS_PROVIDER, SmsProvider } from '../sms/sms-provider';
 import { OtpChallenges } from './otp-challenges';
 import { OtpRateLimiter } from './otp-rate-limiter';
+import { OtpTestNumbers } from './otp-test-numbers';
 import { OtpController } from './otp.controller';
 import { OtpService } from './otp.service';
 
@@ -37,6 +38,7 @@ import { OtpService } from './otp.service';
         OutboxService,
         OtpChallenges,
         SessionService,
+        APP_ENV,
       ],
       useFactory: (
         dataSource: DataSource,
@@ -45,7 +47,17 @@ import { OtpService } from './otp.service';
         outbox: OutboxService,
         challenges: OtpChallenges,
         sessions: SessionService,
-      ) => new OtpService(dataSource, limiter, sms, outbox, challenges, sessions),
+        env: IdentityEnv,
+      ) =>
+        new OtpService(
+          dataSource,
+          limiter,
+          sms,
+          outbox,
+          challenges,
+          sessions,
+          OtpTestNumbers.parse(env.OTP_TEST_NUMBERS),
+        ),
     },
   ],
   exports: [OtpRateLimiter, OtpChallenges],

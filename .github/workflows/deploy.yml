@@ -1,0 +1,225 @@
+name: Deploy
+
+# stage -> staging, main -> production. Production waits for an approval in the `production`
+# environment (one reviewer, Henson-Kudi), and GitHub only lets `main` deploy there and `stage`
+# deploy to staging (infra/github/apply-rulesets.sh). AWS access is GitHub OIDC: a short-lived
+# role per job, no stored keys (the role is created by infra/terraform/bootstrap).
+#
+# Until an environment's AWS role exists (repository variable AWS_STAGING_ROLE_ARN or
+# AWS_PRODUCTION_ROLE_ARN), its deploy is skipped with a notice instead of failing.
+#
+# Order, so new code never runs against an old schema:
+#   build and push images (tag = commit) -> register the new task definitions -> migrations as
+#   one-off tasks -> terraform apply (services roll out; failed rollouts roll back) -> wait until
+#   stable -> staging only: the @smoke end-to-end tests against the real site.
+
+on:
+  push:
+    branches: [stage, main]
+  workflow_dispatch: # re-deploy the branch's current commit
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false # never stop a deploy half-way
+
+permissions:
+  contents: read
+
+env:
+  NX_NO_CLOUD: 'true'
+  AWS_REGION: me-central-1
+  TF_IN_AUTOMATION: 'true'
+
+jobs:
+  target:
+    name: Target
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.pick.outputs.environment }}
+      ready: ${{ steps.pick.outputs.ready }}
+    steps:
+      - id: pick
+        env:
+          STAGING_ROLE: ${{ vars.AWS_STAGING_ROLE_ARN }}
+          PRODUCTION_ROLE: ${{ vars.AWS_PRODUCTION_ROLE_ARN }}
+        run: |
+          case "$GITHUB_REF_NAME" in
+            stage) environment=staging; role="$STAGING_ROLE" ;;
+            main) environment=production; role="$PRODUCTION_ROLE" ;;
+            *) echo "::error::Deploys come from stage or main only"; exit 1 ;;
+          esac
+          echo "environment=$environment" >> "$GITHUB_OUTPUT"
+          if [ -n "$role" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No AWS role for $environment yet (repository variable AWS_${environment^^}_ROLE_ARN); skipping the deploy. See infra/terraform/README.md."
+          fi
+
+  deploy:
+    name: Deploy to ${{ needs.target.outputs.environment }}
+    needs: target
+    if: ${{ needs.target.outputs.ready == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: ${{ needs.target.outputs.environment }}
+      url: ${{ steps.urls.outputs.web }}
+    permissions:
+      contents: read
+      id-token: write # GitHub OIDC -> AWS
+    env:
+      ENVIRONMENT: ${{ needs.target.outputs.environment }}
+      TF_DIR: infra/terraform/envs/${{ needs.target.outputs.environment }}
+      TAG: ${{ github.sha }}
+      # Non-secret settings, kept as repository variables until the domain is final.
+      TF_VAR_domain: ${{ needs.target.outputs.environment == 'production' && vars.PRODUCTION_DOMAIN || vars.STAGING_DOMAIN }}
+      TF_VAR_route53_zone_id: ${{ needs.target.outputs.environment == 'production' && vars.PRODUCTION_ROUTE53_ZONE_ID || vars.STAGING_ROUTE53_ZONE_ID }}
+      TF_VAR_image_tag: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check the settings
+        run: |
+          if [ -z "$TF_VAR_domain" ]; then
+            echo "::error::Set the repository variable ${ENVIRONMENT^^}_DOMAIN (e.g. staging.africanmarket.ae)"
+            exit 1
+          fi
+          # An empty zone id means "DNS is not in Route 53" to Terraform.
+          if [ -z "$TF_VAR_route53_zone_id" ]; then echo "TF_VAR_route53_zone_id=null" >> "$GITHUB_ENV"; fi
+
+      - name: AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ needs.target.outputs.environment == 'production' && vars.AWS_PRODUCTION_ROLE_ARN || vars.AWS_STAGING_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform -chdir="$TF_DIR" init -input=false -lockfile=readonly -backend-config=backend.tfbackend
+
+      - name: Read the environment
+        id: urls
+        run: |
+          out() { terraform -chdir="$TF_DIR" output -json "$1"; }
+          repo="$(out ecr_repositories | jq -r '.gateway' | sed 's#/gateway$##')"
+          args="$(out next_public_build_args)"
+          {
+            echo "REGISTRY=$repo"
+            echo "NEXT_PUBLIC_GATEWAY_URL=$(jq -r .NEXT_PUBLIC_GATEWAY_URL <<<"$args")"
+            echo "NEXT_PUBLIC_WEB_URL=$(jq -r .NEXT_PUBLIC_WEB_URL <<<"$args")"
+            echo "CLUSTER=$(out cluster_name | jq -r .)"
+            echo "DB_INSTANCE=$(out database_identifier | jq -r .)"
+          } >> "$GITHUB_ENV"
+          echo "web=$(out urls | jq -r .web)" >> "$GITHUB_OUTPUT"
+          echo "gateway=$(out urls | jq -r .gateway)" >> "$GITHUB_OUTPUT"
+
+      # Staging sleeps outside working hours (modules/schedule); migrations need the database.
+      - name: Wake the database
+        run: |
+          status="$(aws rds describe-db-instances --db-instance-identifier "$DB_INSTANCE" \
+            --query 'DBInstances[0].DBInstanceStatus' --output text)"
+          echo "Database: $status"
+          if [ "$status" = "stopped" ]; then
+            aws rds start-db-instance --db-instance-identifier "$DB_INSTANCE" > /dev/null
+          fi
+          aws rds wait db-instance-available --db-instance-identifier "$DB_INSTANCE"
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Expose the GitHub cache to Buildx
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      # Every app of the current phase, tagged with the commit. The Next apps get this
+      # environment's public URLs compiled in; the backend images are the same everywhere.
+      - name: Build and push the images
+        env:
+          BUILD_ID: ${{ github.sha }}
+        run: |
+          apps=$(docker buildx bake -f infra/docker/docker-bake.hcl --print 2>/dev/null | jq -r '.group.default.targets[]')
+          sets=()
+          for app in $apps; do
+            scope="$app"; case "$app" in web|seller|admin) scope="$app-$ENVIRONMENT";; esac
+            sets+=(--set "$app.cache-from=type=gha,scope=$scope" --set "$app.cache-to=type=gha,scope=$scope,mode=max")
+          done
+          docker buildx bake -f infra/docker/docker-bake.hcl --push "${sets[@]}"
+
+      - name: Register the new task definitions
+        # Only the task definitions: the services keep running the old ones until migrations pass.
+        run: |
+          mapfile -t targets < <(terraform -chdir="$TF_DIR" state list \
+            | grep 'aws_ecs_task_definition\.this$' | sed 's/^/-target=/')
+          terraform -chdir="$TF_DIR" apply -input=false -auto-approve "${targets[@]}"
+
+      - name: Run the migrations
+        run: bash infra/deploy/run-migrations.sh "$TF_DIR"
+
+      - name: Terraform apply
+        run: terraform -chdir="$TF_DIR" apply -input=false -auto-approve
+
+      - name: Wait for the services
+        run: |
+          mapfile -t services < <(aws ecs list-services --cluster "$CLUSTER" \
+            --query 'serviceArns[]' --output text | tr '\t' '\n')
+          aws ecs wait services-stable --cluster "$CLUSTER" --services "${services[@]}"
+          aws ecs describe-services --cluster "$CLUSTER" --services "${services[@]}" \
+            --query 'services[].[serviceName,runningCount]' --output table
+
+      - name: Is the site up?
+        id: awake
+        run: |
+          running=$(aws ecs describe-services --cluster "$CLUSTER" --services gateway \
+            --query 'services[0].runningCount' --output text)
+          if [ "$running" = "0" ]; then
+            echo "up=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$ENVIRONMENT is outside working hours (no tasks): deployed, smoke tests skipped."
+          else
+            echo "up=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup pnpm
+        if: ${{ env.ENVIRONMENT == 'staging' && steps.awake.outputs.up == 'true' }}
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        if: ${{ env.ENVIRONMENT == 'staging' && steps.awake.outputs.up == 'true' }}
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Smoke tests (@smoke, en and ar)
+        if: ${{ env.ENVIRONMENT == 'staging' && steps.awake.outputs.up == 'true' }}
+        env:
+          E2E_BASE_URL: ${{ steps.urls.outputs.web }}
+          E2E_GATEWAY_URL: ${{ steps.urls.outputs.gateway }}
+          E2E_SMOKE_ONLY: '1'
+        run: |
+          secret="$(terraform -chdir="$TF_DIR" output -raw otp_test_numbers_secret)"
+          numbers="$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text)"
+          for entry in ${numbers//,/ }; do echo "::add-mask::${entry#*:}"; done
+          export E2E_TEST_NUMBERS="$numbers"
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          pnpm e2e
+
+      - name: Upload the Playwright report
+        if: ${{ !cancelled() && env.ENVIRONMENT == 'staging' && steps.awake.outputs.up == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-staging
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+          if-no-files-found: ignore

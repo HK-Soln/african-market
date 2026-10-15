@@ -1,57 +1,101 @@
-import { baseEnvSchema, loadEnv, loadNodeEnv, loadServiceEndpoints } from './env';
+import { baseEnvSchema, loadEnv, loadNodeEnv, loadServiceEndpoints, loadServicePorts } from './env';
+
+const hosts = Object.fromEntries(
+  [
+    'identity',
+    'shops',
+    'catalog',
+    'discovery',
+    'media',
+    'messaging',
+    'notifications',
+    'orders',
+    'payments',
+  ].map((name) => [`${name.toUpperCase()}_HOST`, `${name}.staging.am.internal`]),
+);
+
+const connections = {
+  DATABASE_URL: 'postgres://am:am@db:5432/african_market',
+  RABBITMQ_URL: 'amqp://am:am@mq:5672',
+  REDIS_URL: 'redis://cache:6379',
+};
 
 describe('loadServiceEndpoints', () => {
-  it('defaults to localhost and the ports in SERVICES', () => {
-    const endpoints = loadServiceEndpoints({});
-    expect(endpoints.identity).toEqual({ host: 'localhost', tcpPort: 4101, httpPort: 4201 });
-    expect(endpoints.payments).toEqual({ host: 'localhost', tcpPort: 4109, httpPort: 4209 });
-  });
-
-  it('takes the host and ports from the environment', () => {
-    const endpoints = loadServiceEndpoints({
-      IDENTITY_HOST: 'identity.staging.am.internal',
-      IDENTITY_TCP_PORT: '5101',
-      IDENTITY_HTTP_PORT: '5201',
-    });
+  it('takes every host from the environment, and the ports from SERVICES', () => {
+    const endpoints = loadServiceEndpoints(hosts);
     expect(endpoints.identity).toEqual({
       host: 'identity.staging.am.internal',
-      tcpPort: 5101,
-      httpPort: 5201,
+      tcpPort: 4101,
+      httpPort: 4201,
     });
-    expect(endpoints.shops.host).toBe('localhost');
+    expect(endpoints.payments.tcpPort).toBe(4109);
+  });
+
+  it('lets the environment override a port', () => {
+    expect(loadServiceEndpoints({ ...hosts, IDENTITY_TCP_PORT: '5101' }).identity.tcpPort).toBe(
+      5101,
+    );
+  });
+
+  it('stops when a host is missing, and names it', () => {
+    const { SHOPS_HOST: _shops, ...withoutShops } = hosts;
+    expect(() => loadServiceEndpoints(withoutShops)).toThrow(/SHOPS_HOST/);
   });
 
   it('refuses a port that is not a number', () => {
-    expect(() => loadServiceEndpoints({ SHOPS_TCP_PORT: 'abc' })).toThrow(/SHOPS_TCP_PORT/);
+    expect(() => loadServiceEndpoints({ ...hosts, SHOPS_TCP_PORT: 'abc' })).toThrow(
+      /SHOPS_TCP_PORT/,
+    );
+  });
+});
+
+describe('loadServicePorts', () => {
+  it('needs no host: a service only listens', () => {
+    expect(loadServicePorts('identity', {})).toEqual({ tcpPort: 4101, httpPort: 4201 });
+    expect(loadServicePorts('identity', { IDENTITY_HTTP_PORT: '5201' }).httpPort).toBe(5201);
   });
 });
 
 describe('baseEnvSchema', () => {
-  it('has a default for every key', () => {
-    const env = loadEnv(baseEnvSchema, {});
-    expect(env).toMatchObject({
+  it('has no default for where the database, broker and cache are', () => {
+    for (const key of Object.keys(connections)) {
+      const { [key as keyof typeof connections]: _left, ...rest } = connections;
+      expect(() => loadEnv(baseEnvSchema, rest)).toThrow(new RegExp(key));
+    }
+  });
+
+  it('defaults what is the same everywhere', () => {
+    expect(loadEnv(baseEnvSchema, connections)).toMatchObject({
       NODE_ENV: 'development',
+      LOG_LEVEL: 'info',
       TYPEORM_LOGGING: false,
       OUTBOX_POLL_MS: 500,
-      DATABASE_URL: 'postgres://am:am@localhost:5432/african_market',
     });
   });
 
   it('reads booleans and numbers from their text', () => {
-    const env = loadEnv(baseEnvSchema, { TYPEORM_LOGGING: 'true', OUTBOX_POLL_MS: '250' });
+    const env = loadEnv(baseEnvSchema, {
+      ...connections,
+      TYPEORM_LOGGING: 'true',
+      OUTBOX_POLL_MS: '250',
+    });
     expect(env.TYPEORM_LOGGING).toBe(true);
     expect(env.OUTBOX_POLL_MS).toBe(250);
   });
 
   it('refuses a value it does not understand instead of guessing', () => {
-    expect(() => loadEnv(baseEnvSchema, { TYPEORM_LOGGING: 'maybe' })).toThrow(/TYPEORM_LOGGING/);
-    expect(() => loadEnv(baseEnvSchema, { OUTBOX_POLL_MS: '0' })).toThrow(/OUTBOX_POLL_MS/);
+    expect(() => loadEnv(baseEnvSchema, { ...connections, TYPEORM_LOGGING: 'maybe' })).toThrow(
+      /TYPEORM_LOGGING/,
+    );
+    expect(() => loadEnv(baseEnvSchema, { ...connections, DATABASE_URL: 'not a url' })).toThrow(
+      /DATABASE_URL/,
+    );
   });
 });
 
 describe('loadNodeEnv', () => {
   it('reads NODE_ENV alone', () => {
-    expect(loadNodeEnv({ NODE_ENV: 'test', OUTBOX_POLL_MS: 'not checked here' })).toBe('test');
+    expect(loadNodeEnv({ NODE_ENV: 'test' })).toBe('test');
     expect(loadNodeEnv({})).toBe('development');
   });
 });

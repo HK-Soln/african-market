@@ -37,6 +37,11 @@ const event = (overrides: Partial<EventEnvelope<'user.registered'>> = {}) =>
     ...overrides,
   }) as EventEnvelope<'user.registered'>;
 
+/** Required by the schema; the event bus never connects to them. */
+const notUsedHere = {
+  DATABASE_URL: 'postgres://unused:unused@localhost:5432/unused',
+  REDIS_URL: 'redis://localhost:6379',
+};
 describe('EventBus (RabbitMQ)', () => {
   let admin: ChannelModel;
   let adminChannel: Channel;
@@ -52,6 +57,7 @@ describe('EventBus (RabbitMQ)', () => {
   ) => {
     const service = `test-${run}-${++serviceSeq}`;
     const env = baseEnvSchema.parse({
+      ...notUsedHere,
       RABBITMQ_URL: brokerUrl,
       EVENTS_EXCHANGE: exchange,
       EVENT_RETRY_DELAYS_MS: retryDelays,
@@ -110,7 +116,11 @@ describe('EventBus (RabbitMQ)', () => {
   });
 
   it('refuses to publish when it is not connected, so the outbox keeps the event', async () => {
-    const env = baseEnvSchema.parse({ RABBITMQ_URL: brokerUrl, EVENTS_EXCHANGE: exchange });
+    const env = baseEnvSchema.parse({
+      ...notUsedHere,
+      RABBITMQ_URL: brokerUrl,
+      EVENTS_EXCHANGE: exchange,
+    });
     const idle = new EventBus('never-started', env, new HealthService('never-started'));
     await expect(idle.publish(event())).rejects.toThrow('RabbitMQ not connected');
   });

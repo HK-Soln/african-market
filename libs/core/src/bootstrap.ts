@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger } from 'nestjs-pino';
 import { ServiceName } from '@am/contracts';
-import { loadServiceEndpoints } from './env';
+import { loadServicePorts } from './env';
 
 /**
  * Starts a backend service as a hybrid app:
@@ -16,7 +16,7 @@ export async function bootstrapService(
   name: ServiceName,
   module: Type<unknown>,
 ): Promise<INestApplication> {
-  const { tcpPort, httpPort } = loadServiceEndpoints()[name];
+  const { tcpPort, httpPort } = loadServicePorts(name);
 
   const app = await NestFactory.create(module, { bufferLogs: true });
   app.useLogger(app.get(Logger));

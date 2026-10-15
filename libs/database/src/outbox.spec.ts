@@ -80,6 +80,11 @@ class BrokerProxy {
   }
 }
 
+/** Required by the schema; the event bus never connects to them. */
+const notUsedHere = {
+  DATABASE_URL: 'postgres://unused:unused@localhost:5432/unused',
+  REDIS_URL: 'redis://localhost:6379',
+};
 describe('transactional outbox (Postgres + RabbitMQ)', () => {
   let testDb: TestDatabase;
   let db: DataSource;
@@ -91,6 +96,7 @@ describe('transactional outbox (Postgres + RabbitMQ)', () => {
   const startBus = async (url = brokerUrl) => {
     const service = `test-${run}-${++serviceSeq}`;
     const env = baseEnvSchema.parse({
+      ...notUsedHere,
       RABBITMQ_URL: url,
       EVENTS_EXCHANGE: exchange,
       EVENT_RETRY_DELAYS_MS: '50',

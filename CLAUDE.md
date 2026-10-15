@@ -125,6 +125,10 @@ Mailpit 8025. Docker credentials are `am` / `am`, except MinIO: `am-minio` / `am
 - **Configuration** is read only through zod schemas: `loadEnv` / `APP_ENV` from `@am/core` in the
   backends (a new key goes into `baseEnvSchema` or the service's own schema, with its default), and
   `src/lib/config.ts` in each Next app. ESLint rejects `process.env` anywhere else (tests excepted).
+  **No default for anything that differs between environments** (connection URLs, hosts, secrets,
+  providers, origins, phase): the app must stop at start and name the missing key. Defaults are
+  only for values that are the same everywhere (ports, log level, timings). Add a new required
+  key to `.env.example`, CI's `env:` and docker compose in the same change.
 - **Secrets** never in the repo. `.env` is git-ignored; production uses AWS Secrets Manager.
 - **Logging:** pino JSON via `nestjs-pino`, request id propagated as `correlationId` on events.
   Never log tokens, OTP codes, passwords, full card or ID data.

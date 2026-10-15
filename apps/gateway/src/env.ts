@@ -9,6 +9,11 @@ export const gatewayEnvSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32),
   /** Comma-separated origins of the three Next.js apps. */
   CORS_ORIGINS: z.string().min(1),
+  /**
+   * Code requests (WhatsApp, SMS, email) per IP per minute. 5 everywhere real; only the end-to-end
+   * stack raises it, because every test there comes from the same IP.
+   */
+  AUTH_CODE_REQUESTS_PER_MINUTE: z.coerce.number().int().positive().default(5),
   /** Default request timeout to a service, in ms. */
   SERVICE_TIMEOUT_MS: z.coerce.number().default(5000),
   /**

@@ -10,6 +10,8 @@ coverage
 !.env.example
 .DS_Store
 *.log
+# Local process logs (pnpm dev output redirected there)
+.logs/
 .turbo
 next-env.d.ts
 infra/terraform/**/.terraform

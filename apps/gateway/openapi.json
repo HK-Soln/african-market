@@ -396,6 +396,108 @@
           "me"
         ]
       }
+    },
+    "/api/v1/countries": {
+      "get": {
+        "operationId": "CountriesController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryListDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Countries enabled for phone sign-up or as an origin, in display order",
+        "tags": [
+          "countries"
+        ]
+      }
+    },
+    "/api/v1/admin/countries": {
+      "get": {
+        "operationId": "AdminCountriesController_listAll_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Every country, enabled or not",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/countries/{code}": {
+      "patch": {
+        "operationId": "AdminCountriesController_update_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "NG",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCountryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename a country, reorder it, or switch phone sign-up or origin on or off",
+        "tags": [
+          "admin"
+        ]
+      }
     }
   },
   "info": {
@@ -825,6 +927,121 @@
           "marketingConsent": {
             "type": "boolean",
             "description": "True records consent now; false withdraws it."
+          }
+        }
+      },
+      "CountryNameDto": {
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": "string",
+            "example": "United Arab Emirates"
+          },
+          "ar": {
+            "type": "string",
+            "example": "الإمارات العربية المتحدة"
+          },
+          "fr": {
+            "type": "string",
+            "example": "Émirats arabes unis"
+          }
+        },
+        "required": [
+          "en",
+          "ar",
+          "fr"
+        ]
+      },
+      "CountryDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "AE",
+            "description": "ISO 3166-1 alpha-2"
+          },
+          "name": {
+            "$ref": "#/components/schemas/CountryNameDto"
+          },
+          "dialCode": {
+            "type": "string",
+            "example": "+971"
+          },
+          "flag": {
+            "type": "string",
+            "example": "🇦🇪",
+            "description": "Emoji flag, for places that cannot show the image"
+          },
+          "phoneEnabled": {
+            "type": "boolean",
+            "description": "New accounts may sign up with a phone number from here"
+          },
+          "originEnabled": {
+            "type": "boolean",
+            "description": "Offered as a shop's or product's country of origin"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Lower comes first"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "dialCode",
+          "flag",
+          "phoneEnabled",
+          "originEnabled",
+          "sortOrder"
+        ]
+      },
+      "CountryListDto": {
+        "type": "object",
+        "properties": {
+          "countries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountryDto"
+            }
+          }
+        },
+        "required": [
+          "countries"
+        ]
+      },
+      "UpdateCountryNameDto": {
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "ar": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "fr": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "UpdateCountryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/UpdateCountryNameDto"
+          },
+          "phoneEnabled": {
+            "type": "boolean"
+          },
+          "originEnabled": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000
           }
         }
       }

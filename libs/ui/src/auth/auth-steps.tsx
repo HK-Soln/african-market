@@ -4,7 +4,8 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { LOCALES, type Locale } from '@am/i18n';
 import { Button, IconButton } from '../button';
 import { Checkbox } from '../choice';
-import { COUNTRIES, COUNTRY_CODES, type CountryCode } from '../countries';
+import { CountryFlag } from '../country-flag';
+import { countryName, formatPhoneAsTyped, type CountryOption } from '../countries';
 import { Input, Select } from '../field';
 import { Icon, type IconName } from '../icon';
 import { Logo } from '../logo';
@@ -118,8 +119,10 @@ function PasswordField({ label, hint, value, onChange, autoComplete, labels }: P
 export interface PhoneStepProps {
   labels: AuthLabels;
   locale: Locale;
-  country: CountryCode;
-  onCountryChange: (country: CountryCode) => void;
+  /** The countries a new account may use, in display order. */
+  countries: CountryOption[];
+  country: CountryOption;
+  onCountryChange: (country: CountryOption) => void;
   number: string;
   onNumberChange: (number: string) => void;
   onSubmit: () => void;
@@ -135,6 +138,7 @@ export interface PhoneStepProps {
 export function PhoneStep({
   labels,
   locale,
+  countries,
   country,
   onCountryChange,
   number,
@@ -179,9 +183,10 @@ export function PhoneStep({
         error={error ?? undefined}
         countryLabel={labels.countryLabel}
         country={country}
+        locale={locale}
         onCountryClick={() => setPicking(true)}
         value={number}
-        onChange={(event) => onNumberChange(event.target.value)}
+        onChange={(event) => onNumberChange(formatPhoneAsTyped(country, event.target.value))}
         maxLength={24}
         autoFocus
       />
@@ -212,23 +217,23 @@ export function PhoneStep({
         onClose={() => setPicking(false)}
       >
         <ul className="flex flex-col">
-          {COUNTRY_CODES.map((code) => (
-            <li key={code}>
+          {countries.map((option) => (
+            <li key={option.code}>
               <button
                 type="button"
                 className="flex min-h-12 w-full items-center gap-3 rounded-sm px-2 text-start hover:bg-surface-sunken"
-                aria-pressed={code === country}
+                aria-pressed={option.code === country.code}
                 onClick={() => {
-                  onCountryChange(code);
+                  onCountryChange(option);
                   setPicking(false);
                 }}
               >
-                <span aria-hidden>{COUNTRIES[code].flag}</span>
-                <span className="grow">{COUNTRIES[code][locale]}</span>
+                <CountryFlag code={option.code} size={16} />
+                <span className="grow">{countryName(option, locale)}</span>
                 <bdi dir="ltr" className="text-ink-muted">
-                  {COUNTRIES[code].dial}
+                  {option.dialCode}
                 </bdi>
-                {code === country && <Icon name="check" />}
+                {option.code === country.code && <Icon name="check" />}
               </button>
             </li>
           ))}

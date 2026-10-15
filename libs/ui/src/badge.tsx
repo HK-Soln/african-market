@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Locale } from '@am/i18n';
-import { COUNTRIES, type CountryCode } from './countries';
+import { CountryFlag } from './country-flag';
+import { countryName, type CountryOption } from './countries';
 import { cx } from './cx';
 import { formatAED } from './format';
 import { Icon, type IconName } from './icon';
@@ -61,7 +62,7 @@ export function Badge({ tone = 'neutral', icon, className, children }: BadgeProp
 }
 
 export interface OriginBadgeProps {
-  country: CountryCode;
+  country: Pick<CountryOption, 'code' | 'name'>;
   /** Language of the country name. */
   locale?: Locale;
   className?: string;
@@ -71,13 +72,10 @@ export interface OriginBadgeProps {
 
 /** Where a product or shop is from: the flag and the country name, always together. */
 export function OriginBadge({ country, locale = 'en', className, children }: OriginBadgeProps) {
-  const entry = COUNTRIES[country];
   return (
     <span className={cx('am-badge', 'am-badge-origin', className)}>
-      <span className="am-flag" aria-hidden>
-        {entry.flag}
-      </span>
-      <span>{children ?? entry[locale]}</span>
+      <CountryFlag code={country.code} className="am-flag" />
+      <span>{children ?? countryName(country, locale)}</span>
     </span>
   );
 }

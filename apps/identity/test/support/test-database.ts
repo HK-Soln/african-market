@@ -5,6 +5,7 @@ import { Init1791504000000 } from '../../src/migrations/1791504000000-init';
 import { IdentityDataModel1791666774888 } from '../../src/migrations/1791666774888-IdentityDataModel';
 import { OtpResetPurpose1791720000000 } from '../../src/migrations/1791720000000-OtpResetPurpose';
 import { UserHomeEmirate1791800000000 } from '../../src/migrations/1791800000000-UserHomeEmirate';
+import { Countries1791900000000 } from '../../src/migrations/1791900000000-Countries';
 
 export type { TestDatabase };
 
@@ -17,5 +18,6 @@ export const createTestDatabase = (): Promise<TestDatabase> =>
       IdentityDataModel1791666774888,
       OtpResetPurpose1791720000000,
       UserHomeEmirate1791800000000,
+      Countries1791900000000,
     ],
   });

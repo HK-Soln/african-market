@@ -172,7 +172,10 @@ export function UiShowcase({ locale, t }: { locale: Locale; t: ShowcaseStrings }
           <Badge tone="checkout">{t.orderOnline}</Badge>
           <Badge tone="pending">{t.pending}</Badge>
           <Badge tone="rejected">{t.rejected}</Badge>
-          <OriginBadge country="GH" locale={locale} />
+          <OriginBadge
+            country={{ code: 'GH', name: { en: 'Ghana', ar: 'غانا', fr: 'Ghana' } }}
+            locale={locale}
+          />
         </div>
         <div className="flex flex-wrap items-baseline gap-6">
           <Price amount={24.5} />

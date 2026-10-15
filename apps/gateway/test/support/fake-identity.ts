@@ -5,9 +5,11 @@ import { JwtService } from '@nestjs/jwt';
 import { MessagePattern, Payload, RpcException, Transport } from '@nestjs/microservices';
 import {
   AuthenticatedUserResponse,
+  CountryDto,
   IdentityErrors,
   IdentityPatterns,
   IdentityTestPatterns,
+  ListCountriesResponse,
   MeResponse,
   RequestOtpResponse,
   SessionTokens,
@@ -55,6 +57,46 @@ export class FakeIdentityController {
       expiresAt: new Date(Date.now() + 300_000).toISOString(),
       resendAfterSeconds: 30,
     };
+  }
+
+  private readonly countries: CountryDto[] = [
+    {
+      code: 'AE',
+      name: { en: 'United Arab Emirates', ar: 'الإمارات', fr: 'Émirats arabes unis' },
+      dialCode: '+971',
+      flag: '🇦🇪',
+      phoneEnabled: true,
+      originEnabled: true,
+      sortOrder: 1,
+    },
+    {
+      code: 'FR',
+      name: { en: 'France', ar: 'فرنسا', fr: 'France' },
+      dialCode: '+33',
+      flag: '🇫🇷',
+      phoneEnabled: false,
+      originEnabled: false,
+      sortOrder: 1000,
+    },
+  ];
+
+  @MessagePattern(IdentityPatterns.listCountries)
+  listCountries(): ListCountriesResponse {
+    return { countries: this.countries.filter((c) => c.phoneEnabled || c.originEnabled) };
+  }
+
+  @MessagePattern(IdentityPatterns.listAllCountries)
+  listAllCountries(): ListCountriesResponse {
+    return { countries: this.countries };
+  }
+
+  @MessagePattern(IdentityPatterns.updateCountry)
+  updateCountry(@Payload() data: Data): CountryDto {
+    this.record(IdentityPatterns.updateCountry, data);
+    const country = this.countries.find((c) => c.code === String(data.code).toUpperCase());
+    if (!country) throw fail(404, IdentityErrors.countryNotFound);
+    if (typeof data.phoneEnabled === 'boolean') country.phoneEnabled = data.phoneEnabled;
+    return country;
   }
 
   @MessagePattern(IdentityTestPatterns.lastOtp)

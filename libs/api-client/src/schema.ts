@@ -224,6 +224,57 @@ export interface paths {
         patch: operations["MeController_updateMe_v1"];
         trace?: never;
     };
+    "/api/v1/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Countries enabled for phone sign-up or as an origin, in display order */
+        get: operations["CountriesController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every country, enabled or not */
+        get: operations["AdminCountriesController_listAll_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/countries/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename a country, reorder it, or switch phone sign-up or origin on or off */
+        patch: operations["AdminCountriesController_update_v1"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -353,6 +404,49 @@ export interface components {
             homeEmirate?: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ" | null;
             /** @description True records consent now; false withdraws it. */
             marketingConsent?: boolean;
+        };
+        CountryNameDto: {
+            /** @example United Arab Emirates */
+            en: string;
+            /** @example الإمارات العربية المتحدة */
+            ar: string;
+            /** @example Émirats arabes unis */
+            fr: string;
+        };
+        CountryDto: {
+            /**
+             * @description ISO 3166-1 alpha-2
+             * @example AE
+             */
+            code: string;
+            name: components["schemas"]["CountryNameDto"];
+            /** @example +971 */
+            dialCode: string;
+            /**
+             * @description Emoji flag, for places that cannot show the image
+             * @example 🇦🇪
+             */
+            flag: string;
+            /** @description New accounts may sign up with a phone number from here */
+            phoneEnabled: boolean;
+            /** @description Offered as a shop's or product's country of origin */
+            originEnabled: boolean;
+            /** @description Lower comes first */
+            sortOrder: number;
+        };
+        CountryListDto: {
+            countries: components["schemas"]["CountryDto"][];
+        };
+        UpdateCountryNameDto: {
+            en?: string;
+            ar?: string;
+            fr?: string;
+        };
+        UpdateCountryDto: {
+            name?: components["schemas"]["UpdateCountryNameDto"];
+            phoneEnabled?: boolean;
+            originEnabled?: boolean;
+            sortOrder?: number;
         };
     };
     responses: never;
@@ -657,6 +751,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeDto"];
+                };
+            };
+        };
+    };
+    CountriesController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountryListDto"];
+                };
+            };
+        };
+    };
+    AdminCountriesController_listAll_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountryListDto"];
+                };
+            };
+        };
+    };
+    AdminCountriesController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCountryDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountryDto"];
                 };
             };
         };

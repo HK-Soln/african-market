@@ -15,3 +15,8 @@ export function normalizePhone(
   const parsed = parsePhoneNumberFromString(input.trim(), defaultRegion);
   return parsed?.isValid() ? parsed.number : null;
 }
+
+/** The country of an E.164 number (`+971501234567` -> `AE`), or null when it cannot tell. */
+export function phoneCountry(e164: string): string | null {
+  return parsePhoneNumberFromString(e164)?.country ?? null;
+}

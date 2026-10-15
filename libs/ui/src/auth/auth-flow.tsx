@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Locale } from '@am/i18n';
-import { COUNTRIES, type CountryCode } from '../countries';
+import { formatPhoneAsTyped, UAE, type CountryOption } from '../countries';
 import { composePhone, type AuthLabels } from './auth-helpers';
 import {
   CodeStep,
@@ -24,6 +24,8 @@ export interface AuthFlowUser {
   preferredLanguage: string;
   homeEmirate: string | null;
   marketingConsent: boolean;
+  /** Platform roles (customer, seller, admin), as the server sent them. */
+  roles?: string[];
 }
 
 interface CodeSent {
@@ -82,6 +84,11 @@ export interface AuthFlowProps {
   locale: Locale;
   /** The seven emirates, named in the current language. */
   emirates: Array<{ value: string; label: string }>;
+  /**
+   * The countries a new account may sign up from by phone (`GET /api/v1/countries`, those with
+   * `phoneEnabled`), in display order. The first is selected. Empty or missing: the UAE only.
+   */
+  countries?: CountryOption[];
   termsHref: string;
   privacyHref: string;
   /** Close or "Not now" on the first screen. */
@@ -128,6 +135,7 @@ export function AuthFlow({
   errorText,
   locale,
   emirates,
+  countries: offered,
   termsHref,
   privacyHref,
   onClose,
@@ -136,7 +144,8 @@ export function AuthFlow({
   const [step, setStep] = useState<Step>({ name: 'phone' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [country, setCountry] = useState<CountryCode>('AE');
+  const countries = offered?.length ? offered : [UAE];
+  const [country, setCountry] = useState<CountryOption>(countries[0]);
   const [number, setNumber] = useState('');
   const [email, setEmail] = useState('');
   const [resendAt, setResendAt] = useState(0);
@@ -295,11 +304,15 @@ export function AuthFlow({
         <PhoneStep
           labels={labels}
           locale={locale}
+          countries={countries}
           country={country}
-          onCountryChange={setCountry}
+          onCountryChange={(next) => {
+            setCountry(next);
+            setNumber((typed) => formatPhoneAsTyped(next, typed));
+          }}
           number={number}
           onNumberChange={setNumber}
-          onSubmit={() => sendPhoneCode(composePhone(COUNTRIES[country].dial, number))}
+          onSubmit={() => sendPhoneCode(composePhone(country.dialCode, number))}
           onEmail={() => go({ name: 'email', mode: 'login' })}
           onClose={onClose}
           termsHref={termsHref}

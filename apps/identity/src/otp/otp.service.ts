@@ -4,6 +4,7 @@ import {
   IdentityErrorCode,
   IdentityErrors,
   normalizePhone,
+  phoneCountry,
   RequestOtpRequest,
   RequestOtpResponse,
   SessionTokens,
@@ -12,6 +13,7 @@ import {
 } from '@am/contracts';
 import { OutboxService } from '@am/database';
 import { DEFAULT_LOCALE, isLocale } from '@am/i18n';
+import { ALLOW_EVERY_PHONE, PhoneCountryPolicy } from '../countries/countries.service';
 import { User } from '../entities';
 import { identityError } from '../errors';
 import { SessionService } from '../sessions/session.service';
@@ -38,6 +40,7 @@ export class OtpService {
     private readonly challenges: OtpChallenges,
     private readonly sessions: SessionService,
     private readonly testNumbers: OtpTestNumbers = OtpTestNumbers.none(),
+    private readonly countries: PhoneCountryPolicy = ALLOW_EVERY_PHONE,
   ) {}
 
   /**
@@ -52,6 +55,13 @@ export class OtpService {
 
     const issued = await this.dataSource.transaction(async (manager) => {
       const isRegistered = await manager.existsBy(User, { phone });
+      // Only new accounts: someone already registered keeps signing in if their country is
+      // switched off later.
+      if (!isRegistered && !(await this.countries.allowsNewPhone(phone))) {
+        throw identityError(IdentityErrors.phoneCountryNotSupported, {
+          country: phoneCountry(phone),
+        });
+      }
       // Only the newest code for a phone is ever valid.
       return this.challenges.issue(manager, {
         target: phone,

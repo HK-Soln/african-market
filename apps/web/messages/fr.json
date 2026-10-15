@@ -96,6 +96,7 @@
     "setPassword": "Enregistrer le mot de passe"
   },
   "errors": {
+    "PHONE_COUNTRY_NOT_SUPPORTED": "L’inscription avec un numéro de ce pays n’est pas encore possible. Utilisez un autre numéro ou votre e-mail.",
     "UNKNOWN": "Une erreur s’est produite. Réessayez.",
     "NETWORK_ERROR": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
     "RATE_LIMITED": "Trop de tentatives. Patientez une minute puis réessayez.",

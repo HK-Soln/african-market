@@ -96,6 +96,7 @@
     "setPassword": "Save new password"
   },
   "errors": {
+    "PHONE_COUNTRY_NOT_SUPPORTED": "Sign-up with a number from this country is not available yet. Use another number or your email.",
     "UNKNOWN": "Something went wrong. Try again.",
     "NETWORK_ERROR": "We couldn’t reach the server. Check your connection and try again.",
     "RATE_LIMITED": "Too many tries. Wait a minute and try again.",

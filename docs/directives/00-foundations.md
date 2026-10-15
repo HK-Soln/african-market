@@ -345,6 +345,32 @@ delivery is ignored); F0-10 turns that into automated tests.
   > until staging exists. The rulesets and environments take effect when
   > `infra/github/apply-rulesets.sh` is run after this merges.
 
+- [x] **F0-18 Countries as reference data** (depends on F0-08; added 2026-10-16, done before F0-15)
+      Countries in identity's database with what the apps need (names in en/ar/fr, dial code, flag,
+      whether new accounts may sign up by phone from there, whether it is offered as an origin, display
+      order), editable by admins in the admin app. The phone field takes its countries from there, with
+      a placeholder and formatting per country.
+
+  > Note: owner decisions (2026-10-16): identity owns the table; phone sign-up stays limited to the
+  > nine countries offered so far; admins edit them in the admin app; built now, before F0-15.
+  > Note: the table is seeded with every country that has phone numbers (245; names from CLDR,
+  > dial codes from libphonenumber-js), with only the nine enabled, so enabling another is one
+  > switch rather than data entry. How numbers are written and validated is not stored: it comes
+  > from libphonenumber-js, which follows numbering-plan changes.
+  > Note: only **new** phone sign-ups are refused for a country that is not enabled
+  > (`PHONE_COUNTRY_NOT_SUPPORTED`); someone already registered keeps signing in if their country
+  > is switched off later. Email sign-up is not limited by country.
+  > Note: routes: `GET /api/v1/countries` (public, cached 5 minutes), and `GET` / `PATCH
+/api/v1/admin/countries[/:code]` (admins). The admin list returns all ~245 rows: reference data
+  > that cannot grow large. Lists that can grow get filtering, sorting and cursor pagination
+  > instead (owner's point, 2026-10-16; to be its own task).
+  > Note: the first admin is made with `pnpm --filter @am/identity grant-role <phone|email> admin`
+  > (in AWS: the identity image with that command); nothing in the apps hands out the role.
+  > Note: flags are SVG images (country-flag-icons, copied into each app's `public/flags` at dev
+  > and build), not emoji: Windows showed emoji flags as two letters.
+  > Note: also fixed: web served `/icon.svg` with a 500, because the same file was in both
+  > `public/` and `src/app/`.
+
 - [ ] **F0-15 Observability** (depends on F0-01)
       OpenTelemetry SDK in `libs/core` (HTTP, Nest, pg, amqplib instrumentation), trace id propagated
       gateway → TCP → events (`correlationId`), OTLP exporter configured by env. Sentry in the gateway,

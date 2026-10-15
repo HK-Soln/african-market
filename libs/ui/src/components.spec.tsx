@@ -6,7 +6,9 @@ import {
   BottomSheet,
   Button,
   Checkbox,
-  COUNTRIES,
+  formatPhoneAsTyped,
+  phonePlaceholder,
+  UAE,
   fillOtpDigits,
   formatAED,
   Icon,
@@ -158,8 +160,10 @@ describe('form fields', () => {
   it('keeps the phone field left-to-right and defaults to the UAE', () => {
     const markup = html(<PhoneInput label="Mobile number" countryLabel="Country code" />);
     expect(markup).toContain('class="am-phone min-w-0" dir="ltr"');
-    expect(markup).toContain(COUNTRIES.AE.dial);
-    expect(markup).toContain('aria-label="Country code: UAE +971"');
+    expect(markup).toContain(UAE.dialCode);
+    expect(markup).toContain('placeholder="50 123 4567"');
+    expect(markup).toContain('src="/flags/AE.svg"');
+    expect(markup).toContain('aria-label="Country code: United Arab Emirates +971"');
     expect(markup).toContain('type="tel"');
   });
 
@@ -273,5 +277,23 @@ describe('components.css', () => {
   it('never positions with physical left or right', () => {
     const physical = css.match(/[^-](margin|padding)-(left|right)\s*:|[^-a-z](left|right)\s*:/g);
     expect(physical ?? []).toEqual([]);
+  });
+});
+
+describe('phone numbers per country', () => {
+  const nigeria = { code: 'NG', dialCode: '+234' };
+
+  it('suggests a typical number for the country', () => {
+    expect(phonePlaceholder(UAE)).toBe('50 123 4567');
+    expect(phonePlaceholder(nigeria)).toBe('802 123 4567');
+  });
+
+  it('groups the digits the way the country writes them, as they are typed', () => {
+    expect(formatPhoneAsTyped(UAE, '50123')).toBe('50 123');
+    expect(formatPhoneAsTyped(UAE, '0501234567')).toBe('50 123 4567');
+    expect(formatPhoneAsTyped(nigeria, '8021234567')).toBe('802 123 4567');
+    expect(formatPhoneAsTyped(UAE, '')).toBe('');
+    // Too long to be a number: left as typed, for the server to refuse.
+    expect(formatPhoneAsTyped(UAE, '5012345678999')).toBe('5012345678999');
   });
 });

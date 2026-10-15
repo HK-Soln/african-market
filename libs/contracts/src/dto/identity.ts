@@ -109,6 +109,9 @@ export const IdentityErrors = {
   /** An already-used refresh token came back, so every session in its family was signed out. */
   sessionReused: 'SESSION_REUSED',
   userNotFound: 'USER_NOT_FOUND',
+  /** New accounts cannot sign up with a phone number from this country; `details.country`. */
+  phoneCountryNotSupported: 'PHONE_COUNTRY_NOT_SUPPORTED',
+  countryNotFound: 'COUNTRY_NOT_FOUND',
 } as const;
 
 export type IdentityErrorCode = (typeof IdentityErrors)[keyof typeof IdentityErrors];
@@ -235,4 +238,36 @@ export interface UpdateMeRequest {
   homeEmirate?: string | null;
   /** True records consent now; false withdraws it. */
   marketingConsent?: boolean;
+}
+
+// ---- Countries (F0-18)
+
+/** A country as the apps show it. Phone formats come from libphonenumber-js, not from here. */
+export interface CountryDto {
+  /** ISO 3166-1 alpha-2, e.g. AE. */
+  code: string;
+  /** The name in every language. */
+  name: { en: string; ar: string; fr: string };
+  /** e.g. +971 */
+  dialCode: string;
+  /** Emoji flag, for places that cannot show the image. */
+  flag: string;
+  /** New accounts may sign up with a phone number from here. */
+  phoneEnabled: boolean;
+  /** Offered as a shop's or product's country of origin. */
+  originEnabled: boolean;
+  /** Lower comes first. */
+  sortOrder: number;
+}
+
+export interface ListCountriesResponse {
+  countries: CountryDto[];
+}
+
+export interface UpdateCountryRequest {
+  code: string;
+  name?: Partial<CountryDto['name']>;
+  phoneEnabled?: boolean;
+  originEnabled?: boolean;
+  sortOrder?: number;
 }

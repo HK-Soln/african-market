@@ -4,8 +4,8 @@ import { gatewayEnvSchema } from '../env';
 const MINUTE = 60_000;
 
 // Read once, when the routes are declared (decorators run at import).
-const { AUTH_CODE_REQUESTS_PER_MINUTE } = loadEnv(
-  gatewayEnvSchema.pick({ AUTH_CODE_REQUESTS_PER_MINUTE: true }),
+const { AUTH_THROTTLE_MULTIPLIER: scale } = loadEnv(
+  gatewayEnvSchema.pick({ AUTH_THROTTLE_MULTIPLIER: true }),
 );
 
 /**
@@ -15,10 +15,10 @@ const { AUTH_CODE_REQUESTS_PER_MINUTE } = loadEnv(
  */
 export const AuthThrottles = {
   /** Anything that sends a code by WhatsApp, SMS or email. */
-  codeRequest: { default: { limit: AUTH_CODE_REQUESTS_PER_MINUTE, ttl: MINUTE } },
+  codeRequest: { default: { limit: 5 * scale, ttl: MINUTE } },
   /** Guessing a code. */
-  codeVerify: { default: { limit: 10, ttl: MINUTE } },
+  codeVerify: { default: { limit: 10 * scale, ttl: MINUTE } },
   /** Guessing a password. */
-  login: { default: { limit: 10, ttl: MINUTE } },
-  refresh: { default: { limit: 30, ttl: MINUTE } },
+  login: { default: { limit: 10 * scale, ttl: MINUTE } },
+  refresh: { default: { limit: 30 * scale, ttl: MINUTE } },
 };

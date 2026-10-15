@@ -19,9 +19,9 @@ services:
     environment:
       NODE_ENV: test
       CORS_ORIGINS: http://localhost:3100
-      # Every test comes from the runner's one IP; the real limit (5) is covered by the gateway's
+      # Every test comes from the runner's one IP; the real limits are covered by the gateway's
       # own tests.
-      AUTH_CODE_REQUESTS_PER_MINUTE: 100
+      AUTH_THROTTLE_MULTIPLIER: 20
 
   web:
     image: african-market/web:e2e

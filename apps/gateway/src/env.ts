@@ -10,10 +10,10 @@ export const gatewayEnvSchema = z.object({
   /** Comma-separated origins of the three Next.js apps. */
   CORS_ORIGINS: z.string().min(1),
   /**
-   * Code requests (WhatsApp, SMS, email) per IP per minute. 5 everywhere real; only the end-to-end
-   * stack raises it, because every test there comes from the same IP.
+   * Scales the per-IP limits on the auth routes (auth/auth.throttles.ts). 1 everywhere real; only
+   * the end-to-end stack raises it, because every test there comes from the same IP.
    */
-  AUTH_CODE_REQUESTS_PER_MINUTE: z.coerce.number().int().positive().default(5),
+  AUTH_THROTTLE_MULTIPLIER: z.coerce.number().int().positive().default(1),
   /** Default request timeout to a service, in ms. */
   SERVICE_TIMEOUT_MS: z.coerce.number().default(5000),
   /**

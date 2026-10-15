@@ -54,6 +54,12 @@ variable "current_phase" {
   default = 0
 }
 
+variable "email_provider" {
+  description = "ses, or smtp for any other provider (Resend, Postmark, ...). See modules/platform."
+  type        = string
+  default     = "ses"
+}
+
 variable "manual_secrets" {
   type    = list(string)
   default = []
@@ -70,6 +76,7 @@ module "platform" {
   image_tag       = var.image_tag
   email_from      = "African Market <no-reply@${var.domain}>"
   manual_secrets  = var.manual_secrets
+  email_provider  = var.email_provider
 
   single_nat_gateway = true
   app_sizes = {

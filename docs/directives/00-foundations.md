@@ -307,6 +307,9 @@ delivery is ignored); F0-10 turns that into automated tests.
   > images now carry AWS's RDS certificate bundle. Redis and RabbitMQ use TLS too.
   > Note: identity sends email through SES's SMTP endpoint with an IAM access key scoped to the
   > domain, because its SES API provider is not built. Swap it for the task role when it is.
+  > Note: the email provider is a setting (`email_provider`: `ses`, or `smtp` for any SMTP
+  > provider such as Resend, with `SMTP_URL` set by hand). The owner may use Resend (2026-10-16);
+  > not decided. Its data location must be checked against product rule 8 first.
   > Note: phone sign-up cannot work on staging until identity has a real WhatsApp provider; the
   > console provider is refused outside development. That blocks part of F0-17.
 

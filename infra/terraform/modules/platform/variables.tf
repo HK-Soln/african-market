@@ -38,6 +38,21 @@ variable "email_from" {
   type        = string
 }
 
+variable "email_provider" {
+  description = <<-EOT
+    How identity sends email. Either way it speaks SMTP, so changing provider changes no code.
+      ses    Terraform creates the SES identity and the SMTP credentials.
+      smtp   any provider with an SMTP endpoint (Resend, Postmark, ...): set the secret
+             <prefix>/SMTP_URL by hand, e.g. smtps://resend:<api key>@smtp.resend.com:465
+  EOT
+  type        = string
+  default     = "ses"
+  validation {
+    condition     = contains(["ses", "smtp"], var.email_provider)
+    error_message = "email_provider is ses or smtp."
+  }
+}
+
 variable "manual_secrets" {
   description = "Secrets a person sets by hand (third-party credentials), given to every backend."
   type        = list(string)

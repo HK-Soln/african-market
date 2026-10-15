@@ -122,6 +122,9 @@ Mailpit 8025. Docker credentials are `am` / `am`, except MinIO: `am-minio` / `am
 - **Auth:** access JWT 15 min + rotating refresh token in httpOnly cookies. Gateway routes are
   authenticated by default; mark open ones `@Public()`. Shop routes use `:shopId` + `@ShopRoles()`;
   branch-level staff checks use `canAccessBranch()` in the service.
+- **Configuration** is read only through zod schemas: `loadEnv` / `APP_ENV` from `@am/core` in the
+  backends (a new key goes into `baseEnvSchema` or the service's own schema, with its default), and
+  `src/lib/config.ts` in each Next app. ESLint rejects `process.env` anywhere else (tests excepted).
 - **Secrets** never in the repo. `.env` is git-ignored; production uses AWS Secrets Manager.
 - **Logging:** pino JSON via `nestjs-pino`, request id propagated as `correlationId` on events.
   Never log tokens, OTP codes, passwords, full card or ID data.

@@ -116,7 +116,7 @@ services:
       GATEWAY_PORT: 4000
       CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
       TRUST_PROXY_HOPS: 0
-    ports: ['4000:4000'] # /docs for Swagger
+    ports: ['${GATEWAY_HOST_PORT:-4000}:4000'] # /docs for Swagger
     depends_on:
       <<: *backend-deps
       identity: { condition: service_healthy }
@@ -174,7 +174,7 @@ services:
       context: .
       dockerfile: infra/docker/next.Dockerfile
       args: { APP: web, <<: *next-build-args }
-    ports: ['3000:3000']
+    ports: ['${WEB_HOST_PORT:-3000}:3000']
 
   seller:
     <<: *next

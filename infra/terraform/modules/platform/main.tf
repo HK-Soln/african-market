@@ -119,24 +119,47 @@ module "ses" {
   route53_zone_id = var.route53_zone_id
 }
 
+# Each test number's code: six random digits, kept in the state and in Secrets Manager.
+resource "random_password" "otp_test_code" {
+  for_each = toset(var.otp_test_numbers)
+  length   = 6
+  upper    = false
+  lower    = false
+  special  = false
+  numeric  = true
+}
+
+locals {
+  otp_test_numbers = join(",", [for phone in var.otp_test_numbers : "${phone}:${random_password.otp_test_code[phone].result}"])
+  has_test_numbers = length(var.otp_test_numbers) > 0
+}
+
 module "secrets" {
-  source      = "../secrets"
-  prefix      = "african-market/${var.environment}"
-  generated   = ["JWT_ACCESS_SECRET", "OTP_HMAC_SECRET"]
-  value_names = concat(["DATABASE_URL", "REDIS_URL", "RABBITMQ_URL"], local.ses ? ["SMTP_URL"] : [])
-  values = merge(local.ses ? { SMTP_URL = module.ses[0].smtp_url } : {}, {
-    # Verified TLS against the RDS certificate bundle baked into the service images.
-    DATABASE_URL = format(
-      "postgres://%s:%s@%s:%d/%s?sslmode=verify-full&sslrootcert=/app/certs/rds-global-bundle.pem",
-      module.postgres.username,
-      module.postgres.password,
-      module.postgres.address,
-      module.postgres.port,
-      module.postgres.database_name,
-    )
-    REDIS_URL    = module.redis.url
-    RABBITMQ_URL = module.rabbitmq.url
-  })
+  source    = "../secrets"
+  prefix    = "african-market/${var.environment}"
+  generated = ["JWT_ACCESS_SECRET", "OTP_HMAC_SECRET"]
+  value_names = concat(
+    ["DATABASE_URL", "REDIS_URL", "RABBITMQ_URL"],
+    local.ses ? ["SMTP_URL"] : [],
+    local.has_test_numbers ? ["OTP_TEST_NUMBERS"] : [],
+  )
+  values = merge(
+    local.ses ? { SMTP_URL = module.ses[0].smtp_url } : {},
+    local.has_test_numbers ? { OTP_TEST_NUMBERS = local.otp_test_numbers } : {},
+    {
+      # Verified TLS against the RDS certificate bundle baked into the service images.
+      DATABASE_URL = format(
+        "postgres://%s:%s@%s:%d/%s?sslmode=verify-full&sslrootcert=/app/certs/rds-global-bundle.pem",
+        module.postgres.username,
+        module.postgres.password,
+        module.postgres.address,
+        module.postgres.port,
+        module.postgres.database_name,
+      )
+      REDIS_URL    = module.redis.url
+      RABBITMQ_URL = module.rabbitmq.url
+    },
+  )
   manual               = concat(var.manual_secrets, local.ses ? [] : ["SMTP_URL"])
   recovery_window_days = var.protect_data ? 7 : 0
 }
@@ -253,7 +276,11 @@ module "service" {
   log_retention_days = var.log_retention_days
 
   environment = local.backend_env
-  secrets     = local.backend_secrets
+  # Only identity may see the test numbers' codes.
+  secrets = merge(
+    local.backend_secrets,
+    each.key == "identity" && local.has_test_numbers ? { OTP_TEST_NUMBERS = module.secrets.arns["OTP_TEST_NUMBERS"] } : {},
+  )
 
   task_policy_statements = each.key == "media" ? module.media.media_service_statements : []
 
@@ -294,4 +321,24 @@ module "next" {
     priority     = each.value.priority
     health_path  = "/health"
   }
+}
+
+# ── working hours (staging) ───────────────────────────────────────────────────────────────────
+
+module "working_hours" {
+  count  = var.working_hours == null ? 0 : 1
+  source = "../schedule"
+
+  name         = "${local.name}-hours"
+  cluster_name = module.cluster.cluster_name
+  services = merge(
+    { gateway = { name = module.gateway.service_name, arn = module.gateway.service_arn, desired_count = local.size.gateway.desired_count } },
+    { for name, svc in module.service : name => { name = svc.service_name, arn = svc.service_arn, desired_count = local.size[name].desired_count } },
+    { for name, svc in module.next : name => { name = svc.service_name, arn = svc.service_arn, desired_count = local.size[name].desired_count } },
+  )
+  db_instance_id  = module.postgres.identifier
+  db_instance_arn = module.postgres.arn
+  on_at           = var.working_hours.on_at
+  off_at          = var.working_hours.off_at
+  days            = var.working_hours.days
 }

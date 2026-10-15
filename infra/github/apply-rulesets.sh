@@ -38,5 +38,28 @@ for file in "$DIR"/dev.json "$DIR"/stage.json "$DIR"/main.json; do
   fi
 done
 
+# Deployment environments. staging takes deploys from `stage` only; production from `main`
+# only, and each production deploy waits for a reviewer's approval.
+PRODUCTION_REVIEWER="${PRODUCTION_REVIEWER:-Henson-Kudi}"
+reviewer_id="$(gh api "users/$PRODUCTION_REVIEWER" --jq .id)"
+
+environment() {
+  local name="$1" branch="$2" body="$3"
+  echo "Environment: $name (deploys from $branch)"
+  gh api -X PUT "repos/$REPO/environments/$name" --input - --silent <<<"$body"
+  local existing
+  existing="$(gh api "repos/$REPO/environments/$name/deployment-branch-policies" \
+    --jq ".branch_policies[] | select(.name == \"$branch\") | .id")"
+  if [ -z "$existing" ]; then
+    gh api -X POST "repos/$REPO/environments/$name/deployment-branch-policies" \
+      -f name="$branch" -f type=branch --silent
+  fi
+}
+
+environment staging stage \
+  '{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}'
+environment production main \
+  "{\"reviewers\":[{\"type\":\"User\",\"id\":$reviewer_id}],\"prevent_self_review\":false,\"deployment_branch_policy\":{\"protected_branches\":false,\"custom_branch_policies\":true}}"
+
 echo "Done. Active rulesets:"
 gh api "repos/$REPO/rulesets" --jq '.[] | "  \(.name) (\(.enforcement))"'

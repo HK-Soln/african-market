@@ -21,6 +21,7 @@ import { OtpChallenges } from './otp-challenges';
 import { isOtpCodeFormat } from './otp-code';
 import { otpMessage } from './otp-message';
 import { OtpRateLimiter } from './otp-rate-limiter';
+import { OtpTestNumbers } from './otp-test-numbers';
 import { DEFAULT_OTP_CHANNEL } from './otp.constants';
 
 type VerifyOutcome =
@@ -36,6 +37,7 @@ export class OtpService {
     private readonly outbox: OutboxService,
     private readonly challenges: OtpChallenges,
     private readonly sessions: SessionService,
+    private readonly testNumbers: OtpTestNumbers = OtpTestNumbers.none(),
   ) {}
 
   /**
@@ -46,6 +48,7 @@ export class OtpService {
     const phone = this.requirePhone(input.phone);
     const { resendAfterSeconds } = await this.limiter.consume(phone, input.ip);
     const channel = input.channel ?? DEFAULT_OTP_CHANNEL;
+    const testCode = this.testNumbers.codeFor(phone);
 
     const issued = await this.dataSource.transaction(async (manager) => {
       const isRegistered = await manager.existsBy(User, { phone });
@@ -55,8 +58,14 @@ export class OtpService {
         channel,
         purpose: isRegistered ? 'login' : 'signup',
         supersede: ['signup', 'login'],
+        code: testCode,
       });
     });
+
+    // A test number's code is known to the test already: nothing is sent.
+    if (testCode) {
+      return { phone, channel, expiresAt: issued.expiresAt.toISOString(), resendAfterSeconds };
+    }
 
     try {
       await this.sms.send({ to: phone, channel, body: otpMessage(issued.code, input.locale) });

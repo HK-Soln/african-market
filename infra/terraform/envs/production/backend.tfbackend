@@ -1,0 +1,5 @@
+bucket       = "african-market-production-terraform-state"
+key          = "production/terraform.tfstate"
+region       = "me-central-1"
+encrypt      = true
+use_lockfile = true

@@ -46,6 +46,16 @@ output "migration" {
   }
 }
 
+output "database_identifier" {
+  description = "The RDS instance; a deploy outside working hours starts it first."
+  value       = module.postgres.identifier
+}
+
+output "otp_test_numbers_secret" {
+  description = "Secrets Manager name of OTP_TEST_NUMBERS, which the end-to-end tests read; null when there are none."
+  value       = local.has_test_numbers ? "african-market/${var.environment}/OTP_TEST_NUMBERS" : null
+}
+
 output "secret_names" {
   description = "Secrets Manager names; the manual ones need a value set by hand."
   value       = keys(module.secrets.arns)

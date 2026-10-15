@@ -1,0 +1,28 @@
+# The end-to-end tests against the real images (CI's `E2E (Playwright)` job):
+#
+#   export WEB_HOST_PORT=3100 GATEWAY_HOST_PORT=4100
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml --profile apps up -d --wait web
+#   E2E_BASE_URL=http://localhost:3100 E2E_GATEWAY_URL=http://localhost:4100 pnpm e2e
+#
+# NODE_ENV=test switches on the in-memory SMS provider and the route the tests read codes from;
+# it is refused anywhere else. Ports 3100 and 4100 (the variables above), so it runs beside
+# `pnpm dev`.
+services:
+  identity:
+    environment:
+      NODE_ENV: test
+      SMS_PROVIDER: memory
+      # The @smoke tests' numbers (E2E_TEST_NUMBERS in CI); throwaway codes, local only.
+      OTP_TEST_NUMBERS: '+971500000001:135790,+971500000002:246801'
+
+  gateway:
+    environment:
+      NODE_ENV: test
+      CORS_ORIGINS: http://localhost:3100
+
+  web:
+    image: african-market/web:e2e
+    build:
+      args:
+        NEXT_PUBLIC_GATEWAY_URL: http://localhost:4100
+        NEXT_PUBLIC_WEB_URL: http://localhost:3100

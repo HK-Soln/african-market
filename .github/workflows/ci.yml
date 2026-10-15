@@ -1,8 +1,9 @@
 name: CI
 
 # The shared quality gate. Runs on every pull request and on every push to the three long-lived
-# branches (dev -> stage -> main). Both jobs are REQUIRED status checks in the branch rulesets
-# (infra/github/rulesets), so renaming a job means updating those files too.
+# branches (dev -> stage -> main). Most jobs are REQUIRED status checks in the branch rulesets
+# (infra/github/rulesets; the table is in docs/architecture/branching-and-cicd.md), so renaming
+# a job means updating those files too.
 
 on:
   pull_request:
@@ -164,41 +165,19 @@ jobs:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # The first core journey in a real browser, in English and Arabic, against the web app, the
-    # gateway and identity started on this runner. Not a required check yet: it becomes one, and
-    # moves to staging, with F0-14.
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_USER: am
-          POSTGRES_PASSWORD: am
-          POSTGRES_DB: african_market
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U am -d african_market"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      redis:
-        image: redis:7-alpine
-        ports: ['6379:6379']
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      rabbitmq:
-        image: rabbitmq:3.13-alpine
-        env:
-          RABBITMQ_DEFAULT_USER: am
-          RABBITMQ_DEFAULT_PASS: am
-        ports: ['5672:5672']
-        options: >-
-          --health-cmd "rabbitmq-diagnostics -q ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 12
+    # The core journeys in a real browser, in English and Arabic, against the real images: the
+    # stack runs in containers (docker-compose.e2e.yml: NODE_ENV=test, in-memory SMS), built from
+    # the same Dockerfiles as staging and production. A required check (decided 2026-10-16).
+    # The @smoke tests run here too, with throwaway test numbers, and again on staging after each
+    # deploy (deploy.yml).
+    env:
+      WEB_HOST_PORT: '3100'
+      GATEWAY_HOST_PORT: '4100'
+      E2E_BASE_URL: http://localhost:3100
+      E2E_GATEWAY_URL: http://localhost:4100
+      # The same throwaway numbers as identity's OTP_TEST_NUMBERS in docker-compose.e2e.yml.
+      E2E_TEST_NUMBERS: '+971500000001:135790,+971500000002:246801'
+      COMPOSE: docker compose -f docker-compose.yml -f docker-compose.e2e.yml --profile apps
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -212,20 +191,40 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Expose the GitHub cache to Buildx
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      # Layers come from the GitHub Actions cache, so an unchanged dependency set or app is not
+      # rebuilt. One scope per image, so they do not overwrite each other.
+      - name: Build the images
+        run: |
+          docker buildx bake -f docker-compose.yml -f docker-compose.e2e.yml --load \
+            --set identity.cache-from=type=gha,scope=identity \
+            --set identity.cache-to=type=gha,scope=identity,mode=max \
+            --set gateway.cache-from=type=gha,scope=gateway \
+            --set gateway.cache-to=type=gha,scope=gateway,mode=max \
+            --set web.cache-from=type=gha,scope=web-e2e \
+            --set web.cache-to=type=gha,scope=web-e2e,mode=max \
+            identity gateway web
+
+      - name: Start the stack
+        run: $COMPOSE up -d --wait --wait-timeout 300 web
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build the backend and the libraries the web app uses
-        run: pnpm nx run-many -t build -p @am/identity @am/gateway @am/ui @am/api-client
-
-      - name: Run identity migrations
-        run: pnpm nx run @am/identity:migration:run
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run the end-to-end tests
         run: pnpm e2e
+
+      - name: Show the app logs
+        if: ${{ failure() }}
+        run: $COMPOSE logs --no-color --tail 200 identity gateway web
 
       - name: Upload the Playwright report
         if: ${{ !cancelled() }}
@@ -237,6 +236,91 @@ jobs:
             e2e/test-results
           retention-days: 7
           if-no-files-found: ignore
+
+  images:
+    name: Images (build · scan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Builds the image of every app this change touches, as the deploy will, and scans it with
+    # Trivy. Not blocking yet (F0-14): findings go to the Security tab, the job passes.
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # nx affected needs history to find the merge base
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Only the apps that run in this phase have images (the default group in docker-bake.hcl).
+      - name: Find the affected apps
+        id: affected
+        run: |
+          base=${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || 'HEAD~1' }}
+          deployed=$(docker buildx bake -f infra/docker/docker-bake.hcl --print 2>/dev/null \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).group.default.targets.join(' ')))")
+          affected=$(pnpm -s nx show projects --affected --base="$base" --projects 'tag:app' | sed 's#^@am/##' | tr '\n' ' ')
+          apps=$(for app in $deployed; do case " $affected " in *" $app "*) printf '%s ' "$app";; esac; done)
+          echo "Affected apps with an image: ${apps:-none}"
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Docker Buildx
+        if: ${{ steps.affected.outputs.apps != '' }}
+        uses: docker/setup-buildx-action@v3
+
+      - name: Expose the GitHub cache to Buildx
+        if: ${{ steps.affected.outputs.apps != '' }}
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Build the images
+        if: ${{ steps.affected.outputs.apps != '' }}
+        run: |
+          sets=()
+          for app in ${{ steps.affected.outputs.apps }}; do
+            sets+=(--set "$app.cache-from=type=gha,scope=$app" --set "$app.cache-to=type=gha,scope=$app,mode=max")
+          done
+          docker buildx bake -f infra/docker/docker-bake.hcl --load "${sets[@]}" ${{ steps.affected.outputs.apps }}
+        env:
+          TAG: ci
+          NEXT_PUBLIC_GATEWAY_URL: https://api.example.ae
+          NEXT_PUBLIC_WEB_URL: https://example.ae
+
+      - name: Scan the images (Trivy)
+        if: ${{ steps.affected.outputs.apps != '' }}
+        run: |
+          mkdir -p trivy
+          trivy() {
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache \
+              -v "$PWD/trivy:/out" aquasec/trivy:0.58.1 image --quiet --exit-code 0 \
+              --severity HIGH,CRITICAL --ignore-unfixed "$@"
+          }
+          for app in ${{ steps.affected.outputs.apps }}; do
+            echo "::group::$app"
+            trivy --format sarif --output "/out/$app.sarif" "african-market/$app:ci"
+            trivy --skip-db-update --format table "african-market/$app:ci"
+            echo "::endgroup::"
+          done
+
+      - name: Upload the findings
+        if: ${{ steps.affected.outputs.apps != '' }}
+        # Non-blocking, like the scan: a pull request from a fork cannot write findings.
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy
+          category: trivy-images
 
   terraform:
     name: Terraform (fmt · validate)

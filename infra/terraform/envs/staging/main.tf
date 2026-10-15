@@ -1,5 +1,6 @@
 # Staging in AWS me-central-1 (UAE). Sized to be cheap but shaped like production: three zones,
-# Multi-AZ Postgres, private subnets, TLS everywhere. See ../../README.md to bootstrap.
+# private subnets, TLS everywhere. Postgres is single-zone here (Multi-AZ is for production only),
+# and the apps and database run only in working hours. See ../../README.md to bootstrap.
 
 terraform {
   required_version = ">= 1.10"
@@ -60,6 +61,12 @@ variable "email_provider" {
   default     = "ses"
 }
 
+variable "otp_test_numbers" {
+  description = "Numbers the end-to-end tests sign in with; their codes are generated (see modules/platform)."
+  type        = list(string)
+  default     = ["+971500000001", "+971500000002"]
+}
+
 variable "manual_secrets" {
   type    = list(string)
   default = []
@@ -68,15 +75,20 @@ variable "manual_secrets" {
 module "platform" {
   source = "../../modules/platform"
 
-  environment     = "staging"
-  region          = var.region
-  domain          = var.domain
-  route53_zone_id = var.route53_zone_id
-  current_phase   = var.current_phase
-  image_tag       = var.image_tag
-  email_from      = "African Market <no-reply@${var.domain}>"
-  manual_secrets  = var.manual_secrets
-  email_provider  = var.email_provider
+  environment      = "staging"
+  region           = var.region
+  domain           = var.domain
+  route53_zone_id  = var.route53_zone_id
+  current_phase    = var.current_phase
+  image_tag        = var.image_tag
+  email_from       = "African Market <no-reply@${var.domain}>"
+  manual_secrets   = var.manual_secrets
+  otp_test_numbers = var.otp_test_numbers
+
+  # Up 08:00-20:00 Dubai time, Monday to Friday (decided 2026-10-16). Outside those hours the
+  # apps have no tasks and the database is stopped; the deploy workflow starts it if needed.
+  working_hours  = { on_at = "08:00", off_at = "20:00", days = "MON-FRI" }
+  email_provider = var.email_provider
 
   single_nat_gateway = true
   app_sizes = {
@@ -85,7 +97,7 @@ module "platform" {
   }
 
   db_instance_class = "db.t4g.micro"
-  db_multi_az       = true
+  db_multi_az       = false # Multi-AZ in production only (decided 2026-10-16)
   redis_node_type   = "cache.t4g.micro"
   redis_replicas    = 0
   mq_instance_type  = "mq.t3.micro"
@@ -126,4 +138,12 @@ output "migration" {
 
 output "secret_names" {
   value = module.platform.secret_names
+}
+
+output "database_identifier" {
+  value = module.platform.database_identifier
+}
+
+output "otp_test_numbers_secret" {
+  value = module.platform.otp_test_numbers_secret
 }

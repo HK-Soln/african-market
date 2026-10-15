@@ -100,3 +100,60 @@ resource "aws_s3_bucket_lifecycle_configuration" "state" {
 output "state_bucket" {
   value = aws_s3_bucket.state.bucket
 }
+
+# ── GitHub Actions deploys (F0-14) ────────────────────────────────────────────────────────────
+#
+# GitHub signs in with OIDC: a short-lived token per job, no AWS keys stored anywhere. Only jobs
+# that run in this account's GitHub environment (staging or production) may take the role, and
+# GitHub only lets the `stage` branch deploy to staging and `main` to production, the latter
+# after an approval (infra/github/apply-rulesets.sh).
+#
+# The role applies Terraform, so it can change anything in the account: AdministratorAccess.
+# That is why it is fenced by the environment, and why staging and production are separate
+# accounts.
+
+variable "github_repository" {
+  type    = string
+  default = "HK-Soln/african-market"
+}
+
+variable "deploy_environment" {
+  description = "The GitHub environment that deploys to this account: staging or production."
+  type        = string
+  default     = "staging"
+}
+
+resource "aws_iam_openid_connect_provider" "github" {
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
+}
+
+resource "aws_iam_role" "deploy" {
+  name                 = "github-deploy-${var.deploy_environment}"
+  description          = "GitHub Actions deploys from ${var.github_repository} (${var.deploy_environment})"
+  max_session_duration = 3600
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repository}:environment:${var.deploy_environment}"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "deploy" {
+  role       = aws_iam_role.deploy.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+output "deploy_role_arn" {
+  description = "Set as the repository variable AWS_STAGING_ROLE_ARN (or AWS_PRODUCTION_ROLE_ARN)."
+  value       = aws_iam_role.deploy.arn
+}

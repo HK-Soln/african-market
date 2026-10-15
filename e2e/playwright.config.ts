@@ -12,15 +12,18 @@ import { GATEWAY_URL, WEB_URL } from './urls';
  * `pnpm --filter @am/e2e exec playwright install chromium`.
  *
  * Set E2E_BASE_URL (and E2E_GATEWAY_URL) to test a stack that is already running instead.
+ * E2E_SMOKE_ONLY=1 runs only the @smoke tests: on staging, where codes cannot be read back.
  */
 const external = Boolean(process.env.E2E_BASE_URL);
 const ci = Boolean(process.env.CI);
+const smokeOnly = process.env.E2E_SMOKE_ONLY === '1';
 
 /** Reads the repository's .env first (local ports, machine settings); the values below win. */
 const node = 'node --env-file-if-exists=../../.env';
 
 export default defineConfig({
   testDir: './tests',
+  grep: smokeOnly ? /@smoke/ : undefined,
   // The first page load compiles the app in dev mode.
   timeout: 120_000,
   expect: { timeout: 20_000 },

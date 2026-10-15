@@ -40,6 +40,22 @@ describe('test-only support for end-to-end tests', () => {
     ).not.toThrow();
   });
 
+  it('refuses test numbers in production, and a malformed list anywhere', () => {
+    const real = {
+      JWT_ACCESS_SECRET: 'a-real-access-secret-0123456789-0123456789',
+      OTP_HMAC_SECRET: 'a-real-otp-hmac-secret-0123456789-0123456789',
+      SMS_PROVIDER: 'twilio',
+      OTP_TEST_NUMBERS: '+971500000001:123456',
+    };
+    expect(() => assertSafeIdentityEnv(envWith({ ...real, NODE_ENV: 'production' }))).toThrow(
+      'must be empty in production',
+    );
+    expect(() => assertSafeIdentityEnv(envWith({ ...real, NODE_ENV: 'staging' }))).not.toThrow();
+    expect(() =>
+      assertSafeIdentityEnv(envWith({ ...real, NODE_ENV: 'staging', OTP_TEST_NUMBERS: 'x' })),
+    ).toThrow('OTP_TEST_NUMBERS');
+  });
+
   it('returns the code from the newest message to a phone, however the phone is written', async () => {
     const sms = new MemorySmsProvider();
     const controller = new TestSupportController(sms);

@@ -5,12 +5,12 @@ How code moves from a laptop to production, and what guards each step. Decision 
 
 ## Branches
 
-| Branch       | Role                                  | Changes arrive by                          | Deploys to (from F0-14) |
-| ------------ | ------------------------------------- | ------------------------------------------ | ----------------------- |
-| `main`       | Production. Always releasable.        | Pull request from `stage` only             | production              |
-| `stage`      | Release candidate, tested on staging. | Pull request from `dev` only               | staging                 |
-| `dev`        | Integration. Default branch.          | Pull request from a feature branch, squash | nothing yet             |
-| `<type>/<n>` | One task or a small group of tasks.   | Commits                                    | nothing                 |
+| Branch       | Role                                  | Changes arrive by                          | Deploys to                      |
+| ------------ | ------------------------------------- | ------------------------------------------ | ------------------------------- |
+| `main`       | Production. Always releasable.        | Pull request from `stage` only             | production, after your approval |
+| `stage`      | Release candidate, tested on staging. | Pull request from `dev` only               | staging                         |
+| `dev`        | Integration. Default branch.          | Pull request from a feature branch, squash | nothing                         |
+| `<type>/<n>` | One task or a small group of tasks.   | Commits                                    | nothing                         |
 
 ```
 feat/branch-service-areas ──squash──▶ dev ──merge──▶ stage ──merge──▶ main
@@ -50,15 +50,43 @@ Every pull request, and every push to the three long-lived branches, runs:
 | `PR source branch`                         | `branch-policy.yml` | The pull request comes from the branch the flow allows                      | dev, stage, main |
 | `PR title`                                 | `branch-policy.yml` | Conventional-commit title on pull requests into `dev`                       | dev              |
 | `CodeQL (JS/TS SAST)`                      | `security.yml`      | Static analysis of the TypeScript code for security and quality problems    | dev, stage, main |
+| `E2E (Playwright)`                         | `ci.yml`            | The core journeys in a browser, English and Arabic, against the real images | dev, stage, main |
+| `Images (build · scan)`                    | `ci.yml`            | Affected apps' images build; Trivy findings go to the Security tab          | not required     |
+| `Terraform (fmt · validate)`               | `ci.yml`            | `infra/terraform` is formatted and every stack is valid                     | not required     |
+| a successful `staging` deployment          | `deploy.yml`        | The commit being promoted to `main` is running on staging                   | main             |
 
 The security workflow also runs every Monday, so a newly disclosed vulnerability shows up even when
 nothing changed. Dependabot opens weekly update pull requests against `dev` (npm and GitHub Actions);
 framework majors pinned by T-07 are excluded.
 
-`ci.yml` also runs the Playwright end-to-end tests (`E2E (Playwright)`, not required yet). Still to
-come, tracked in the Phase 0 directive (F0-14): image builds in CI with Trivy scanning, and
-deployment with a required `staging` deployment before `main` plus a manual approval on the
-`production` environment. The Dockerfiles exist (F0-12, `infra/docker/`).
+Trivy is non-blocking for now: it reports HIGH and CRITICAL findings with a fix available, and the
+job passes. Make it blocking once the first findings have been worked through.
+
+## Deploys
+
+`deploy.yml`, on every push to `stage` (staging) and `main` (production):
+
+1. images for every app of the current phase, tagged with the commit, pushed to the
+   environment's ECR;
+2. the new task definitions, then every service's migrations as one-off ECS tasks (a failure stops
+   the deploy with the old version still serving);
+3. `terraform apply` rolls the services out; ECS rolls back a service that does not get healthy;
+4. on staging, the `@smoke` end-to-end tests against the real site.
+
+AWS access is GitHub OIDC: each job gets a short-lived role, and no AWS key is stored in GitHub.
+The role trusts only jobs running in its GitHub environment, and GitHub lets only `stage` use
+`staging` and only `main` use `production`, which also needs an approval (one reviewer: Henson,
+decided 2026-10-16). Until an environment's role exists, its deploy is skipped with a notice. Setup:
+`infra/terraform/README.md`.
+
+`main` requires a successful `staging` deployment of the commit: a promotion to production must
+already be running on staging. Until staging exists, nothing can merge into `main`, which is
+intended: there is no production to deploy to either.
+
+Staging runs 08:00-20:00 Dubai time, Monday to Friday; the **Staging on / off** workflow turns it
+on or off outside those hours (`staging-power.yml`).
+
+The Nx remote cache stays off until CI gets slow enough to need it (decided 2026-10-16).
 
 ## Enforcement
 

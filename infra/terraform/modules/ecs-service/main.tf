@@ -211,5 +211,11 @@ resource "aws_ecs_service" "this" {
     }
   }
 
+  # The count is set when the service is created; after that the staging schedule (and later
+  # autoscaling) changes it, and a deploy must not undo that.
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
   depends_on = [aws_lb_listener_rule.this]
 }

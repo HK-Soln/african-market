@@ -26,10 +26,17 @@ export class OtpChallenges {
   /** Cancels earlier unused codes for the target in `purposes`, then stores a new one. */
   async issue(
     manager: EntityManager,
-    input: { target: string; channel: OtpChannel; purpose: OtpPurpose; supersede: OtpPurpose[] },
+    input: {
+      target: string;
+      channel: OtpChannel;
+      purpose: OtpPurpose;
+      supersede: OtpPurpose[];
+      /** A test number's fixed code (OtpTestNumbers); a random one otherwise. */
+      code?: string;
+    },
   ): Promise<IssuedChallenge> {
     const id = randomUUID();
-    const code = generateOtpCode();
+    const code = input.code ?? generateOtpCode();
     const expiresAt = new Date(Date.now() + OTP_TTL_SECONDS * 1000);
     await manager.softDelete(OtpChallenge, {
       target: input.target,

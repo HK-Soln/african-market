@@ -55,9 +55,10 @@ The security workflow also runs every Monday, so a newly disclosed vulnerability
 nothing changed. Dependabot opens weekly update pull requests against `dev` (npm and GitHub Actions);
 framework majors pinned by T-07 are excluded.
 
-Still to come, tracked in the Phase 0 directive: Playwright end-to-end tests (F0-11), container
-builds and Trivy image scanning (F0-12), and deployment with a required `staging` deployment before
-`main` plus a manual approval on the `production` environment (F0-14).
+`ci.yml` also runs the Playwright end-to-end tests (`E2E (Playwright)`, not required yet). Still to
+come, tracked in the Phase 0 directive (F0-14): image builds in CI with Trivy scanning, and
+deployment with a required `staging` deployment before `main` plus a manual approval on the
+`production` environment. The Dockerfiles exist (F0-12, `infra/docker/`).
 
 ## Enforcement
 

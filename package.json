@@ -20,6 +20,8 @@
     "migration:run": "nx run-many -t migration:run --projects='tag:db' --parallel=1",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
+    "stack:up": "docker compose --profile apps up -d --build",
+    "stack:down": "docker compose --profile apps down",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "e2e": "pnpm --filter @am/e2e e2e"

@@ -6,6 +6,7 @@
 #   backends ──▶ RDS Postgres, ElastiCache Redis, Amazon MQ, S3; secrets from Secrets Manager
 
 locals {
+  ses       = var.email_provider == "ses"
   name      = "am-${var.environment}"
   namespace = "${var.environment}.am.internal"
 
@@ -108,7 +109,10 @@ module "media" {
   force_destroy  = !var.protect_data
 }
 
+# Only with email_provider = "ses". With "smtp", any provider (Resend, Postmark, ...) is used
+# through its SMTP endpoint and SMTP_URL is a secret set by hand.
 module "ses" {
+  count           = var.email_provider == "ses" ? 1 : 0
   source          = "../ses"
   name            = local.name
   domain          = var.domain
@@ -119,8 +123,8 @@ module "secrets" {
   source      = "../secrets"
   prefix      = "african-market/${var.environment}"
   generated   = ["JWT_ACCESS_SECRET", "OTP_HMAC_SECRET"]
-  value_names = ["DATABASE_URL", "REDIS_URL", "RABBITMQ_URL", "SMTP_URL"]
-  values = {
+  value_names = concat(["DATABASE_URL", "REDIS_URL", "RABBITMQ_URL"], local.ses ? ["SMTP_URL"] : [])
+  values = merge(local.ses ? { SMTP_URL = module.ses[0].smtp_url } : {}, {
     # Verified TLS against the RDS certificate bundle baked into the service images.
     DATABASE_URL = format(
       "postgres://%s:%s@%s:%d/%s?sslmode=verify-full&sslrootcert=/app/certs/rds-global-bundle.pem",
@@ -132,9 +136,8 @@ module "secrets" {
     )
     REDIS_URL    = module.redis.url
     RABBITMQ_URL = module.rabbitmq.url
-    SMTP_URL     = module.ses.smtp_url
-  }
-  manual               = var.manual_secrets
+  })
+  manual               = concat(var.manual_secrets, local.ses ? [] : ["SMTP_URL"])
   recovery_window_days = var.protect_data ? 7 : 0
 }
 

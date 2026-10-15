@@ -16,7 +16,8 @@ output "dns_records" {
   description = "Records to create at the DNS provider when DNS is not in Route 53: certificate validation and email."
   value = {
     certificate = module.alb.certificate_validation_records
-    email       = module.ses.dns_records
+    # With another provider, its own dashboard lists the records to add.
+    email = local.ses ? module.ses[0].dns_records : []
   }
 }
 

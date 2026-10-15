@@ -1,5 +1,9 @@
 # Copy to terraform.tfvars. Nothing here is secret; secrets live in Secrets Manager.
+# africanmarket.ae is being bought (2026-10); staging lives on its subdomain.
 domain = "staging.africanmarket.ae"
+
+# Email: "ses" (default), or "smtp" for any other provider such as Resend (see README, Email).
+# email_provider = "smtp"
 
 # The Route 53 hosted zone of the domain, if DNS is there; records are then created for you.
 # Leave it out when DNS is elsewhere and add the `dns_records` output by hand.

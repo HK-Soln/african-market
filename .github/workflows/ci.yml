@@ -226,3 +226,31 @@ jobs:
             e2e/test-results
           retention-days: 7
           if-no-files-found: ignore
+
+  terraform:
+    name: Terraform (fmt · validate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Offline checks of infra/terraform: formatting, and that every stack is valid with the
+    # pinned providers. No AWS access (that is `plan`, F0-14). Not a required check yet.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Format
+        run: terraform fmt -recursive -check -diff infra/terraform
+
+      - name: Validate
+        run: |
+          for stack in infra/terraform/bootstrap infra/terraform/envs/*/; do
+            echo "::group::$stack"
+            terraform -chdir="$stack" init -backend=false -input=false -lockfile=readonly
+            terraform -chdir="$stack" validate
+            echo "::endgroup::"
+          done

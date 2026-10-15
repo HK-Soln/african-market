@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars. Nothing here is secret; secrets live in Secrets Manager.
+domain = "staging.africanmarket.ae"
+
+# The Route 53 hosted zone of the domain, if DNS is there; records are then created for you.
+# Leave it out when DNS is elsewhere and add the `dns_records` output by hand.
+# route53_zone_id = "Z0123456789ABCDEFGHIJ"

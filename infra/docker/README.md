@@ -35,6 +35,8 @@ docker build -f infra/docker/next.Dockerfile --build-arg APP=web \
   `GATEWAY_URL`, used for calls made on the server, is read at run time.
 - **Health:** every image has a `HEALTHCHECK` (`healthcheck.cjs`): `/health` on a service's HTTP
   port, `/api/v1/health` on the gateway, `/health` on a Next.js app.
+- NestJS images carry AWS's RDS certificate bundle at `/app/certs/rds-global-bundle.pem`, so
+  `DATABASE_URL` in AWS can verify the database (`sslmode=verify-full`).
 - `NODE_ENV` is `production` in the image. Identity refuses to start in production with the
   development secrets or the console SMS provider, so set real values, or `NODE_ENV=development`
   as docker compose does.

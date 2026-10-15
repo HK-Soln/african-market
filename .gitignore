@@ -14,6 +14,8 @@ coverage
 next-env.d.ts
 infra/terraform/**/.terraform
 infra/terraform/**/*.tfstate*
+# Plans contain secret values in plain text
+infra/terraform/**/*.tfplan
 # Built from apps/web/src/sw.ts by @serwist/next
 apps/web/public/sw.js
 apps/web/public/sw.js.map

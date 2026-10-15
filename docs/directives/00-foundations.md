@@ -285,7 +285,7 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: the compose stack runs with `NODE_ENV=development` (console SMS, Mailpit, dev secrets) on
   > the same ports as `pnpm dev`; `pnpm stack:up` / `pnpm stack:down`.
 
-- [ ] **F0-13 Terraform for staging** (depends on F0-12)
+- [x] **F0-13 Terraform for staging** (depends on F0-12)
       `infra/terraform` with modules for: VPC (3 AZs, private subnets), ECR, ECS Fargate cluster and one
       service per app (internal Cloud Map names for TCP between gateway and services), ALB for gateway and
       the Next apps, RDS PostgreSQL 16 Multi-AZ with PostGIS, ElastiCache Redis, Amazon MQ (RabbitMQ),
@@ -293,6 +293,22 @@ delivery is ignored); F0-10 turns that into automated tests.
       log groups. Region `me-central-1`. Remote state in S3 with locking. `staging` environment only; a
       `production` environment reuses the modules later. Do not apply; produce a plan and a README with
       the bootstrap steps. Applying needs human-provided AWS credentials.
+
+  > Note: no AWS credentials yet, so there is no plan. The owner chose to continue without them
+  > (2026-10-16): every stack passes `terraform validate` with pinned providers, a new non-required
+  > CI job keeps it that way, and the README's bootstrap steps start with the plan. Producing it is
+  > the first thing to do once there is an account.
+  > Note: the wiring is one `platform` module; `envs/staging` only sets sizes, so production is a
+  > second small folder (decision T-19). Only apps of `current_phase` or earlier run; at Phase 0
+  > that is gateway, identity, web, seller and admin.
+  > Note: hosts are `<domain>`, `seller.`, `admin.` and `api.<domain>` on one load balancer, so the
+  > auth cookies share `COOKIE_DOMAIN=.<domain>`. The domain is a variable; none is chosen yet.
+  > Note: Postgres connections verify the server certificate (`sslmode=verify-full`); the service
+  > images now carry AWS's RDS certificate bundle. Redis and RabbitMQ use TLS too.
+  > Note: identity sends email through SES's SMTP endpoint with an IAM access key scoped to the
+  > domain, because its SES API provider is not built. Swap it for the task role when it is.
+  > Note: phone sign-up cannot work on staging until identity has a real WhatsApp provider; the
+  > console provider is refused outside development. That blocks part of F0-17.
 
 - [ ] **F0-14 CI/CD** (depends on F0-11, F0-12)
       Extend `.github/workflows/ci.yml`: Nx affected with remote cache optional, Playwright e2e against the

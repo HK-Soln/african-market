@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard, RolesGuard, ACCESS_TOKEN_TTL_SECONDS } from '@am/auth';
 import { loadEnv, loadNodeEnv, ServiceCoreModule } from '@am/core';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { ClientsRegistryModule } from './clients.module';
 import { CommonModule } from './common/common.module';
@@ -34,6 +35,7 @@ const env = loadEnv(gatewayEnvSchema);
     // Per IP. Routes override this with `@Throttle()`, see auth/auth.throttles.ts.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     AuthModule,
+    AdminModule,
     ContactsModule,
     CountriesModule,
     MediaModule,

@@ -32,6 +32,7 @@ const QUEUE_COLUMNS = {
   kycStatus: 's.kyc_status',
   submittedAt: 's.submitted_at',
   name: 's.name',
+  search: `concat_ws(' ', s.name, s.slug)`,
 };
 
 /** What an admin decision does to a listing: from which statuses, to which. */

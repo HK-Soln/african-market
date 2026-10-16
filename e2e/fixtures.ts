@@ -49,6 +49,11 @@ interface Fixtures {
   api: Api;
   /** A browser that is already signed in as a new person, without going through the screens. */
   signedIn: { phone: string; name: string };
+  /**
+   * The cookie notice was already dismissed, so it does not sit over the buttons a test presses.
+   * `test.use({ cookieNoticeSeen: false })` for a test about the notice itself.
+   */
+  cookieNoticeSeen: boolean;
 }
 
 async function otpFor(request: APIRequestContext, phone: string): Promise<string> {
@@ -63,6 +68,15 @@ async function otpFor(request: APIRequestContext, phone: string): Promise<string
 }
 
 export const test = base.extend<Fixtures>({
+  cookieNoticeSeen: [true, { option: true }],
+
+  context: async ({ context, cookieNoticeSeen }, use) => {
+    if (cookieNoticeSeen) {
+      await context.addInitScript(() => window.localStorage.setItem('am.cookie-notice', '1'));
+    }
+    await use(context);
+  },
+
   api: async ({ playwright, context }, use) => {
     const request = await playwright.request.newContext({ baseURL: GATEWAY_URL });
     await use({

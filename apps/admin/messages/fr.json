@@ -125,7 +125,8 @@
     "signingOut": "Déconnexion",
     "account": "Compte",
     "close": "Fermer",
-    "checking": "Vérification de votre session"
+    "checking": "Vérification de votre session",
+    "yourData": "Account and data"
   },
   "admin": {
     "notAllowed": "Ce compte n’est pas administrateur",

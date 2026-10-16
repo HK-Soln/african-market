@@ -366,6 +366,51 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     });
   });
 
+  describe('your data (export and deletion)', () => {
+    it('sends everything identity holds as a file nobody caches', async () => {
+      const { browser } = await signIn();
+      const res = await browser.get('/api/v1/me/export').expect(200);
+      expect(res.headers['content-disposition']).toBe(
+        'attachment; filename="african-market-data-2026-10-16.json"',
+      );
+      expect(res.headers['cache-control']).toBe('no-store');
+      expect(res.body).toMatchObject({
+        format: 'african-market.identity/1',
+        account: { roles: ['customer'] },
+      });
+    });
+
+    it('is only for the signed-in person', async () => {
+      await http().get('/api/v1/me/export').expect(401);
+      await http().delete('/api/v1/me').expect(401);
+    });
+
+    it('deletes the account with the sign-in time and signs this browser out', async () => {
+      const { browser } = await signIn();
+      const res = await browser.delete('/api/v1/me').expect(200);
+      expect(res.body).toEqual({
+        deletedAt: '2026-10-16T09:00:00.000Z',
+        erasedAfter: '2026-11-15T09:00:00.000Z',
+      });
+      const sent = FakeIdentityController.last(IdentityPatterns.deleteMe);
+      expect(sent).toMatchObject({ userId: expect.any(String), authTime: expect.any(Number) });
+      expect(cookieNamed(res, 'am_at')).toMatch(/Expires=Thu, 01 Jan 1970/);
+      expect(cookieNamed(res, 'am_rt')).toMatch(/Expires=Thu, 01 Jan 1970/);
+    });
+
+    it('asks for a fresh sign-in when the last one is old', async () => {
+      FakeIdentityController.signedInSecondsAgo = 3600;
+      try {
+        const { browser } = await signIn();
+        const res = await browser.delete('/api/v1/me').expect(403);
+        expect(res.body.code).toBe('AUTH_REAUTH_REQUIRED');
+        expect(cookieNamed(res, 'am_at')).toBeUndefined();
+      } finally {
+        FakeIdentityController.signedInSecondsAgo = 0;
+      }
+    });
+  });
+
   describe('request ids', () => {
     it('answers every request with the id its logs (and its trace) are filed under', async () => {
       const res = await http().get('/api/v1/countries').expect(200);

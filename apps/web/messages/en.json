@@ -131,13 +131,15 @@
     "signingOut": "Signing out",
     "account": "Account",
     "close": "Close",
-    "checking": "Checking your session"
+    "checking": "Checking your session",
+    "yourData": "Account and data"
   },
   "legal": {
     "termsTitle": "Terms",
     "privacyTitle": "Privacy policy",
-    "pending": "This document is being finalised and will be published here before launch.",
-    "backHome": "Back to the home page"
+    "version": "Version of {version}",
+    "draftTitle": "Draft for legal review",
+    "draftBody": "This text has not been reviewed by a lawyer yet, and parts in [brackets] are still to be completed. It will be replaced before launch."
   },
   "offline": {
     "title": "You’re offline",
@@ -150,5 +152,47 @@
     "close": "Dismiss",
     "install": "Install",
     "later": "Not now"
+  },
+  "footer": {
+    "label": "Legal and your data",
+    "terms": "Terms",
+    "privacy": "Privacy policy",
+    "yourData": "Your data"
+  },
+  "cookies": {
+    "label": "Cookies",
+    "body": "We only store what the app needs to work: keeping you signed in and remembering your language. No advertising or tracking.",
+    "more": "Privacy policy",
+    "ok": "OK"
+  },
+  "accountPage": {
+    "title": "Your account",
+    "checking": "Checking your session",
+    "signInFirst": "Sign in to see your account and your data.",
+    "signIn": "Sign in",
+    "dataTitle": "Your data",
+    "dataBody": "Download a copy of everything we hold about your account: your profile, consents, sign-ins and saved addresses.",
+    "download": "Download my data",
+    "downloading": "Preparing your file",
+    "downloadFailed": "We could not prepare your file. Try again.",
+    "marketingTitle": "Offers and news",
+    "marketingLabel": "Send me offers and news",
+    "marketingDescription": "You can change this at any time.",
+    "deleteTitle": "Delete your account",
+    "deleteBody": "Your account closes straight away and you are signed out everywhere. Your personal data is erased 30 days later. This cannot be undone.",
+    "deleteButton": "Delete my account",
+    "confirmTitle": "Delete your account?",
+    "confirmBody": "You will be signed out on every device and will not be able to sign in to this account again.",
+    "confirmCheck": "I understand that this cannot be undone",
+    "confirmDelete": "Delete account",
+    "deleting": "Deleting",
+    "cancel": "Cancel",
+    "close": "Close",
+    "reauthTitle": "Please sign in again",
+    "reauthBody": "To keep your account safe, deleting it needs a sign-in from the last 10 minutes.",
+    "reauthAction": "Sign in again",
+    "deleteFailed": "Your account could not be deleted. Try again.",
+    "deletedTitle": "Your account has been deleted",
+    "deletedBody": "You have been signed out. Your personal data will be erased by {date}."
   }
 }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomSheet, Button, IconButton } from '@am/ui';
 import { useSession } from '@/components/session-provider';
-import { usePathname, useRouter } from '@/i18n/navigation';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
 
 /**
  * Header control. A visitor gets "Sign in"; someone signed in gets a button that opens a sheet
@@ -55,20 +55,29 @@ export function AccountMenu() {
         open={open}
         onClose={() => setOpen(false)}
         footer={
-          <Button
-            fullWidth
-            loading={leaving}
-            loadingLabel={t('signingOut')}
-            onClick={async () => {
-              setLeaving(true);
-              await session.signOut();
-              setLeaving(false);
-              setOpen(false);
-              router.refresh();
-            }}
-          >
-            {t('signOut')}
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/account"
+              className="text-center font-semibold text-clay underline"
+              onClick={() => setOpen(false)}
+            >
+              {t('yourData')}
+            </Link>
+            <Button
+              fullWidth
+              loading={leaving}
+              loadingLabel={t('signingOut')}
+              onClick={async () => {
+                setLeaving(true);
+                await session.signOut();
+                setLeaving(false);
+                setOpen(false);
+                router.refresh();
+              }}
+            >
+              {t('signOut')}
+            </Button>
+          </div>
         }
       />
     </>

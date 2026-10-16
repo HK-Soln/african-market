@@ -15,6 +15,9 @@ export type UserStatus = (typeof USER_STATUSES)[number];
 @Entity({ name: 'user' })
 @Index('user_phone_uq', ['phone'], { unique: true, where: 'deleted_at IS NULL' })
 @Index('user_email_uq', ['email'], { unique: true, where: 'deleted_at IS NULL' })
+@Index('user_erasure_due_idx', ['deletedAt'], {
+  where: 'deleted_at IS NOT NULL AND erased_at IS NULL',
+})
 @Check('user_status_chk', `status IN ('active', 'suspended', 'deleted')`)
 @Check('user_preferred_language_chk', `preferred_language IN ('en', 'ar', 'fr')`)
 @Check('user_roles_chk', `roles <@ ARRAY['customer', 'seller', 'admin']::text[]`)
@@ -60,4 +63,19 @@ export class User extends AppBaseEntity {
 
   @Column({ type: 'timestamptz', nullable: true })
   termsAcceptedAt!: Date | null;
+
+  /** LEGAL_VERSIONS.terms when the terms were accepted; null for accounts from before F0-16. */
+  @Column({ type: 'text', nullable: true })
+  termsVersion!: string | null;
+
+  /** LEGAL_VERSIONS.privacy shown with the terms at the same moment. */
+  @Column({ type: 'text', nullable: true })
+  privacyVersion!: string | null;
+
+  /**
+   * When the personal data of a deleted account was erased (ACCOUNT_ERASURE_DAYS after
+   * `deleted_at`). Only the id and dates are left.
+   */
+  @Column({ type: 'timestamptz', nullable: true })
+  erasedAt!: Date | null;
 }

@@ -126,6 +126,7 @@
     "signingOut": "Déconnexion",
     "account": "Compte",
     "close": "Fermer",
-    "checking": "Vérification de votre session"
+    "checking": "Vérification de votre session",
+    "yourData": "Account and data"
   }
 }

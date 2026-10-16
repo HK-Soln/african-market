@@ -49,3 +49,14 @@ export class MeDto {
   @ApiProperty({ type: [ShopMembershipDto] })
   shops!: ShopMembershipDto[];
 }
+
+export class DeleteMeResponseDto {
+  @ApiProperty({ format: 'date-time', description: 'When the account was closed.' })
+  deletedAt!: string;
+
+  @ApiProperty({
+    format: 'date-time',
+    description: 'When its personal data will have been erased (30 days later).',
+  })
+  erasedAfter!: string;
+}

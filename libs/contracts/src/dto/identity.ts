@@ -113,6 +113,8 @@ export const IdentityErrors = {
   /** New accounts cannot sign up with a phone number from this country; `details.country`. */
   phoneCountryNotSupported: 'PHONE_COUNTRY_NOT_SUPPORTED',
   countryNotFound: 'COUNTRY_NOT_FOUND',
+  /** The action needs a recent sign-in (deleting the account): sign in again and retry. */
+  reauthRequired: 'AUTH_REAUTH_REQUIRED',
 } as const;
 
 export type IdentityErrorCode = (typeof IdentityErrors)[keyof typeof IdentityErrors];
@@ -291,4 +293,79 @@ export interface UpdateCountryRequest {
   phoneEnabled?: boolean;
   originEnabled?: boolean;
   sortOrder?: number;
+}
+
+// ---- Privacy (F0-16)
+
+export interface ExportMeRequest {
+  userId: string;
+}
+
+/**
+ * Everything identity holds about one person, for them to download (`GET /me/export`). Secrets
+ * (password hashes, token hashes, one-time codes) are never part of it.
+ */
+export interface PersonalDataExport {
+  /** Identifies the layout, so a later version can change it. */
+  format: 'african-market.identity/1';
+  /** ISO-8601 UTC. */
+  exportedAt: string;
+  account: {
+    id: string;
+    phone: string | null;
+    email: string | null;
+    name: string | null;
+    preferredLanguage: string;
+    homeEmirate: string | null;
+    roles: string[];
+    createdAt: string;
+    phoneVerifiedAt: string | null;
+    emailVerifiedAt: string | null;
+  };
+  consents: {
+    /** Version of the terms accepted (LEGAL_VERSIONS), and when. Null for older accounts. */
+    termsVersion: string | null;
+    termsAcceptedAt: string | null;
+    privacyVersion: string | null;
+    /** When marketing messages were agreed to; null when they were not. */
+    marketingConsentAt: string | null;
+  };
+  /** Ways of signing in besides one-time codes (a password, later Google or Apple). */
+  signInMethods: Array<{ type: string; addedAt: string }>;
+  /** One entry per sign-in, with the device it came from. */
+  sessions: Array<{
+    signedInAt: string;
+    lastActiveAt: string;
+    expiresAt: string;
+    signedOutAt: string | null;
+    ip: string | null;
+    userAgent: string | null;
+  }>;
+  addresses: Array<{
+    label: string | null;
+    emirate: string;
+    area: string | null;
+    building: string | null;
+    flat: string | null;
+    makani: string | null;
+    /** [longitude, latitude]. */
+    location: [number, number] | null;
+    notes: string | null;
+    createdAt: string;
+  }>;
+  shopMemberships: Array<{ shopId: string; role: string; branchIds: string[]; since: string }>;
+}
+
+export interface DeleteMeRequest {
+  userId: string;
+  /** `auth_time` of the access token: when this person last signed in (Unix seconds). */
+  authTime?: number;
+  correlationId?: string;
+}
+
+export interface DeleteMeResponse {
+  /** ISO-8601 UTC: when the account was closed. */
+  deletedAt: string;
+  /** ISO-8601 UTC: when its personal data will be gone. */
+  erasedAfter: string;
 }

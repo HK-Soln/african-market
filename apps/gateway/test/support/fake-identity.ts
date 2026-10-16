@@ -5,12 +5,14 @@ import { JwtService } from '@nestjs/jwt';
 import { MessagePattern, Payload, RpcException, Transport } from '@nestjs/microservices';
 import {
   AuthenticatedUserResponse,
+  DeleteMeResponse,
   CountryDto,
   IdentityErrors,
   IdentityPatterns,
   IdentityTestPatterns,
   CountryPage,
   MeResponse,
+  PersonalDataExport,
   RequestOtpResponse,
   SessionTokens,
   UserDto,
@@ -180,6 +182,55 @@ export class FakeIdentityController {
     return { user, shops: [] };
   }
 
+  @MessagePattern(IdentityPatterns.exportMe)
+  exportMe(@Payload() data: Data): PersonalDataExport {
+    this.record(IdentityPatterns.exportMe, data);
+    const user = this.users.get(String(data.userId));
+    if (!user) throw fail(404, IdentityErrors.userNotFound);
+    return {
+      format: 'african-market.identity/1',
+      exportedAt: '2026-10-16T09:00:00.000Z',
+      account: {
+        id: user.id,
+        phone: user.phone,
+        email: user.email,
+        name: user.name,
+        preferredLanguage: user.preferredLanguage,
+        homeEmirate: user.homeEmirate,
+        roles: user.roles,
+        createdAt: user.createdAt,
+        phoneVerifiedAt: user.createdAt,
+        emailVerifiedAt: null,
+      },
+      consents: {
+        termsVersion: '2026-10-16',
+        termsAcceptedAt: user.createdAt,
+        privacyVersion: '2026-10-16',
+        marketingConsentAt: null,
+      },
+      signInMethods: [],
+      sessions: [],
+      addresses: [],
+      shopMemberships: [],
+    };
+  }
+
+  /** Like identity: needs a sign-in in the last 10 minutes. */
+  @MessagePattern(IdentityPatterns.deleteMe)
+  deleteMe(@Payload() data: Data): DeleteMeResponse {
+    this.record(IdentityPatterns.deleteMe, data);
+    const user = this.users.get(String(data.userId));
+    if (!user) throw fail(404, IdentityErrors.userNotFound);
+    if (typeof data.authTime !== 'number' || Date.now() / 1000 - data.authTime > 600) {
+      throw fail(403, IdentityErrors.reauthRequired);
+    }
+    this.users.delete(user.id);
+    return { deletedAt: '2026-10-16T09:00:00.000Z', erasedAfter: '2026-11-15T09:00:00.000Z' };
+  }
+
+  /** Makes the next tokens look as if the sign-in happened this long ago. */
+  static signedInSecondsAgo = 0;
+
   private record(pattern: string, data: Data): void {
     FakeIdentityController.received.push({ pattern, data });
   }
@@ -189,7 +240,13 @@ export class FakeIdentityController {
     this.refreshTokens.set(refreshToken, user.id);
     return {
       accessToken: await FakeIdentityController.jwt.signAsync(
-        { sub: user.id, roles: user.roles, shops: [], locale: user.preferredLanguage },
+        {
+          sub: user.id,
+          roles: user.roles,
+          shops: [],
+          locale: user.preferredLanguage,
+          auth_time: Math.floor(Date.now() / 1000) - FakeIdentityController.signedInSecondsAgo,
+        },
         { algorithm: 'HS256', expiresIn: 900 },
       ),
       accessTokenExpiresAt: new Date(Date.now() + 900_000).toISOString(),

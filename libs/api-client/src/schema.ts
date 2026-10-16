@@ -217,11 +217,35 @@ export interface paths {
         get: operations["MeController_getMe_v1"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete your account
+         * @description Closes the account at once and signs it out everywhere; its personal data is erased 30 days later. Needs a sign-in in the last 10 minutes, otherwise 403 AUTH_REAUTH_REQUIRED.
+         */
+        delete: operations["MeController_deleteMe_v1"];
         options?: never;
         head?: never;
         /** Change name, language, home emirate or marketing consent */
         patch: operations["MeController_updateMe_v1"];
+        trace?: never;
+    };
+    "/api/v1/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download everything identity holds about you, as JSON
+         * @description Profile, consents, sign-in methods, sign-ins with their devices, addresses and shop roles. Never secrets. Sent as a file (Content-Disposition: attachment).
+         */
+        get: operations["MeController_exportMe_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/countries": {
@@ -404,6 +428,18 @@ export interface components {
             homeEmirate?: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ" | null;
             /** @description True records consent now; false withdraws it. */
             marketingConsent?: boolean;
+        };
+        DeleteMeResponseDto: {
+            /**
+             * Format: date-time
+             * @description When the account was closed.
+             */
+            deletedAt: string;
+            /**
+             * Format: date-time
+             * @description When its personal data will have been erased (30 days later).
+             */
+            erasedAfter: string;
         };
         CountryNameDto: {
             /** @example United Arab Emirates */
@@ -736,6 +772,32 @@ export interface operations {
             };
         };
     };
+    MeController_deleteMe_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteMeResponseDto"];
+                };
+            };
+            /** @description AUTH_REAUTH_REQUIRED: sign in again, then retry. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     MeController_updateMe_v1: {
         parameters: {
             query?: never;
@@ -755,6 +817,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeDto"];
+                };
+            };
+        };
+    };
+    MeController_exportMe_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The export (format african-market.identity/1). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
         };

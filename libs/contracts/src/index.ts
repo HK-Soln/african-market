@@ -6,4 +6,5 @@ export * from './contact';
 export * from './phone';
 export * from './list-query';
 export * from './telemetry';
+export * from './legal';
 export * from './dto/identity';

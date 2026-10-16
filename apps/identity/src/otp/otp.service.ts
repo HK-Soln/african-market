@@ -15,6 +15,7 @@ import { OutboxService } from '@am/database';
 import { DEFAULT_LOCALE, isLocale } from '@am/i18n';
 import { ALLOW_EVERY_PHONE, PhoneCountryPolicy } from '../countries/countries.service';
 import { User } from '../entities';
+import { termsAcceptance } from '../users/consent';
 import { identityError } from '../errors';
 import { SessionService } from '../sessions/session.service';
 import { SmsProvider } from '../sms/sms-provider';
@@ -122,7 +123,7 @@ export class OtpService {
             phone,
             preferredLanguage,
             phoneVerifiedAt: now,
-            termsAcceptedAt: now,
+            ...termsAcceptance(now),
             marketingConsentAt: input.marketingConsent === true ? now : null,
           }),
         );

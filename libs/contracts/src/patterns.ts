@@ -18,6 +18,10 @@ export const IdentityPatterns = {
   logout: 'identity.session.logout',
   getMe: 'identity.user.me',
   updateMe: 'identity.user.update',
+  /** Everything identity holds about the signed-in person, as JSON (UAE PDPL access right). */
+  exportMe: 'identity.user.export',
+  /** Closes the account now; its personal data is erased ACCOUNT_ERASURE_DAYS later. */
+  deleteMe: 'identity.user.delete',
   /** Countries for pickers and badges: only those enabled. Payload: ListRequest. */
   listCountries: 'identity.country.list',
   /** Every country, for admins. Payload: ListRequest. */

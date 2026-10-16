@@ -15,6 +15,11 @@ export interface AccessTokenClaims {
   roles: PlatformRole[];
   shops: ShopMembershipClaim[];
   locale?: string;
+  /**
+   * When the person signed in (Unix seconds), kept across refreshes. Actions that cannot be
+   * undone, such as deleting the account, ask for a recent one.
+   */
+  auth_time?: number;
 }
 
 export interface AuthenticatedUser extends AccessTokenClaims {

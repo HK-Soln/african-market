@@ -25,6 +25,7 @@ import {
   verificationEmail,
 } from '../email/email-templates';
 import { Credential, User } from '../entities';
+import { termsAcceptance } from '../users/consent';
 import { identityError } from '../errors';
 import { IssuedChallenge, OtpChallenges } from '../otp/otp-challenges';
 import { isOtpCodeFormat } from '../otp/otp-code';
@@ -89,7 +90,7 @@ export class EmailAuthService {
             email,
             name,
             preferredLanguage,
-            termsAcceptedAt: now,
+            ...termsAcceptance(now),
             marketingConsentAt: input.marketingConsent === true ? now : null,
           }),
         );
@@ -102,7 +103,7 @@ export class EmailAuthService {
           {
             name,
             preferredLanguage,
-            termsAcceptedAt: now,
+            ...termsAcceptance(now),
             marketingConsentAt: input.marketingConsent === true ? now : null,
           },
         );

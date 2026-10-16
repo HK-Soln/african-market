@@ -125,7 +125,8 @@
     "signingOut": "Signing out",
     "account": "Account",
     "close": "Close",
-    "checking": "Checking your session"
+    "checking": "Checking your session",
+    "yourData": "Account and data"
   },
   "admin": {
     "notAllowed": "This account is not an admin",

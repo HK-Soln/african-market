@@ -26,19 +26,9 @@ gh api -X PATCH "repos/$REPO" \
   -f squash_merge_commit_message=PR_BODY \
   --silent
 
-for file in "$DIR"/dev.json "$DIR"/stage.json "$DIR"/main.json; do
-  name="$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).name)' "$file")"
-  id="$(gh api "repos/$REPO/rulesets" --jq ".[] | select(.name == \"$name\") | .id")"
-  if [ -n "$id" ]; then
-    echo "Updating ruleset: $name"
-    gh api -X PUT "repos/$REPO/rulesets/$id" --input "$file" --silent
-  else
-    echo "Creating ruleset: $name"
-    gh api -X POST "repos/$REPO/rulesets" --input "$file" --silent
-  fi
-done
-
-# Deployment environments. staging takes deploys from `stage` only; production from `main`
+# Deployment environments, before the rulesets: main's ruleset requires a deployment to
+# staging, and GitHub refuses (422) a rule that names an environment that does not exist yet.
+# staging takes deploys from `stage` only; production from `main`
 # only, and each production deploy waits for a reviewer's approval.
 PRODUCTION_REVIEWER="${PRODUCTION_REVIEWER:-Henson-Kudi}"
 reviewer_id="$(gh api "users/$PRODUCTION_REVIEWER" --jq .id)"
@@ -60,6 +50,18 @@ environment staging stage \
   '{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}'
 environment production main \
   "{\"reviewers\":[{\"type\":\"User\",\"id\":$reviewer_id}],\"prevent_self_review\":false,\"deployment_branch_policy\":{\"protected_branches\":false,\"custom_branch_policies\":true}}"
+
+for file in "$DIR"/dev.json "$DIR"/stage.json "$DIR"/main.json; do
+  name="$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).name)' "$file")"
+  id="$(gh api "repos/$REPO/rulesets" --jq ".[] | select(.name == \"$name\") | .id")"
+  if [ -n "$id" ]; then
+    echo "Updating ruleset: $name"
+    gh api -X PUT "repos/$REPO/rulesets/$id" --input "$file" --silent
+  else
+    echo "Creating ruleset: $name"
+    gh api -X POST "repos/$REPO/rulesets" --input "$file" --silent
+  fi
+done
 
 echo "Done. Active rulesets:"
 gh api "repos/$REPO/rulesets" --jq '.[] | "  \(.name) (\(.enforcement))"'

@@ -6,6 +6,7 @@ import { IdempotentConsumer } from '@am/database';
 import { SearchIndexer } from './indexer';
 import { SEARCH_OWNERS, SearchOwners, TcpSearchOwners } from './owners';
 import { SearchController } from './search.controller';
+import { SearchService } from './search.service';
 
 @Module({
   controllers: [SearchController],
@@ -25,6 +26,11 @@ import { SearchController } from './search.controller';
       inject: [getDataSourceToken(), SEARCH_OWNERS],
       useFactory: (dataSource: DataSource, owners: SearchOwners) =>
         new SearchIndexer(dataSource, owners),
+    },
+    {
+      provide: SearchService,
+      inject: [getDataSourceToken()],
+      useFactory: (dataSource: DataSource) => new SearchService(dataSource),
     },
   ],
 })

@@ -98,6 +98,43 @@ export class SearchBranch {
   @Column({ type: 'jsonb', default: () => `'{"weekly":[],"special":[]}'` })
   hours!: BranchHours;
 
+  // Kept by Postgres from `hours` and the delivery fields (migration NearbySearch): never written.
+  /** The weekly hours as minute ranges of the week (0 = Sunday 00:00). */
+  @Column({
+    type: 'int4multirange',
+    generatedType: 'STORED',
+    asExpression: 'discovery.week_ranges(hours)',
+    select: false,
+    insert: false,
+    update: false,
+  })
+  openWeek!: string;
+
+  /** Dates whose special hours replace the weekly ones. */
+  @Column({
+    type: 'text',
+    array: true,
+    generatedType: 'STORED',
+    asExpression: 'discovery.special_dates(hours)',
+    select: false,
+    insert: false,
+    update: false,
+  })
+  specialDates!: string[];
+
+  /** Where it delivers: the drawn area, or a circle a little wider than the radius. */
+  @Index('search_branch_coverage_idx', { spatial: true })
+  @Column({
+    type: 'geography',
+    nullable: true,
+    generatedType: 'STORED',
+    asExpression: `CASE WHEN NOT delivery THEN NULL WHEN service_area IS NOT NULL THEN service_area WHEN service_radius_m IS NOT NULL THEN ST_Buffer(location, service_radius_m * 1.02) END`,
+    select: false,
+    insert: false,
+    update: false,
+  })
+  coverage!: string | null;
+
   /** Shop name (A), categories and area (B), description (C), in the `am_simple` configuration. */
   @Column({ type: 'tsvector', select: false, nullable: true })
   searchable!: string | null;

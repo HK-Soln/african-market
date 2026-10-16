@@ -151,7 +151,7 @@ Location discovery and search, Contact, UAE specifics.
   > Note: the rebuild runs in the request and answers with counts; shops that are not verified or
   > gone are dropped. It also picks up shops that existed before catalog or discovery first ran.
 
-- [ ] **F1-06 Nearby search** (depends on F1-05)
+- [x] **F1-06 Nearby search** (depends on F1-05)
       `DiscoveryPatterns.searchNearby`: input point (lat,lng), mode `delivery` (ST_Covers service_area or
       distance ≤ service_radius_m) or `pickup` (ST_DWithin location, travel radius default 10 km),
       optional query text, filters (category incl. descendants, origin country, open now in Asia/Dubai,
@@ -162,6 +162,14 @@ Location discovery and search, Contact, UAE specifics.
       pins at high zoom, server-side clusters (ST_SnapToGrid or ST_ClusterDBSCAN) at low zoom. Integration
       tests on PostGIS with fixture shops around Deira, Al Nahda, International City, Sharjah and Ajman.
       p95 under 150 ms for 10k branches locally (add a seed script).
+
+  > Note: weights, the cursor and the speed measures are in decision T-32. Measured locally over
+  > 10,000 branches with products: p50 about 43 ms, p95 about 55 ms
+  > (`SEARCH_PERF=1 pnpm nx test @am/discovery -- search.spec`, seeding in `test/support/fixtures.ts`).
+  > Note: "origin country" matches the shop's countries or a product in stock at the branch;
+  > pickup takes a travel radius (default 10 km, 0.5-50 km) and an optional "delivers to me".
+  > Note: the map takes a bounding box and zoom; from zoom 14 it returns pins, below that clusters
+  > (a cluster of one is returned as a pin), at most 500 markers with a `truncated` flag.
 
 - [ ] **F1-07 Contact events** (depends on F1-02)
       `contact_event` (shop_id, branch_id, product_id nullable, channel whatsapp/call/email, user_id

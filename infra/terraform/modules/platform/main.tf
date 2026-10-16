@@ -160,7 +160,8 @@ module "secrets" {
       RABBITMQ_URL = module.rabbitmq.url
     },
   )
-  manual               = concat(var.manual_secrets, local.ses ? [] : ["SMTP_URL"])
+  # Didit's keys are set by hand too (Didit Console > API & Webhooks); only shops gets them.
+  manual               = concat(var.manual_secrets, local.ses ? [] : ["SMTP_URL"], ["DIDIT_API_KEY", "DIDIT_API_SECRET"])
   recovery_window_days = var.protect_data ? 7 : 0
 }
 
@@ -285,11 +286,24 @@ module "service" {
   desired_count      = local.size[each.key].desired_count
   log_retention_days = var.log_retention_days
 
-  environment = local.backend_env
-  # Only identity may see the test numbers' codes.
+  environment = merge(
+    local.backend_env,
+    # Seller identity verification (decision T-28): the hosted page sends sellers back here.
+    each.key == "shops" ? {
+      KYC_PROVIDER      = "didit"
+      SELLER_APP_URL    = "https://${local.hosts.seller}"
+      DIDIT_API_URL     = "https://verification.didit.me"
+      DIDIT_WORKFLOW_ID = var.didit_workflow_id
+    } : {},
+  )
+  # Only identity may see the test numbers' codes, and only shops Didit's keys.
   secrets = merge(
     local.backend_secrets,
     each.key == "identity" && local.has_test_numbers ? { OTP_TEST_NUMBERS = module.secrets.arns["OTP_TEST_NUMBERS"] } : {},
+    each.key == "shops" ? {
+      DIDIT_API_KEY    = module.secrets.arns["DIDIT_API_KEY"]
+      DIDIT_API_SECRET = module.secrets.arns["DIDIT_API_SECRET"]
+    } : {},
   )
 
   task_policy_statements = each.key == "media" ? module.media.media_service_statements : []

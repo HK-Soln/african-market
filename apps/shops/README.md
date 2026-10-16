@@ -7,7 +7,7 @@ Phase introduced: **1** (see `docs/directives/`).
 | Owns                    | Shops, branches, opening hours, special hours, service areas, KYC and verification status, contact-tap events |
 | Tables (schema `shops`) | shop, branch, opening_hours, special_hours, verification_request, contact_event                               |
 | Publishes               | `shop.created`, `shop.updated`, `shop.verified`, `branch.updated`                                             |
-| Consumes                | none yet                                                                                                      |
+| Consumes                | `user.deleted` (deletes the provider's identity session at erasure time)                                      |
 | Ports (dev)             | TCP and HTTP from `SERVICES.shops` in `libs/contracts/src/services.ts`                                        |
 
 ## Shops and branches (F1-02)
@@ -31,6 +31,31 @@ Phase introduced: **1** (see `docs/directives/`).
   the oldest one left.
 - `update` answers with `releasedMediaIds` (a replaced logo, gallery images taken out) for the
   gateway to detach. The gateway routes and media attachment come with F1-08.
+
+## Seller verification (F1-03, decision T-28)
+
+1. The owner starts KYC (`startKyc`): a `verification_request` and a session at the provider,
+   tied to it by `vendor_data`. The owner goes to the provider's hosted page (camera, liveness,
+   documents) and comes back to the seller app.
+2. The result comes by webhook (`POST /api/v1/webhooks/didit` at the gateway, passed on with its
+   raw body) and when the owner comes back (`refreshKyc`). Either way only the session id is
+   taken from outside: the decision is fetched from the provider, and only a summary is kept
+   (status, document type, issuing country, expiry, name, liveness and face-match results). No
+   images, document numbers or birth dates are stored here.
+3. The owner submits the listing (`submitForVerification`): it needs a branch, a contact and KYC
+   started. Admins see the queue (`verificationQueue`) and decide (`decideListing`: approve, which
+   needs KYC passed; reject or suspend, with a reason; reinstate). Each decision publishes
+   `shop.verified`.
+4. Admins open the identity images through the gateway (`kycDocument`): a fresh link from the
+   provider each time, never stored, and each look written to `verification_audit`.
+5. The trade licence is optional: details on the shop, the document in the media service's private
+   bucket, approved or rejected by an admin.
+6. When the owner deletes their account, the provider session is deleted at erasure time (30
+   days later; T-23).
+
+`KYC_PROVIDER=fake` approves at once, for local work and tests (refused in staging and production).
+Didit needs `DIDIT_API_URL`, `DIDIT_API_KEY` (scopes to create, read and delete sessions),
+`DIDIT_API_SECRET` (the webhook destination's secret) and `DIDIT_WORKFLOW_ID`.
 
 Rules: never read another service's schema; publish events through `OutboxService.enqueue` inside
 the same transaction as the change; wrap every consumer in `IdempotentConsumer.handle`; add new

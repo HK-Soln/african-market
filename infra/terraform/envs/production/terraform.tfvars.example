@@ -6,3 +6,7 @@ domain = "africanmarket.ae"
 # before turning it on. Traces go to X-Ray in this region whatever is set here.
 # sentry_dsn_backend  = "https://<key>@<org>.ingest.de.sentry.io/<project>"
 # sentry_dsn_frontend = "https://<key>@<org>.ingest.de.sentry.io/<project>"
+
+# Seller identity verification: the Didit workflow id (not secret). The API key and the webhook
+# secret go in Secrets Manager by hand: african-market/<env>/DIDIT_API_KEY and DIDIT_API_SECRET.
+didit_workflow_id = "00000000-0000-0000-0000-000000000000"

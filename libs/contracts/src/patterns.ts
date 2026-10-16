@@ -47,6 +47,17 @@ export const ShopsPatterns = {
   getBySlug: 'shops.shop.get_by_slug',
   listMine: 'shops.shop.list_mine',
   submitForVerification: 'shops.shop.submit_verification',
+  getVerification: 'shops.verification.get',
+  startKyc: 'shops.kyc.start',
+  refreshKyc: 'shops.kyc.refresh',
+  /** A provider webhook, passed on by the gateway with its raw body for the signature check. */
+  kycWebhook: 'shops.kyc.webhook',
+  submitTradeLicense: 'shops.trade_license.submit',
+  /** Admins: the review queue, decisions, and KYC images (each view audit-logged). */
+  verificationQueue: 'shops.verification.queue',
+  decideListing: 'shops.verification.decide_listing',
+  decideTradeLicense: 'shops.trade_license.decide',
+  kycDocument: 'shops.kyc.document',
   upsertBranch: 'shops.branch.upsert',
   deleteBranch: 'shops.branch.delete',
   setOpeningHours: 'shops.branch.set_hours',

@@ -79,7 +79,18 @@ export interface ShopDto {
   contactPhone: string | null;
   contactEmail: string | null;
   verificationStatus: ShopVerificationStatus;
+  /** Why the listing was rejected or suspended; null otherwise. */
+  verificationReason: string | null;
+  /** When the owner last asked for the listing (ISO-8601), or null. */
+  submittedAt: string | null;
   kycStatus: ShopKycStatus;
+  /** The trade licence as entered (checked by an admin; required for checkout in Phase 3). */
+  tradeLicense: {
+    legalName: string | null;
+    number: string | null;
+    issuingAuthority: string | null;
+    expiry: string | null;
+  };
   checkoutEnabled: boolean;
   codEnabled: boolean;
   /** Staff may upload product images too (decision T-29). */

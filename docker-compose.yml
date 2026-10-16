@@ -26,6 +26,8 @@ x-backend-env: &backend-env
   S3_PUBLIC_BUCKET: am-media-public
   S3_PRIVATE_BUCKET: am-media-private
   S3_CREATE_BUCKETS: 'true'
+  KYC_PROVIDER: fake
+  SELLER_APP_URL: http://localhost:3001
   MEDIA_PUBLIC_BASE_URL: http://localhost:9000/am-media-public
   EMAIL_FROM: African Market <no-reply@africanmarket.local>
   SMS_PROVIDER: console # prints codes to the log: docker compose logs identity

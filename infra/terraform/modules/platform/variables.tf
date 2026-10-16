@@ -154,3 +154,8 @@ variable "sentry_dsn_frontend" {
   type        = string
   default     = ""
 }
+
+variable "didit_workflow_id" {
+  description = "The Didit workflow seller verification sessions follow (Didit Console > Workflows)."
+  type        = string
+}

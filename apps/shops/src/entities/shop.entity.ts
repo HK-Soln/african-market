@@ -10,6 +10,7 @@ import { Branch } from './branch.entity';
 @Entity({ name: 'shop' })
 @Index('shop_slug_uq', ['slug'], { unique: true, where: 'deleted_at IS NULL' })
 @Index('shop_owner_idx', ['ownerId'])
+@Index('shop_review_queue_idx', ['verificationStatus', 'submittedAt'])
 @Check(
   'shop_verification_status_chk',
   `verification_status IN ('draft', 'pending', 'verified', 'rejected', 'suspended')`,
@@ -59,6 +60,9 @@ export class Shop extends AppBaseEntity {
   @Column({ type: 'text', nullable: true })
   tradeLicenseNo!: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  licenseIssuingAuthority!: string | null;
+
   @Column({ type: 'date', nullable: true })
   licenseExpiry!: string | null;
 
@@ -70,6 +74,14 @@ export class Shop extends AppBaseEntity {
 
   @Column({ type: 'text', default: 'draft' })
   verificationStatus!: ShopVerificationStatus;
+
+  /** When the owner last asked for the shop to be listed: the review queue's order. */
+  @Column({ type: 'timestamptz', nullable: true })
+  submittedAt!: Date | null;
+
+  /** Why the listing was rejected or suspended; shown to the seller. */
+  @Column({ type: 'text', nullable: true })
+  verificationReason!: string | null;
 
   @Column({ type: 'boolean', default: false })
   checkoutEnabled!: boolean;

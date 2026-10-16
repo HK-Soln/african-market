@@ -136,3 +136,11 @@ variable "log_retention_days" {
   type    = number
   default = 30
 }
+
+variable "otel_collector" {
+  description = "Runs the AWS Distro for OpenTelemetry collector beside the app, taking its traces on localhost:4318 and sending them to X-Ray in this region. Null for none."
+  type = object({
+    image = string
+  })
+  default = null
+}

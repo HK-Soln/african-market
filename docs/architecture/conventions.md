@@ -35,11 +35,20 @@ Example: "seller creates a branch".
   and add them to `.env.example`.
 - Provider integrations (SMS, email, push, Stripe, Google Maps geocoding, S3, KYC) are interfaces with
   a real adapter and a fake adapter selected by env. Fakes are the default in development and tests.
+- **Tracing and error reports** (decision T-22). Every app's `main.ts` imports `./instrument` first,
+  which calls `startTelemetry('<name>')` from `@am/core/telemetry`. After that nothing is needed per
+  feature: HTTP, Nest, Postgres and Redis are traced automatically, `ServiceCaller` and
+  `RpcTraceInterceptor` carry the trace over TCP, and the outbox and `EventBus` carry it through
+  events. Log lines inside a trace have `traceId`; the gateway's `x-request-id` response header is the
+  trace id. Call `reportError(err, tags)` (`@am/core`) only where a person must look (a failure that
+  is not the caller's fault and will not retry itself); 5xx from handlers, unreachable services and
+  dead-lettered events are already reported. Keep personal data out of span names and attributes.
 
 ## 3. Events
 
 - Envelope: `EventEnvelope` in `libs/contracts/src/events.ts` (`id`, `name`, `source`, `occurredAt`,
-  `correlationId`, `payload`).
+  `correlationId`, `traceContext`, `payload`). OutboxService fills `correlationId` (the trace id) and
+  `traceContext` itself.
 - Payloads are additive-only. A breaking change is a new event name with a `.v2` suffix; publish both
   until every consumer moved.
 - Publish only via the outbox. Never call `EventBus.publish` from request handlers.

@@ -3,6 +3,35 @@
 
 locals {
   ports = distinct(concat([var.container_port], var.extra_ports))
+
+  # The collector beside the app: OTLP/HTTP in on localhost (the app's OTEL_EXPORTER_OTLP_ENDPOINT),
+  # X-Ray out, in this region, so traces stay in the same place as the data (product rule 8).
+  collector_config = yamlencode({
+    receivers  = { otlp = { protocols = { http = { endpoint = "localhost:4318" } } } }
+    processors = { batch = {} }
+    exporters  = { awsxray = { region = var.region } }
+    service = {
+      pipelines = { traces = { receivers = ["otlp"], processors = ["batch"], exporters = ["awsxray"] } }
+    }
+  })
+
+  log_configuration = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group         = aws_cloudwatch_log_group.this.name
+      awslogs-region        = var.region
+      awslogs-stream-prefix = var.name
+    }
+  }
+
+  collector_container = var.otel_collector == null ? [] : [{
+    name              = "otel-collector"
+    image             = var.otel_collector.image
+    essential         = false # the app keeps serving if the collector stops; spans are lost
+    memoryReservation = 64
+    environment       = [{ name = "AOT_CONFIG_CONTENT", value = local.collector_config }]
+    logConfiguration  = local.log_configuration
+  }]
 }
 
 resource "aws_cloudwatch_log_group" "this" {
@@ -56,6 +85,26 @@ resource "aws_iam_role_policy" "task" {
   policy = jsonencode({ Version = "2012-10-17", Statement = var.task_policy_statements })
 }
 
+# The collector sends the app's traces to X-Ray.
+resource "aws_iam_role_policy" "traces" {
+  count = var.otel_collector == null ? 0 : 1
+  name  = "traces"
+  role  = aws_iam_role.task.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords",
+        "xray:GetSamplingRules",
+        "xray:GetSamplingTargets",
+      ]
+      Resource = "*"
+    }]
+  })
+}
+
 # ECS Exec (`aws ecs execute-command`) for debugging a running task.
 resource "aws_iam_role_policy" "exec" {
   count = var.enable_exec ? 1 : 0
@@ -90,7 +139,7 @@ resource "aws_ecs_task_definition" "this" {
     cpu_architecture        = var.cpu_architecture
   }
 
-  container_definitions = jsonencode([{
+  container_definitions = jsonencode(concat([{
     name      = var.name
     image     = var.image
     essential = true
@@ -110,15 +159,8 @@ resource "aws_ecs_task_definition" "this" {
       startPeriod = 30
     }
     readonlyRootFilesystem = false
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.this.name
-        awslogs-region        = var.region
-        awslogs-stream-prefix = var.name
-      }
-    }
-  }])
+    logConfiguration       = local.log_configuration
+  }], local.collector_container))
 }
 
 resource "aws_service_discovery_service" "this" {

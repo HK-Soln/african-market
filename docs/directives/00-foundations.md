@@ -388,10 +388,27 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: no totals by default: counting every row is what pagination avoids. The admin Countries
   > screen lost its "9 of 245" line and gained server-side search and "Load more".
 
-- [ ] **F0-15 Observability** (depends on F0-01)
+- [x] **F0-15 Observability** (depends on F0-01)
       OpenTelemetry SDK in `libs/core` (HTTP, Nest, pg, amqplib instrumentation), trace id propagated
       gateway → TCP → events (`correlationId`), OTLP exporter configured by env. Sentry in the gateway,
       services and the three Next apps (DSN by env, disabled when empty).
+
+  > Note: decision T-22. One trace runs from the gateway's HTTP request through the TCP call to the
+  > service, its Postgres and Redis calls, and every consumer of the events it caused (seen working
+  > locally with Jaeger: `docker compose --profile tracing up -d jaeger`). The trace id is the
+  > request id, the events' `correlationId`, a field on every log line and the `x-request-id` header.
+  > Note: no amqplib instrumentation: it would start each event's trace at the outbox relay, after
+  > the request had finished. EventBus and OutboxService carry the trace themselves. Nest TCP has
+  > no instrumentation either; ServiceCaller and RpcTraceInterceptor carry it in the payload.
+  > Note: in AWS a collector runs beside each backend task and writes to X-Ray in me-central-1, so
+  > traces stay in the UAE. Its config was run locally; the AWS side waits for the account.
+  > Note: Sentry is built but off: it has no UAE region, so whether error reports may be stored in
+  > the EU is the owner's call (pending). Reports carry no user fields, cookies, bodies or query
+  > strings. Errors only: no Sentry tracing, no session replay. The Next apps skip
+  > `withSentryConfig` for now, so their stack traces stay minified until source-map upload is
+  > added (it needs a Sentry auth token).
+  > Note: the keys are optional (empty means off) rather than required: observability does not
+  > change what an app does, and each app logs at start what is on.
 
 - [ ] **F0-16 Privacy basics (UAE PDPL)** (depends on F0-08)
       Privacy policy and terms pages in en/ar (placeholder legal text, clearly marked for legal review),

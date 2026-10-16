@@ -215,6 +215,18 @@ not code. `email_provider` picks how `SMTP_URL` is made:
 Before choosing a provider outside AWS, check where it stores data: recipients' email addresses are
 personal data, and product rule 8 keeps personal data in the UAE.
 
+## Traces and error reports
+
+- **Traces** (on by default, `tracing`): each backend task runs the AWS Distro for OpenTelemetry
+  collector next to the app. The app sends spans to it on `localhost:4318`; it sends them to X-Ray
+  in the same region, so traces stay in the UAE with the rest of the data. Look at them in the
+  CloudWatch console, X-Ray traces, or search the logs for a `traceId` (also the `x-request-id`
+  header of every gateway response).
+- **Error reports** (Sentry) are off until `sentry_dsn_backend` / `sentry_dsn_frontend` are set in
+  `terraform.tfvars`. Sentry stores data in the US or the EU, not the UAE, so turning it on is the
+  owner's decision (DECISIONS T-22). The apps send no user fields, cookies, bodies or query strings.
+  The frontend DSN is compiled into the Next images, so changing it needs a deploy.
+
 ## Known gaps
 
 - **Phone codes for real people on staging.** Identity's real SMS/WhatsApp provider is still a stub
@@ -230,5 +242,8 @@ personal data, and product rule 8 keeps personal data in the UAE.
 - **Media domain.** Public media is served from the `*.cloudfront.net` address. A custom name needs a
   certificate in us-east-1 and can come later. CloudFront caches public shop images at edge
   locations outside the UAE; personal and KYC files are never in that bucket.
+- **X-Ray in me-central-1** is assumed, not yet seen working: the collector configuration was
+  run locally (v0.49.0), the AWS side waits for the account. If it is missing there, set
+  `tracing = false` (spans are still made and their ids logged) until it is.
 - **ARM.** Tasks run on x86 because CI builds x86 images. Graviton (ARM64) is cheaper; it needs
   multi-architecture builds.

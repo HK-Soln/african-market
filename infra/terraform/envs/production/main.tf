@@ -65,18 +65,32 @@ variable "manual_secrets" {
   default = []
 }
 
+variable "sentry_dsn_backend" {
+  description = "Sentry DSN for the gateway and services; empty: no error reports (see modules/platform)."
+  type        = string
+  default     = ""
+}
+
+variable "sentry_dsn_frontend" {
+  description = "Sentry DSN compiled into the Next apps; empty: no error reports."
+  type        = string
+  default     = ""
+}
+
 module "platform" {
   source = "../../modules/platform"
 
-  environment     = "production"
-  region          = var.region
-  domain          = var.domain
-  route53_zone_id = var.route53_zone_id
-  current_phase   = var.current_phase
-  image_tag       = var.image_tag
-  email_from      = "African Market <no-reply@${var.domain}>"
-  email_provider  = var.email_provider
-  manual_secrets  = var.manual_secrets
+  environment         = "production"
+  region              = var.region
+  domain              = var.domain
+  route53_zone_id     = var.route53_zone_id
+  current_phase       = var.current_phase
+  image_tag           = var.image_tag
+  email_from          = "African Market <no-reply@${var.domain}>"
+  email_provider      = var.email_provider
+  manual_secrets      = var.manual_secrets
+  sentry_dsn_backend  = var.sentry_dsn_backend
+  sentry_dsn_frontend = var.sentry_dsn_frontend
   # No test numbers and no working hours in production.
 
   single_nat_gateway = false

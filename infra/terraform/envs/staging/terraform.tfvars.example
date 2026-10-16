@@ -8,3 +8,8 @@ domain = "staging.africanmarket.ae"
 # The Route 53 hosted zone of the domain, if DNS is there; records are then created for you.
 # Leave it out when DNS is elsewhere and add the `dns_records` output by hand.
 # route53_zone_id = "Z0123456789ABCDEFGHIJ"
+
+# Error reports (Sentry): off while empty. Sentry keeps data outside the UAE; see DECISIONS T-22
+# before turning it on. Traces go to X-Ray in this region whatever is set here.
+# sentry_dsn_backend  = "https://<key>@<org>.ingest.de.sentry.io/<project>"
+# sentry_dsn_frontend = "https://<key>@<org>.ingest.de.sentry.io/<project>"

@@ -1,3 +1,8 @@
 # Copy to terraform.tfvars. Nothing here is secret.
 domain = "africanmarket.ae"
 # route53_zone_id = "Z0123456789ABCDEFGHIJ"
+
+# Error reports (Sentry): off while empty. Sentry keeps data outside the UAE; see DECISIONS T-22
+# before turning it on. Traces go to X-Ray in this region whatever is set here.
+# sentry_dsn_backend  = "https://<key>@<org>.ingest.de.sentry.io/<project>"
+# sentry_dsn_frontend = "https://<key>@<org>.ingest.de.sentry.io/<project>"

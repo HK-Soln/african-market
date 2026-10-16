@@ -135,7 +135,9 @@ Mailpit 8025. Docker credentials are `am` / `am`, except MinIO: `am-minio` / `am
   `findPage` from `@am/database` in the service. No route returns a whole table that can grow
   (`docs/architecture/conventions.md` §5).
 - **Secrets** never in the repo. `.env` is git-ignored; production uses AWS Secrets Manager.
-- **Logging:** pino JSON via `nestjs-pino`, request id propagated as `correlationId` on events.
+- **Logging and tracing:** pino JSON via `nestjs-pino`. Each app's `main.ts` imports `./instrument` first
+  (`startTelemetry`, OpenTelemetry); the trace id is the request id, is on every log line and becomes
+  events' `correlationId`. Errors a person must look at go to Sentry through `reportError` (off without a DSN).
   Never log tokens, OTP codes, passwords, full card or ID data.
 - **Naming:** packages `@am/<name>`; events `<aggregate>.<past_verb>`; patterns `<service>.<resource>.<verb>`;
   error codes `UPPER_SNAKE` prefixed by domain (`SHOP_NOT_FOUND`).

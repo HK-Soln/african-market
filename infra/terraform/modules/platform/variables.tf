@@ -128,3 +128,29 @@ variable "protect_data" {
   type        = bool
   default     = true
 }
+
+# ── observability (F0-15) ─────────────────────────────────────────────────────────────────────
+
+variable "tracing" {
+  description = "Traces from the backends go to X-Ray in this region, through a collector beside each task."
+  type        = bool
+  default     = true
+}
+
+variable "otel_collector_image" {
+  description = "The AWS Distro for OpenTelemetry collector, by exact version."
+  type        = string
+  default     = "public.ecr.aws/aws-observability/aws-otel-collector:v0.49.0"
+}
+
+variable "sentry_dsn_backend" {
+  description = "Sentry DSN for the gateway and services. Empty: no error reports. Not a secret (it only allows sending)."
+  type        = string
+  default     = ""
+}
+
+variable "sentry_dsn_frontend" {
+  description = "Sentry DSN compiled into the three Next apps (next_public_build_args). Empty: no error reports."
+  type        = string
+  default     = ""
+}

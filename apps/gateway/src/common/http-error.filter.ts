@@ -8,6 +8,10 @@ import {
   ValidationError,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { reportError } from '@am/core';
+
+/** A service is down or too slow: a person should know, unlike a 4xx. */
+const UPSTREAM_FAILURES = new Set(['UPSTREAM_UNAVAILABLE', 'UPSTREAM_TIMEOUT']);
 
 /** Codes for errors that Nest or a guard raised without one of ours. */
 const DEFAULT_CODES: Record<number, string> = {
@@ -48,7 +52,8 @@ export const validationException = (errors: ValidationError[]) =>
 
 /**
  * Every error leaves the gateway as `{ statusCode, code, message, details? }`. `code` is stable;
- * frontends translate it and never show `message` to people.
+ * frontends translate it and never show `message` to people. Unexpected errors and unreachable
+ * services are reported to Sentry (when it is on).
  */
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
@@ -59,6 +64,7 @@ export class HttpErrorFilter implements ExceptionFilter {
 
     if (!(exception instanceof HttpException)) {
       this.logger.error(exception instanceof Error ? exception.stack : String(exception));
+      reportError(exception, { source: 'gateway' });
       res.status(500).json({ statusCode: 500, code: 'INTERNAL_ERROR', message: 'Internal error' });
       return;
     }
@@ -67,6 +73,8 @@ export class HttpErrorFilter implements ExceptionFilter {
     const raw = exception.getResponse();
     const body = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {};
     const code = typeof body.code === 'string' ? body.code : DEFAULT_CODES[statusCode];
+    // A 500 a service answered was reported by that service; these two have nobody else to.
+    if (code && UPSTREAM_FAILURES.has(code)) reportError(exception, { code });
     const message =
       typeof body.code === 'string' && typeof body.message === 'string'
         ? body.message

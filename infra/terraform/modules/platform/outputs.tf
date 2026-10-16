@@ -30,6 +30,9 @@ output "next_public_build_args" {
   value = {
     NEXT_PUBLIC_GATEWAY_URL = "https://${local.hosts.gateway}"
     NEXT_PUBLIC_WEB_URL     = "https://${local.hosts.web}"
+    # Empty DSN: the apps report nothing. The environment is what reports are filed under.
+    NEXT_PUBLIC_SENTRY_DSN         = var.sentry_dsn_frontend
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT = var.environment
   }
 }
 

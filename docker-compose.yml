@@ -105,6 +105,14 @@ services:
     image: axllent/mailpit:latest
     ports: ['1025:1025', '8025:8025'] # 8025 = inbox UI for OTP and notification emails
 
+  # ── tracing profile: a trace viewer for local runs ───────────────────────────────────────────
+  # docker compose --profile tracing up -d jaeger, set OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+  # in .env and restart the apps; traces at http://localhost:16686.
+  jaeger:
+    profiles: [tracing]
+    image: jaegertracing/jaeger:2.11.0
+    ports: ['16686:16686', '4318:4318'] # 16686 = UI, 4318 = OTLP over HTTP
+
   # ── apps profile: the whole stack in containers ──────────────────────────────────────────────
 
   gateway:

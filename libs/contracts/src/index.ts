@@ -5,4 +5,5 @@ export * from './money';
 export * from './contact';
 export * from './phone';
 export * from './list-query';
+export * from './telemetry';
 export * from './dto/identity';

@@ -27,6 +27,16 @@ variable "NEXT_PUBLIC_WEB_URL" {
   default = ""
 }
 
+# Error reports from the Next apps (F0-15); empty means none. The environment names where they
+# are filed and is required with a DSN.
+variable "NEXT_PUBLIC_SENTRY_DSN" {
+  default = ""
+}
+
+variable "NEXT_PUBLIC_SENTRY_ENVIRONMENT" {
+  default = ""
+}
+
 variable "BUILD_ID" {
   default = ""
 }
@@ -45,9 +55,11 @@ target "_next" {
   context    = "."
   dockerfile = "infra/docker/next.Dockerfile"
   args = {
-    NEXT_PUBLIC_GATEWAY_URL = NEXT_PUBLIC_GATEWAY_URL
-    NEXT_PUBLIC_WEB_URL     = NEXT_PUBLIC_WEB_URL
-    BUILD_ID                = BUILD_ID
+    NEXT_PUBLIC_GATEWAY_URL        = NEXT_PUBLIC_GATEWAY_URL
+    NEXT_PUBLIC_WEB_URL            = NEXT_PUBLIC_WEB_URL
+    NEXT_PUBLIC_SENTRY_DSN         = NEXT_PUBLIC_SENTRY_DSN
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT = NEXT_PUBLIC_SENTRY_ENVIRONMENT
+    BUILD_ID                       = BUILD_ID
   }
 }
 

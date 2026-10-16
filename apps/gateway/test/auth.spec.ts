@@ -366,6 +366,26 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     });
   });
 
+  describe('request ids', () => {
+    it('answers every request with the id its logs (and its trace) are filed under', async () => {
+      const res = await http().get('/api/v1/countries').expect(200);
+      expect(res.headers['x-request-id']).toMatch(/^[0-9a-f-]{32,36}$/);
+    });
+
+    it('keeps an id the caller chose, and replaces one it cannot safely log', async () => {
+      const kept = await http()
+        .get('/api/v1/countries')
+        .set('x-request-id', 'support-123')
+        .expect(200);
+      expect(kept.headers['x-request-id']).toBe('support-123');
+      const replaced = await http()
+        .get('/api/v1/countries')
+        .set('x-request-id', 'a b <script>')
+        .expect(200);
+      expect(replaced.headers['x-request-id']).not.toBe('a b <script>');
+    });
+  });
+
   describe('errors and limits', () => {
     it('answers an unknown route in the same error shape', async () => {
       const res = await http().get('/api/v1/nope').expect(404);

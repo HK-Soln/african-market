@@ -9,10 +9,21 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
 import { DataSource, EntityManager, IsNull } from 'typeorm';
 import { EventEnvelope, EventName, EventPayloads } from '@am/contracts';
-import { APP_ENV, BaseEnv, EventBus, SERVICE_NAME } from '@am/core';
+import {
+  APP_ENV,
+  BaseEnv,
+  currentTrace,
+  EventBus,
+  injectTraceContext,
+  SERVICE_NAME,
+} from '@am/core';
 import { OutboxMessage, ProcessedEvent } from './outbox.entity';
 
-/** Adds events to the outbox inside the caller's transaction. */
+/**
+ * Adds events to the outbox inside the caller's transaction. The event keeps the current trace
+ * context, so its consumers continue the trace; its correlationId is the trace id unless the
+ * caller passes one.
+ */
 @Injectable()
 export class OutboxService {
   constructor(@Inject(SERVICE_NAME) private readonly service: string) {}
@@ -28,7 +39,8 @@ export class OutboxService {
       name,
       source: this.service,
       occurredAt: new Date().toISOString(),
-      correlationId,
+      correlationId: correlationId ?? currentTrace()?.traceId,
+      traceContext: injectTraceContext(),
       payload,
     };
     const row = manager.create(OutboxMessage, { id: envelope.id, name });

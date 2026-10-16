@@ -1,3 +1,4 @@
+import type { ListQuery, ListSpec, Page } from '../list-query';
 /**
  * Request and response shapes for the identity service's TCP patterns (`IdentityPatterns`).
  * The gateway validates its own HTTP DTOs and then sends these.
@@ -260,8 +261,28 @@ export interface CountryDto {
   sortOrder: number;
 }
 
-export interface ListCountriesResponse {
-  countries: CountryDto[];
+/**
+ * How the country lists may be filtered and sorted (the standard list format, decision T-21).
+ * `enabled`: on for phone sign-up or as an origin. `search`: name in any language, or code.
+ */
+export const COUNTRY_LIST_SPEC: ListSpec = {
+  filters: {
+    phoneEnabled: { type: 'boolean' },
+    originEnabled: { type: 'boolean' },
+    enabled: { type: 'boolean' },
+    code: { type: 'string', ops: ['eq', 'in'] },
+    search: { type: 'string', ops: ['like'] },
+  },
+  sorts: ['sortOrder', 'name', 'code'],
+  defaultSort: 'sortOrder,name',
+  defaultLimit: 50,
+};
+
+export type CountryPage = Page<CountryDto>;
+
+/** What the gateway sends with a list pattern: the query, already checked against the spec. */
+export interface ListRequest {
+  query: ListQuery;
 }
 
 export interface UpdateCountryRequest {

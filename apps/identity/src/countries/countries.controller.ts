@@ -1,7 +1,8 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { z } from 'zod';
-import { CountryDto, IdentityPatterns, ListCountriesResponse } from '@am/contracts';
+import { COUNTRY_LIST_SPEC, CountryDto, CountryPage, IdentityPatterns } from '@am/contracts';
+import { listQueryFromPayload } from '@am/core';
 import { parsePayload } from '../validation';
 import { CountriesService } from './countries.service';
 
@@ -22,13 +23,13 @@ export class CountriesController {
   constructor(private readonly countries: CountriesService) {}
 
   @MessagePattern(IdentityPatterns.listCountries)
-  list(): Promise<ListCountriesResponse> {
-    return this.countries.list();
+  list(@Payload() payload: unknown): Promise<CountryPage> {
+    return this.countries.list(listQueryFromPayload(payload, COUNTRY_LIST_SPEC));
   }
 
   @MessagePattern(IdentityPatterns.listAllCountries)
-  listAll(): Promise<ListCountriesResponse> {
-    return this.countries.listAll();
+  listAll(@Payload() payload: unknown): Promise<CountryPage> {
+    return this.countries.listAll(listQueryFromPayload(payload, COUNTRY_LIST_SPEC));
   }
 
   /** The gateway only lets admins reach this. */

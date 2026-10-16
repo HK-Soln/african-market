@@ -1,11 +1,13 @@
-import { DataSource, FindOptionsWhere } from 'typeorm';
+import { DataSource } from 'typeorm';
 import {
   CountryDto,
+  CountryPage,
   IdentityErrors,
-  ListCountriesResponse,
+  ListQuery,
   phoneCountry,
   UpdateCountryRequest,
 } from '@am/contracts';
+import { findPage } from '@am/database';
 import { Country } from '../entities';
 import { identityError } from '../errors';
 
@@ -27,6 +29,17 @@ const toDto = (country: Country): CountryDto => ({
   sortOrder: country.sortOrder,
 });
 
+/** COUNTRY_LIST_SPEC's fields as SQL. Names sort by their English form. */
+const COLUMNS = {
+  sortOrder: 'c.sort_order',
+  name: "(c.name->>'en')",
+  code: 'c.code',
+  phoneEnabled: 'c.phone_enabled',
+  originEnabled: 'c.origin_enabled',
+  enabled: '(c.phone_enabled OR c.origin_enabled)',
+  search: "concat_ws(' ', c.code, c.name->>'en', c.name->>'ar', c.name->>'fr')",
+};
+
 /** Countries: reference data the apps list and admins edit. */
 export class CountriesService implements PhoneCountryPolicy {
   constructor(private readonly dataSource: DataSource) {}
@@ -35,22 +48,21 @@ export class CountriesService implements PhoneCountryPolicy {
     return this.dataSource.getRepository(Country);
   }
 
-  private async sorted(where?: FindOptionsWhere<Country>[]): Promise<CountryDto[]> {
-    const rows = await this.repo.find({ where, order: { sortOrder: 'ASC' } });
-    // Ties by English name, so the order never depends on insertion.
-    return rows
-      .map(toDto)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.en.localeCompare(b.name.en, 'en'));
+  private async page(query: ListQuery, enabledOnly: boolean): Promise<CountryPage> {
+    const qb = this.repo.createQueryBuilder('c');
+    if (enabledOnly) qb.where('(c.phone_enabled OR c.origin_enabled)');
+    const page = await findPage(qb, query, { columns: COLUMNS, id: 'c.id' });
+    return { ...page, items: page.items.map(toDto) };
   }
 
   /** What pickers and badges offer: enabled for phone sign-up or as an origin. */
-  async list(): Promise<ListCountriesResponse> {
-    return { countries: await this.sorted([{ phoneEnabled: true }, { originEnabled: true }]) };
+  list(query: ListQuery): Promise<CountryPage> {
+    return this.page(query, true);
   }
 
   /** Every country, for admins. */
-  async listAll(): Promise<ListCountriesResponse> {
-    return { countries: await this.sorted() };
+  listAll(query: ListQuery): Promise<CountryPage> {
+    return this.page(query, false);
   }
 
   async update(input: UpdateCountryRequest): Promise<CountryDto> {

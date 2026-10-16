@@ -152,12 +152,13 @@
     "nameEn": "Nom en anglais",
     "nameAr": "Nom en arabe",
     "nameFr": "Nom en français",
-    "enabledCount": "{phone} pour l’inscription par téléphone, {origin} comme origine, sur {total}",
     "showEnabled": "Activés uniquement",
     "showAll": "Tous les pays",
     "none": "Aucun pays ne correspond",
     "loadFailed": "Les pays n’ont pas pu être chargés.",
     "retry": "Réessayer",
-    "saveFailed": "Cette modification n’a pas été enregistrée. Réessayez."
+    "saveFailed": "Cette modification n’a pas été enregistrée. Réessayez.",
+    "loadMore": "Afficher plus",
+    "loading": "Chargement…"
   }
 }

@@ -65,7 +65,30 @@ Example: "seller creates a branch".
 ## 5. Gateway API
 
 - Base path `/api/v1`. Resource-oriented routes, plural nouns, kebab-case.
-- Cursor pagination: `?cursor=&limit=` → `{ items, nextCursor }`. Never offset pagination on search.
+- **Lists** all take the same query and return the same page (decision T-21, F0-19):
+
+  ```
+  GET /api/v1/shops?filter[emirate][in]=DXB,SHJ&filter[rating][gte]=4&sort=-rating,name&limit=20&cursor=...
+  → { items, nextCursor, prevCursor }
+  ```
+
+  - `filter[<field>]=<value>` is equality; `filter[<field>][<op>]=` with eq, ne, in
+    (comma-separated), gte, lte, gt, lt, like (contains, case-insensitive). `sort` is
+    comma-separated, `-` for descending; the id is always the last key. `limit` defaults to 20,
+    never more than 100. `cursor` is opaque and only valid for the sort it came with.
+  - **Cursor (keyset) pagination only, never offset**: a page starts after the last row's sort
+    values, so it is as fast at page 1,000 as at page 1 and does not skip or repeat rows when
+    others are added. No total count unless an endpoint has a cheap one.
+  - Every list declares a `ListSpec` in `@am/contracts` (which fields may be filtered, with which
+    operators, and sorted); anything else is a 400 `LIST_QUERY_INVALID` with `details.param`.
+    Sortable fields are non-null and, on large tables, indexed together with the id.
+  - Gateway: `@ApiListQuery(SPEC)` documents the parameters, `@ListQueryParams(SPEC)` reads and
+    checks them, and the route sends `{ query }` to the service. Service: `listQueryFromPayload`
+    (`@am/core`) checks it again, `findPage` (`@am/database`) runs it. Example: the country lists
+    (identity `countries.service.ts`).
+  - No route returns a whole table that can grow. Small, fixed reference data still uses the
+    format; one page of 100 is enough there.
+
 - Errors: `{ statusCode, code, message, details? }`. `code` is stable and translated in the frontend.
 - `Accept-Language` decides the language of server-produced text.
 - Rate limits: global 120/min per IP; stricter named throttles on OTP request/verify, login, contact

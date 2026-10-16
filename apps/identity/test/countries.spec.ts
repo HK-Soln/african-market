@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import Redis from 'ioredis';
 import { DataSource } from 'typeorm';
-import { IdentityErrors } from '@am/contracts';
+import { COUNTRY_LIST_SPEC, IdentityErrors, parseListQuery } from '@am/contracts';
 import { OutboxService } from '@am/database';
 import { CountriesService } from '../src/countries/countries.service';
 import { Country, User } from '../src/entities';
@@ -14,6 +14,9 @@ import { SmsProvider } from '../src/sms/sms-provider';
 import { createTestDatabase, TestDatabase } from './support/test-database';
 
 const key = `${randomUUID()}${randomUUID()}`;
+
+/** A list request in the standard format, as the gateway would pass it. */
+const q = (raw: Record<string, string> = {}) => parseListQuery(raw, COUNTRY_LIST_SPEC);
 
 async function errorOf(promise: Promise<unknown>) {
   try {
@@ -68,8 +71,8 @@ describe('countries (Postgres)', () => {
   });
 
   it('is seeded with every country, names in three languages, the nine offered so far first', async () => {
-    const { countries: all } = await countries.listAll();
-    expect(all.length).toBeGreaterThan(240);
+    const all = (await countries.listAll(q({ limit: '100' }))).items;
+    expect(all).toHaveLength(100); // one page; the rest follow by cursor
     expect(all.slice(0, 9).map((c) => c.code)).toEqual([
       'AE',
       'NG',
@@ -100,8 +103,31 @@ describe('countries (Postgres)', () => {
     });
   });
 
+  it('pages through every country with the standard list format', async () => {
+    const seen: string[] = [];
+    let cursor: string | null | undefined;
+    do {
+      const page = await countries.listAll(q({ limit: '100', ...(cursor ? { cursor } : {}) }));
+      seen.push(...page.items.map((c) => c.code));
+      cursor = page.nextCursor;
+    } while (cursor);
+    expect(seen.length).toBeGreaterThan(240);
+    expect(new Set(seen).size).toBe(seen.length);
+  });
+
+  it('filters, searches in any language and sorts', async () => {
+    const enabled = await countries.listAll(q({ 'filter[enabled]': 'true', sort: '-code' }));
+    expect(enabled.items.map((c) => c.code)).toEqual(
+      ['AE', 'CM', 'ET', 'GH', 'KE', 'NG', 'SN', 'UG', 'ZA'].sort().reverse(),
+    );
+    const byArabic = await countries.listAll(q({ 'filter[search][like]': 'نيجيريا' }));
+    expect(byArabic.items.map((c) => c.code)).toEqual(['NG']);
+    const byCode = await countries.listAll(q({ 'filter[code][in]': 'FR,DE', sort: 'code' }));
+    expect(byCode.items.map((c) => c.code)).toEqual(['DE', 'FR']);
+  });
+
   it('lists only what is enabled for the pickers', async () => {
-    const { countries: listed } = await countries.list();
+    const listed = (await countries.list(q())).items;
     expect(listed.map((c) => c.code)).toEqual([
       'AE',
       'NG',
@@ -129,7 +155,7 @@ describe('countries (Postgres)', () => {
       originEnabled: false,
       sortOrder: 5,
     });
-    const listed = (await countries.list()).countries.map((c) => c.code);
+    const listed = (await countries.list(q())).items.map((c) => c.code);
     // Sort order 5 ties with Ethiopia; ties go by English name.
     expect(listed.indexOf('FR')).toBeGreaterThan(listed.indexOf('KE'));
     expect(listed).toContain('FR');

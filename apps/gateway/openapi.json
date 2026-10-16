@@ -400,20 +400,104 @@
     "/api/v1/countries": {
       "get": {
         "operationId": "CountriesController_list_v1",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "filter[phoneEnabled]",
+            "required": false,
+            "in": "query",
+            "description": "boolean",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[originEnabled]",
+            "required": false,
+            "in": "query",
+            "description": "boolean",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[enabled]",
+            "required": false,
+            "in": "query",
+            "description": "boolean",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[code]",
+            "required": false,
+            "in": "query",
+            "description": "string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[code][in]",
+            "required": false,
+            "in": "query",
+            "description": "string, comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[search][like]",
+            "required": false,
+            "in": "query",
+            "description": "string, contains, case-insensitive",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: sortOrder, name, code. Default: sortOrder,name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 50, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CountryListDto"
+                  "$ref": "#/components/schemas/CountryPageDto"
                 }
               }
             }
           }
         },
-        "summary": "Countries enabled for phone sign-up or as an origin, in display order",
+        "summary": "Countries enabled for phone sign-up or as an origin",
         "tags": [
           "countries"
         ]
@@ -422,14 +506,98 @@
     "/api/v1/admin/countries": {
       "get": {
         "operationId": "AdminCountriesController_listAll_v1",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "filter[phoneEnabled]",
+            "required": false,
+            "in": "query",
+            "description": "boolean",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[originEnabled]",
+            "required": false,
+            "in": "query",
+            "description": "boolean",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[enabled]",
+            "required": false,
+            "in": "query",
+            "description": "boolean",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[code]",
+            "required": false,
+            "in": "query",
+            "description": "string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[code][in]",
+            "required": false,
+            "in": "query",
+            "description": "string, comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[search][like]",
+            "required": false,
+            "in": "query",
+            "description": "string, contains, case-insensitive",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: sortOrder, name, code. Default: sortOrder,name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 50, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CountryListDto"
+                  "$ref": "#/components/schemas/CountryPageDto"
                 }
               }
             }
@@ -995,18 +1163,30 @@
           "sortOrder"
         ]
       },
-      "CountryListDto": {
+      "CountryPageDto": {
         "type": "object",
         "properties": {
-          "countries": {
+          "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CountryDto"
             }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Pass as `cursor` for the next page"
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Pass as `cursor` for the page before"
           }
         },
         "required": [
-          "countries"
+          "items",
+          "nextCursor",
+          "prevCursor"
         ]
       },
       "UpdateCountryNameDto": {

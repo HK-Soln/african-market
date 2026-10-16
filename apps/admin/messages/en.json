@@ -152,12 +152,13 @@
     "nameEn": "Name in English",
     "nameAr": "Name in Arabic",
     "nameFr": "Name in French",
-    "enabledCount": "{phone} for phone sign-up, {origin} as an origin, of {total}",
     "showEnabled": "Enabled only",
     "showAll": "All countries",
     "none": "No country matches",
     "loadFailed": "The countries could not be loaded.",
     "retry": "Try again",
-    "saveFailed": "That change was not saved. Try again."
+    "saveFailed": "That change was not saved. Try again.",
+    "loadMore": "Load more",
+    "loading": "Loading…"
   }
 }

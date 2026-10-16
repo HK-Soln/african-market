@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { Locale } from '@am/i18n';
 import {
@@ -35,32 +35,58 @@ const byOrder = (a: Country, b: Country) =>
 
 /**
  * Every country, with its two switches (phone sign-up, origin), its order and its names. A
- * switch saves at once and goes back if the save fails. The list is about 245 rows, so it is
- * loaded whole and searched in the browser.
+ * switch saves at once and goes back if the save fails. Search and the "enabled only" view are
+ * asked of the server in the standard list format, a page at a time.
  */
 export function CountriesEditor() {
   const t = useTranslations('countries');
   const locale = useLocale() as Locale;
   const [countries, setCountries] = useState<Country[] | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [failed, setFailed] = useState(false);
   const [view, setView] = useState<'enabled' | 'all'>('enabled');
   const [query, setQuery] = useState('');
+  const search = useDebounced(query.trim(), 250);
   const [editing, setEditing] = useState<Country | null>(null);
   const [toast, setToast] = useState<{ tone: 'success' | 'danger'; title: string } | null>(null);
 
-  const load = useCallback(async () => {
-    setFailed(false);
-    const { data, error } = await browserApi.GET('/api/v1/admin/countries');
-    if (error || !data) {
-      setFailed(true);
-      return;
-    }
-    setCountries([...data.countries].sort(byOrder));
-  }, []);
+  /** The first page for the current view and search, or the next one after `cursor`. */
+  const load = useCallback(
+    async (cursor?: string) => {
+      setFailed(false);
+      const { data, error } = await browserApi.GET('/api/v1/admin/countries', {
+        params: {
+          query: {
+            ...(view === 'enabled' ? { 'filter[enabled]': true } : {}),
+            ...(search ? { 'filter[search][like]': search } : {}),
+            sort: 'sortOrder,name',
+            limit: 50,
+            ...(cursor ? { cursor } : {}),
+          },
+        },
+      });
+      if (error || !data) {
+        setFailed(true);
+        return;
+      }
+      setCountries((list) => (cursor ? [...(list ?? []), ...data.items] : data.items));
+      setNextCursor(data.nextCursor);
+    },
+    [view, search],
+  );
 
   useEffect(() => {
+    setCountries(null);
     void load();
   }, [load]);
+
+  const loadMore = async () => {
+    if (!nextCursor) return;
+    setLoadingMore(true);
+    await load(nextCursor);
+    setLoadingMore(false);
+  };
 
   /** Applies a change at once, saves it, and puts the old row back if the save fails. */
   const save = async (code: string, change: Change): Promise<boolean> => {
@@ -83,17 +109,7 @@ export function CountriesEditor() {
     return true;
   };
 
-  const shown = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return (countries ?? []).filter(
-      (c) =>
-        (view === 'all' || c.phoneEnabled || c.originEnabled) &&
-        (!needle ||
-          c.code.toLowerCase() === needle ||
-          c.dialCode.includes(needle) ||
-          Object.values(c.name).some((name) => name.toLowerCase().includes(needle))),
-    );
-  }, [countries, view, query]);
+  const shown = countries ?? [];
 
   if (failed) {
     return (
@@ -108,21 +124,11 @@ export function CountriesEditor() {
     );
   }
 
-  const all = countries ?? [];
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-ink-muted">{t('intro')}</p>
-        {countries && (
-          <p className="text-[13px] text-ink-muted">
-            {t('enabledCount', {
-              phone: all.filter((c) => c.phoneEnabled).length,
-              origin: all.filter((c) => c.originEnabled).length,
-              total: all.length,
-            })}
-          </p>
-        )}
       </header>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -195,6 +201,12 @@ export function CountriesEditor() {
             </li>
           ))}
         </ul>
+      )}
+
+      {nextCursor && (
+        <Button onClick={() => void loadMore()} loading={loadingMore} loadingLabel={t('loading')}>
+          {t('loadMore')}
+        </Button>
       )}
 
       {editing && (
@@ -315,4 +327,14 @@ function EditSheet({
       </form>
     </BottomSheet>
   );
+}
+
+/** The value once it has stopped changing for `ms`: one request per pause in typing. */
+function useDebounced<T>(value: T, ms: number): T {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), ms);
+    return () => clearTimeout(timer);
+  }, [value, ms]);
+  return settled;
 }

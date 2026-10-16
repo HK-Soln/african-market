@@ -4,4 +4,5 @@ export * from './events';
 export * from './money';
 export * from './contact';
 export * from './phone';
+export * from './list-query';
 export * from './dto/identity';

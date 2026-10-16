@@ -18,9 +18,9 @@ export const IdentityPatterns = {
   logout: 'identity.session.logout',
   getMe: 'identity.user.me',
   updateMe: 'identity.user.update',
-  /** Countries for pickers and badges: those enabled for phone sign-up or as an origin. */
+  /** Countries for pickers and badges: only those enabled. Payload: ListRequest. */
   listCountries: 'identity.country.list',
-  /** Every country, for admins. */
+  /** Every country, for admins. Payload: ListRequest. */
   listAllCountries: 'identity.country.list_all',
   updateCountry: 'identity.country.update',
 } as const;

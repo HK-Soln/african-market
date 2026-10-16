@@ -231,7 +231,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Countries enabled for phone sign-up or as an origin, in display order */
+        /** Countries enabled for phone sign-up or as an origin */
         get: operations["CountriesController_list_v1"];
         put?: never;
         post?: never;
@@ -434,8 +434,12 @@ export interface components {
             /** @description Lower comes first */
             sortOrder: number;
         };
-        CountryListDto: {
-            countries: components["schemas"]["CountryDto"][];
+        CountryPageDto: {
+            items: components["schemas"]["CountryDto"][];
+            /** @description Pass as `cursor` for the next page */
+            nextCursor: string | null;
+            /** @description Pass as `cursor` for the page before */
+            prevCursor: string | null;
         };
         UpdateCountryNameDto: {
             en?: string;
@@ -757,7 +761,26 @@ export interface operations {
     };
     CountriesController_list_v1: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description boolean */
+                "filter[phoneEnabled]"?: boolean;
+                /** @description boolean */
+                "filter[originEnabled]"?: boolean;
+                /** @description boolean */
+                "filter[enabled]"?: boolean;
+                /** @description string */
+                "filter[code]"?: string;
+                /** @description string, comma-separated */
+                "filter[code][in]"?: string;
+                /** @description string, contains, case-insensitive */
+                "filter[search][like]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: sortOrder, name, code. Default: sortOrder,name. */
+                sort?: string;
+                /** @description Page size, default 50, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -769,14 +792,33 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CountryListDto"];
+                    "application/json": components["schemas"]["CountryPageDto"];
                 };
             };
         };
     };
     AdminCountriesController_listAll_v1: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description boolean */
+                "filter[phoneEnabled]"?: boolean;
+                /** @description boolean */
+                "filter[originEnabled]"?: boolean;
+                /** @description boolean */
+                "filter[enabled]"?: boolean;
+                /** @description string */
+                "filter[code]"?: string;
+                /** @description string, comma-separated */
+                "filter[code][in]"?: string;
+                /** @description string, contains, case-insensitive */
+                "filter[search][like]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: sortOrder, name, code. Default: sortOrder,name. */
+                sort?: string;
+                /** @description Page size, default 50, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -788,7 +830,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CountryListDto"];
+                    "application/json": components["schemas"]["CountryPageDto"];
                 };
             };
         };

@@ -251,7 +251,8 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
 
     it('lists the enabled countries for anyone, and lets caches keep them for five minutes', async () => {
       const res = await agent().get('/api/v1/countries').expect(200);
-      expect(res.body.countries.map((c: { code: string }) => c.code)).toEqual(['AE']);
+      expect(res.body.items.map((c: { code: string }) => c.code)).toEqual(['AE']);
+      expect(res.body).toMatchObject({ nextCursor: null, prevCursor: null });
       expect(res.headers['cache-control']).toBe('public, max-age=300');
     });
 
@@ -273,7 +274,7 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
         .get('/api/v1/admin/countries')
         .set('Authorization', `Bearer ${admin}`)
         .expect(200);
-      expect(all.body.countries).toHaveLength(2);
+      expect(all.body.items).toHaveLength(2);
       expect(all.headers['cache-control']).toBe('no-store');
 
       const updated = await agent()
@@ -297,6 +298,38 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
         .send({ sortOrder: -1, dialCode: '+1' })
         .expect(400);
       expect(res.body.code).toBe('VALIDATION_FAILED');
+    });
+
+    it('reads the standard list format and hands identity a checked query', async () => {
+      await agent()
+        .get(
+          '/api/v1/countries?filter[phoneEnabled]=true&filter[search][like]=nig&sort=-name,code&limit=5',
+        )
+        .expect(200);
+      expect(FakeIdentityController.last(IdentityPatterns.listCountries)).toEqual({
+        query: {
+          filters: [
+            { field: 'phoneEnabled', op: 'eq', value: true },
+            { field: 'search', op: 'like', value: 'nig' },
+          ],
+          sort: [
+            { field: 'name', direction: 'desc' },
+            { field: 'code', direction: 'asc' },
+          ],
+          limit: 5,
+        },
+      });
+    });
+
+    it.each([
+      ['filter[password]=x', 'filter[password]'],
+      ['sort=dialCode', 'sort'],
+      ['limit=1000', 'limit'],
+      ['cursor=forged', 'cursor'],
+      ['page=2', 'page'],
+    ])('refuses %s before calling identity', async (query, param) => {
+      const res = await agent().get(`/api/v1/countries?${query}`).expect(400);
+      expect(res.body).toMatchObject({ code: 'LIST_QUERY_INVALID', details: { param } });
     });
 
     it('passes a missing country through as 404', async () => {

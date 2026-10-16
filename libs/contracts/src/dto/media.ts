@@ -1,3 +1,5 @@
+import type { ActorClaims } from './actor';
+
 /**
  * Media service contracts (F1-01, decision T-27). Only the media service touches storage: a
  * browser gets a single-use upload form for the quarantine bucket, media checks and re-encodes
@@ -78,11 +80,7 @@ export const SHOP_MEDIA_PURPOSES: readonly MediaPurpose[] = [
 ];
 
 /** Who is asking, from the verified access token. Media decides with this, not with ids alone. */
-export interface MediaActor {
-  userId: string;
-  roles: string[];
-  shops: Array<{ shopId: string; role: 'owner' | 'manager' | 'staff' }>;
-}
+export type MediaActor = ActorClaims;
 
 export interface CreateUploadRequest {
   actor: MediaActor;

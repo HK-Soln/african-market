@@ -9,3 +9,5 @@ export * from './telemetry';
 export * from './legal';
 export * from './dto/identity';
 export * from './dto/media';
+export * from './dto/actor';
+export * from './dto/shops';

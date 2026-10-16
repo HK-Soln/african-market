@@ -41,10 +41,17 @@ export const IdentityTestPatterns = {
 export const ShopsPatterns = {
   create: 'shops.shop.create',
   update: 'shops.shop.update',
+  /** A shop with its branches, for its members and admins. */
+  get: 'shops.shop.get',
+  /** Public: a verified shop by slug. */
   getBySlug: 'shops.shop.get_by_slug',
   listMine: 'shops.shop.list_mine',
   submitForVerification: 'shops.shop.submit_verification',
   upsertBranch: 'shops.branch.upsert',
+  deleteBranch: 'shops.branch.delete',
+  setOpeningHours: 'shops.branch.set_hours',
+  setSpecialHours: 'shops.branch.set_special_hours',
+  deleteSpecialHours: 'shops.branch.delete_special_hours',
   recordContact: 'shops.contact.record',
 } as const;
 

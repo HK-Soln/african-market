@@ -438,6 +438,10 @@ delivery is ignored); F0-10 turns that into automated tests.
       Deploy to staging. Walk sign-up by phone and by email in English and Arabic on a phone browser,
       install the PWA. Record the result here. **This closes the Phase 0 gate.**
 
+  > Note: deferred by the owner (2026-10-16, decision T-24): the AWS account, the domain and the
+  > WhatsApp Business approval are not ready, and Phase 1 starts without waiting for them. This task
+  > stays open and is done as soon as they are; production (F1-18) cannot launch before it.
+
 **Non-engineering tasks to start now (owner: Henson):** company trade licence with an e-commerce
 activity, corporate bank account, Stripe account and a written request to Stripe about Connect for a
 UAE platform with UAE connected accounts using direct charges and application fees, a WhatsApp

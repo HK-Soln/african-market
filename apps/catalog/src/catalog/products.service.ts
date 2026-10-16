@@ -161,8 +161,9 @@ export class ProductsService {
       if (product.status === 'pending_review') this.requireDeclaration(product, rules);
 
       product = await manager.save(product);
+      // The DTO below reloads the variants, so the saved list is not kept here.
       if (input.variants !== undefined)
-        variants = await this.saveVariants(manager, product, variants, input.variants);
+        await this.saveVariants(manager, product, variants, input.variants);
       else this.checkPrices(product, variants);
 
       await this.announce(manager, 'product.upserted', product, input.correlationId);

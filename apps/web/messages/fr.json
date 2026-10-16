@@ -40,6 +40,8 @@
     "phoneHint": "Nous enverrons un code à 6 chiffres sur WhatsApp. Les numéros de votre pays d’origine fonctionnent aussi.",
     "countryLabel": "Indicatif",
     "countryTitle": "Choisissez un indicatif",
+    "countrySearch": "Rechercher par pays, code ou indicatif",
+    "countryNone": "Aucun pays ne correspond. Essayez son nom, son code (NG) ou son indicatif (234).",
     "sendCode": "Recevoir le code sur WhatsApp",
     "sending": "Envoi",
     "continueWithEmail": "Continuer avec un e-mail",

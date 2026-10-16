@@ -7,6 +7,7 @@ import {
   Button,
   Checkbox,
   formatPhoneAsTyped,
+  matchesCountry,
   phonePlaceholder,
   UAE,
   fillOtpDigits,
@@ -295,5 +296,38 @@ describe('phone numbers per country', () => {
     expect(formatPhoneAsTyped(UAE, '')).toBe('');
     // Too long to be a number: left as typed, for the server to refuse.
     expect(formatPhoneAsTyped(UAE, '5012345678999')).toBe('5012345678999');
+  });
+});
+
+describe('searching the country picker', () => {
+  const ivoryCoast = {
+    code: 'CI',
+    name: { en: 'Côte d’Ivoire', ar: 'ساحل العاج', fr: 'Côte d’Ivoire' },
+    dialCode: '+225',
+    flag: '🇨🇮',
+  };
+  const egypt = {
+    code: 'EG',
+    name: { en: 'Egypt', ar: 'مِصر', fr: 'Égypte' },
+    dialCode: '+20',
+    flag: '🇪🇬',
+  };
+
+  it.each([
+    ['', ivoryCoast, true],
+    ['cote', ivoryCoast, true], // accents ignored
+    ['IVOIRE', ivoryCoast, true], // case ignored
+    ['ساحل', ivoryCoast, true], // Arabic name
+    ['ci', ivoryCoast, true], // ISO code
+    ['225', ivoryCoast, true], // dial code
+    ['+22', ivoryCoast, true], // the start of a dial code
+    ['egypte', egypt, true], // French name
+    ['مصر', egypt, true], // Arabic, without the diacritics in the stored name
+    ['20', egypt, true],
+    ['nigeria', ivoryCoast, false],
+    ['25', ivoryCoast, false], // dial codes match from the start only
+    ['eg', ivoryCoast, false],
+  ])('"%s" in %o -> %s', (query, country, expected) => {
+    expect(matchesCountry(country, query)).toBe(expected);
   });
 });

@@ -34,6 +34,8 @@
     "phoneHint": "We’ll send a 6-digit code on WhatsApp. Home-country numbers work too.",
     "countryLabel": "Country code",
     "countryTitle": "Choose a country code",
+    "countrySearch": "Search by country, code or dial code",
+    "countryNone": "No country matches. Try its name, its code (NG) or its dial code (234).",
     "sendCode": "Send code on WhatsApp",
     "sending": "Sending",
     "continueWithEmail": "Continue with email",

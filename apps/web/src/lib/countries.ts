@@ -8,9 +8,13 @@ import { api } from './api';
  */
 export async function phoneCountries(locale: string): Promise<CountryOption[]> {
   try {
-    const { data } = await api(locale).GET('/api/v1/countries');
-    return (data?.countries ?? []).filter((country) => country.phoneEnabled);
-  } catch {
-    return [];
+    const { data, error, response } = await api(locale).GET('/api/v1/countries');
+    if (data) return data.countries.filter((country) => country.phoneEnabled);
+    console.warn(
+      `Countries could not be loaded (${response.status} ${JSON.stringify(error)}); the phone field offers the UAE only`,
+    );
+  } catch (err) {
+    console.warn('Countries could not be loaded; the phone field offers the UAE only', err);
   }
+  return [];
 }

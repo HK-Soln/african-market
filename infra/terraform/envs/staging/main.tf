@@ -72,6 +72,11 @@ variable "manual_secrets" {
   default = []
 }
 
+variable "didit_workflow_id" {
+  description = "The Didit workflow for seller verification (see modules/platform)."
+  type        = string
+}
+
 variable "sentry_dsn_backend" {
   description = "Sentry DSN for the gateway and services; empty: no error reports (see modules/platform)."
   type        = string
@@ -96,6 +101,7 @@ module "platform" {
   email_from          = "African Market <no-reply@${var.domain}>"
   manual_secrets      = var.manual_secrets
   sentry_dsn_backend  = var.sentry_dsn_backend
+  didit_workflow_id   = var.didit_workflow_id
   sentry_dsn_frontend = var.sentry_dsn_frontend
   otp_test_numbers    = var.otp_test_numbers
 

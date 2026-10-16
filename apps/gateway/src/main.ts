@@ -11,7 +11,11 @@ import { configureApp } from './setup';
 
 async function bootstrap() {
   const env = loadEnv(gatewayEnvSchema);
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+  // rawBody: webhooks are checked against the exact bytes their sender signed.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+    rawBody: true,
+  });
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
   configureApp(app, {

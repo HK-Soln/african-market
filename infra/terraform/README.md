@@ -215,6 +215,15 @@ not code. `email_provider` picks how `SMTP_URL` is made:
 Before choosing a provider outside AWS, check where it stores data: recipients' email addresses are
 personal data, and product rule 8 keeps personal data in the UAE.
 
+## Seller verification (Didit)
+
+The shops service sends sellers to Didit's hosted page (decision T-28). Before the first deploy:
+
+- Set `didit_workflow_id` in `terraform.tfvars`.
+- Put the API key and the webhook secret in Secrets Manager (Terraform creates them empty):
+  `african-market/<env>/DIDIT_API_KEY` and `.../DIDIT_API_SECRET`. Only the shops service gets them.
+- In Didit Console, point the webhook at `https://api.<domain>/api/v1/webhooks/didit`.
+
 ## Traces and error reports
 
 - **Traces** (on by default, `tracing`): each backend task runs the AWS Distro for OpenTelemetry

@@ -73,7 +73,7 @@ Location discovery and search, Contact, UAE specifics.
   > editable yet.
   > Note: trade licence and verification fields exist on `shop` but are not editable here; F1-03.
 
-- [ ] **F1-03 Basic KYC and verification workflow** (depends on F1-02; design: decision T-28)
+- [x] **F1-03 Basic KYC and verification workflow** (depends on F1-02; design: decision T-28)
       `verification_request` (shop_id, type kyc|trade_license, submitted_by, provider session id or
       document media ids, status pending/approved/rejected, reviewer_id, reason, decided_at). KYC =
       government ID (Emirates ID or passport) + selfie through a `KycProvider` interface: `DiditKycProvider`
@@ -88,6 +88,18 @@ Location discovery and search, Contact, UAE specifics.
       are public. Publish `shop.verified` on every status change. Audit-log every decision. Notify the
       seller by email (SMS optional) through a temporary direct call to the email adapter until Phase 2
       notifications.
+
+  > Note: owner's decision (2026-10-16): Didit's hosted page, not our own capture pages. Building
+  > our own would have put ID documents in our storage and given up Didit's camera-side liveness
+  > checks, and we would have come back to the hosted page later.
+  > Note: the webhook body is not trusted beyond its signature and session id; the decision is
+  > fetched from Didit. The same fetch runs when the seller returns, so the flow works without
+  > webhooks (locally).
+  > Note: the seller is not emailed yet: `shop.verified` carries every decision, and Phase 2's
+  > notifications service consumes it, instead of a temporary SMTP client in shops. The seller app
+  > shows the status and the reason meanwhile.
+  > Note: the owner's and admins' routes (start, refresh, submit, licence, queue, decisions, images)
+  > come with the gateway APIs (F1-08); the webhook route is here, because Didit calls it.
 
 - [ ] **F1-04 Catalogue** (depends on F1-02)
       `category` tree (parent_id, slug, name LocalizedText, kind product/service, is_restricted,

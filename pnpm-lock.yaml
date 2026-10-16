@@ -135,6 +135,9 @@ importers:
       typeorm:
         specifier: ^0.3.31
         version: 0.3.31(ioredis@6.0.0)(pg@8.23.1)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   apps/discovery:
     dependencies:

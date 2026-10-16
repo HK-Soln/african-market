@@ -27,6 +27,27 @@ export const UAE: CountryOption = {
   flag: '🇦🇪',
 };
 
+/** Lower case, without accents or Arabic diacritics, so "Côte" finds "cote" and "مصر" finds "مِصر". */
+const fold = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f\u064b-\u065f\u0670]/g, '')
+    .toLowerCase()
+    .trim();
+
+/**
+ * Whether a country matches what was typed in a picker's search: its name in any language, its
+ * ISO code (`NG`) or its dial code (`234`, `+234`).
+ */
+export function matchesCountry(country: CountryOption, query: string): boolean {
+  const needle = fold(query);
+  if (!needle) return true;
+  const digits = needle.replace(/^\+/, '');
+  if (/^\d+$/.test(digits)) return country.dialCode.slice(1).startsWith(digits);
+  if (needle.length <= 3 && country.code.toLowerCase() === needle) return true;
+  return Object.values(country.name).some((name) => fold(name).includes(needle));
+}
+
 export const countryName = (country: Pick<CountryOption, 'name'>, locale: Locale): string =>
   country.name[locale] || country.name.en;
 

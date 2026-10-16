@@ -41,6 +41,8 @@ export const AUTH_LABEL_KEYS = [
   'phoneHint',
   'countryLabel',
   'countryTitle',
+  'countrySearch',
+  'countryNone',
   'sendCode',
   'sending',
   'continueWithEmail',

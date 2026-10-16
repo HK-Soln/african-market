@@ -5,7 +5,7 @@ import { LOCALES, type Locale } from '@am/i18n';
 import { Button, IconButton } from '../button';
 import { Checkbox } from '../choice';
 import { CountryFlag } from '../country-flag';
-import { countryName, formatPhoneAsTyped, type CountryOption } from '../countries';
+import { countryName, formatPhoneAsTyped, matchesCountry, type CountryOption } from '../countries';
 import { Input, Select } from '../field';
 import { Icon, type IconName } from '../icon';
 import { Logo } from '../logo';
@@ -152,6 +152,12 @@ export function PhoneStep({
   error,
 }: PhoneStepProps) {
   const [picking, setPicking] = useState(false);
+  const [search, setSearch] = useState('');
+  const found = countries.filter((option) => matchesCountry(option, search));
+  const openPicker = () => {
+    setSearch('');
+    setPicking(true);
+  };
   return (
     <Shell
       lead={{ icon: 'x', label: labels.close, onClick: onClose }}
@@ -184,7 +190,7 @@ export function PhoneStep({
         countryLabel={labels.countryLabel}
         country={country}
         locale={locale}
-        onCountryClick={() => setPicking(true)}
+        onCountryClick={openPicker}
         value={number}
         onChange={(event) => onNumberChange(formatPhoneAsTyped(country, event.target.value))}
         maxLength={24}
@@ -216,8 +222,22 @@ export function PhoneStep({
         open={picking}
         onClose={() => setPicking(false)}
       >
+        <Input
+          label={labels.countrySearch}
+          type="search"
+          iconStart="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          autoComplete="off"
+          className="mb-3"
+        />
+        {found.length === 0 && (
+          <p className="px-2 py-4 text-center text-ink-muted" role="status">
+            {labels.countryNone}
+          </p>
+        )}
         <ul className="flex flex-col">
-          {countries.map((option) => (
+          {found.map((option) => (
             <li key={option.code}>
               <button
                 type="button"

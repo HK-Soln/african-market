@@ -64,6 +64,10 @@ export const ShopsPatterns = {
   setSpecialHours: 'shops.branch.set_special_hours',
   deleteSpecialHours: 'shops.branch.delete_special_hours',
   recordContact: 'shops.contact.record',
+  /** Service to service (discovery), never routed by the gateway: a shop's public search data. */
+  searchSnapshot: 'shops.search.snapshot',
+  /** Service to service (discovery's rebuild): verified shops' ids, a page at a time. */
+  listVerifiedShopIds: 'shops.search.verified_ids',
 } as const;
 
 export const CatalogPatterns = {
@@ -84,11 +88,17 @@ export const CatalogPatterns = {
   /** Admins: products waiting for review, and decisions on them. */
   reviewQueue: 'catalog.product.review_queue',
   decideProduct: 'catalog.product.decide',
+  /** Service to service (discovery), never routed by the gateway: one product's search data. */
+  productSnapshot: 'catalog.search.product_snapshot',
+  /** Service to service (discovery): every live product of a shop. */
+  shopProductSnapshots: 'catalog.search.shop_products',
 } as const;
 
 export const DiscoveryPatterns = {
   searchNearby: 'discovery.search.nearby',
   searchMap: 'discovery.search.map',
+  /** Admins: rebuild the read model from the owning services. */
+  rebuild: 'discovery.search.rebuild',
 } as const;
 
 export const MediaPatterns = {

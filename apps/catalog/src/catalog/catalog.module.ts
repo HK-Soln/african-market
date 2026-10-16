@@ -6,6 +6,7 @@ import { IdempotentConsumer, OutboxService } from '@am/database';
 import { CatalogController } from './catalog.controller';
 import { CategoriesService } from './categories.service';
 import { ProductsService } from './products.service';
+import { SearchSnapshotService } from './search-snapshot.service';
 import { ShopEvents } from './shop-events';
 
 @Module({
@@ -21,6 +22,11 @@ import { ShopEvents } from './shop-events';
       inject: [getDataSourceToken(), OutboxService],
       useFactory: (dataSource: DataSource, outbox: OutboxService) =>
         new ProductsService(dataSource, outbox),
+    },
+    {
+      provide: SearchSnapshotService,
+      inject: [getDataSourceToken()],
+      useFactory: (dataSource: DataSource) => new SearchSnapshotService(dataSource),
     },
     {
       provide: ShopEvents,

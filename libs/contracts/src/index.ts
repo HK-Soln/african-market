@@ -14,3 +14,4 @@ export * from './dto/shops';
 export * from './dto/verification';
 export * from './dto/catalog';
 export * from './dto/discovery';
+export * from './dto/contact-events';

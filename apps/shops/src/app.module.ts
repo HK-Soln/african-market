@@ -2,6 +2,7 @@ import { Inject, Module, OnModuleInit } from '@nestjs/common';
 import { APP_ENV, ServiceCoreModule } from '@am/core';
 import { DatabaseModule } from '@am/database';
 import { assertSafeShopsEnv, ShopsEnv, shopsEnvSchema } from './config/shops-env';
+import { ContactsModule } from './contacts/contacts.module';
 import { dataSourceConfig } from './data-source';
 import { VerificationModule } from './kyc/verification.module';
 import { ShopsModule } from './shops/shops.module';
@@ -12,6 +13,7 @@ import { ShopsModule } from './shops/shops.module';
     DatabaseModule.forService(dataSourceConfig),
     ShopsModule,
     VerificationModule,
+    ContactsModule,
   ],
 })
 export class AppModule implements OnModuleInit {

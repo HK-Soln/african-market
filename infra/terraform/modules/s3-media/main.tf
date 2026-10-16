@@ -1,8 +1,10 @@
-# Two buckets, both in the UAE region:
-#   public   shop and product images. Not public in S3 itself: only CloudFront may read it.
-#   private  KYC documents and trade licences. Never public, versioned, KMS-encrypted; the media
-#            service hands out short-lived presigned URLs to admins.
-# Browsers upload straight to either bucket with presigned URLs, hence the CORS rules.
+# Three buckets, all in the UAE region (decision T-27):
+#   uploads  quarantine. The only bucket browsers write to, through a single-use presigned POST
+#            for one key; files wait there until the media service checks them, a day at most.
+#   public   processed images. Written by the media service only; only CloudFront may read it.
+#   private  documents (trade licences). Never public, versioned, KMS-encrypted; written and read
+#            by the media service only, which streams them to admins through the gateway.
+# Only uploads has CORS rules: browsers never talk to the other two.
 
 # ── public media ────────────────────────────────────────────────────────────────────────────
 
@@ -32,17 +34,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "public" {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
-  }
-}
-
-resource "aws_s3_bucket_cors_configuration" "public" {
-  bucket = aws_s3_bucket.public.id
-  cors_rule {
-    allowed_methods = ["PUT", "POST"]
-    allowed_origins = var.upload_origins
-    allowed_headers = ["*"]
-    expose_headers  = ["ETag"]
-    max_age_seconds = 3000
   }
 }
 
@@ -179,17 +170,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "private" {
   }
 }
 
-resource "aws_s3_bucket_cors_configuration" "private" {
-  bucket = aws_s3_bucket.private.id
-  cors_rule {
-    allowed_methods = ["PUT", "POST"]
-    allowed_origins = var.upload_origins
-    allowed_headers = ["*"]
-    expose_headers  = ["ETag"]
-    max_age_seconds = 3000
-  }
-}
-
 resource "aws_s3_bucket_lifecycle_configuration" "private" {
   bucket = aws_s3_bucket.private.id
   rule {
@@ -221,23 +201,119 @@ resource "aws_s3_bucket_policy" "private" {
   depends_on = [aws_s3_bucket_public_access_block.private]
 }
 
-# What the media service may do, for its task role.
+# ── uploads (quarantine) ────────────────────────────────────────────────────────────────────
+
+resource "aws_s3_bucket" "uploads" {
+  bucket        = "${var.name}-media-uploads"
+  force_destroy = true # nothing here is kept: files live a day at most
+}
+
+resource "aws_s3_bucket_public_access_block" "uploads" {
+  bucket                  = aws_s3_bucket.uploads.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+# The private key: a trade licence is a document before it is checked, too.
+resource "aws_s3_bucket_server_side_encryption_configuration" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.private.arn
+    }
+    bucket_key_enabled = true
+  }
+}
+
+# Form uploads (POST) from the apps, nothing else.
+resource "aws_s3_bucket_cors_configuration" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+  cors_rule {
+    allowed_methods = ["POST"]
+    allowed_origins = var.upload_origins
+    allowed_headers = ["*"]
+    max_age_seconds = 3000
+  }
+}
+
+# An upload nobody confirmed is gone after a day, whatever the media service does.
+resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+  rule {
+    id     = "quarantine"
+    status = "Enabled"
+    filter {}
+    expiration {
+      days = 1
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "TlsOnly"
+      Effect    = "Deny"
+      Principal = "*"
+      Action    = "s3:*"
+      Resource  = [aws_s3_bucket.uploads.arn, "${aws_s3_bucket.uploads.arn}/*"]
+      Condition = { Bool = { "aws:SecureTransport" = "false" } }
+    }]
+  })
+  depends_on = [aws_s3_bucket_public_access_block.uploads]
+}
+
+# What the media service may do, for its task role, and nothing more: it signs upload forms for
+# the quarantine bucket (so it needs PutObject there), reads and deletes what arrives, writes and
+# deletes public images, and writes, reads and deletes private documents. ListBucket on uploads
+# only, so a file that has not arrived reads as missing rather than as access denied.
 locals {
   media_service_statements = [
     {
       Effect   = "Allow"
-      Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-      Resource = ["${aws_s3_bucket.public.arn}/*", "${aws_s3_bucket.private.arn}/*"]
+      Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
+      Resource = ["${aws_s3_bucket.uploads.arn}/*"]
     },
     {
       Effect   = "Allow"
       Action   = ["s3:ListBucket"]
-      Resource = [aws_s3_bucket.public.arn, aws_s3_bucket.private.arn]
+      Resource = [aws_s3_bucket.uploads.arn]
+    },
+    {
+      Effect   = "Allow"
+      Action   = ["s3:PutObject", "s3:DeleteObject"]
+      Resource = ["${aws_s3_bucket.public.arn}/*"]
+    },
+    {
+      Effect   = "Allow"
+      Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
+      Resource = ["${aws_s3_bucket.private.arn}/*"]
     },
     {
       Effect   = "Allow"
       Action   = ["kms:Encrypt", "kms:Decrypt", "kms:GenerateDataKey"]
       Resource = [aws_kms_key.private.arn]
+    },
+    {
+      # Removed public images stop being served from the CDN's caches.
+      Effect   = "Allow"
+      Action   = ["cloudfront:CreateInvalidation"]
+      Resource = [aws_cloudfront_distribution.public.arn]
     },
   ]
 }

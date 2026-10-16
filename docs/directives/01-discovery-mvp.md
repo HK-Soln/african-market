@@ -15,21 +15,45 @@ Location discovery and search, Contact, UAE specifics.
 
 ## Backend
 
-- [ ] **F1-01 Media service** (no dependency)
-      `media_object` (owner_id, purpose: shop_logo/shop_gallery/product_image/kyc_document/avatar,
-      bucket public|private, key, content_type, size_bytes, width, height, status pending/ready/rejected,
-      variants jsonb). `createUpload` returns a presigned PUT (S3 SDK v3, MinIO locally) with type and size
-      limits per purpose (images ≤ 10 MB jpeg/png/webp/heic; KYC ≤ 15 MB incl. pdf). `confirmUpload`
-      checks the object, generates webp variants with `sharp` (thumb 200, card 600, full 1600), strips EXIF,
-      sets `ready` and publishes `media.ready`. KYC documents stay in the private bucket and get only
-      short-lived presigned GETs for admins. Gateway: `POST /media/uploads`, `POST /media/uploads/:id/confirm`.
+- [x] **F1-01 Media service** (no dependency; design: decision T-27)
+      Only the media service touches storage. Three buckets: `uploads` (quarantine; browsers write
+      there only, through a single-use presigned POST for one server-chosen key, 5 minutes, exact
+      content type and size range; expires after 1 day), `public` (processed images; written by media
+      only, read by the CDN only) and `private` (KMS-encrypted documents; media only).
+      `media_object` (owner_id, purpose avatar/shop_logo/shop_gallery/product_image/trade_license,
+      shop_id for shop purposes, visibility, status pending/ready/rejected/deleted, size, width,
+      height, variants jsonb, attached_type/attached_id, attached_at, detached_at) and
+      `media_access_log`. `createUpload` checks the purpose against the caller (table in T-27) and
+      per-user limits. `confirmUpload` locks the row, reads the real type from the bytes (jpeg, png,
+      webp; pdf only for trade licences; never svg or animated images), limits pixels, re-encodes
+      images to webp variants with `sharp` (thumb 200, card 600, full 1600; EXIF and GPS gone),
+      deletes the upload, sets `ready` and publishes `media.ready`. Objects are immutable: replacing
+      is a new upload. `attach` / `detach` bind an object to what uses it (only its uploader, for its
+      purpose, once). Private objects are never given a URL: admins get the bytes through the gateway,
+      each view logged. A cleanup job removes unconfirmed uploads after a day, unattached objects after
+      24 hours and detached ones after 7 days. Gateway: `POST /media/uploads`,
+      `POST /media/uploads/:id/confirm`, `GET /admin/media/:id/content`.
+
+  > Note: owner's review (2026-10-16) asked for security first; the design is decision T-27,
+  > and differs from the first draft of this task: a quarantine bucket, a presigned POST instead of
+  > a PUT (a PUT cannot limit size), immutable objects, attach/detach, and documents streamed to
+  > admins instead of presigned GETs.
+  > Note: HEIC is not accepted: sharp's prebuilt binaries cannot decode it. Pages that ask for
+  > jpeg, png or webp make iPhones convert photos to JPEG before upload.
+  > Note: KYC documents are not here at all: they stay with Didit (T-28). The private bucket holds
+  > trade licences.
+  > Note: staff upload of product images waits for the shop setting (F1-02); the gateway sends
+  > `staffMayUpload: false` until then.
+  > Note: also fixed: EventBus crashed the process when the app stopped while its RabbitMQ channel
+  > was still being set up (an `error` event with no listener).
 
 - [ ] **F1-02 Shops: shop and branch model** (depends on F1-01)
       Entities per the plan: `shop` (name, slug unique, description LocalizedText, logo_media_id, gallery
       media ids, category_ids, origin_countries text[] ISO-3166 alpha-2, legal_name, trade_license_no,
       license_expiry, license_media_id, kyc_status none/pending/passed/failed, verification_status
       draft/pending/verified/rejected/suspended, contact_whatsapp, contact_phone, contact_email,
-      checkout_enabled false, cod_enabled false, stripe_account_id null), `branch` (shop_id, name,
+      checkout_enabled false, cod_enabled false, stripe_account_id null,
+      staff_can_upload_product_images false (decision T-29)), `branch` (shop_id, name,
       emirate code, area, address_line, makani, location geography Point (GiST), service_area
       geography MultiPolygon nullable (GiST), service_radius_m nullable, pickup, delivery,
       delivery_fee_fils, min_order_fils, contact overrides, is_primary), `opening_hours` (branch_id,
@@ -39,15 +63,21 @@ Location discovery and search, Contact, UAE specifics.
       `seller` role. Patterns for create/update/get/list mine/upsert branch/delete branch/set hours.
       Events: `shop.created`, `shop.updated`, `branch.updated`.
 
-- [ ] **F1-03 Basic KYC and verification workflow** (depends on F1-02)
-      `verification_request` (shop_id, type kyc|trade_license, submitted_by, documents media ids,
-      status pending/approved/rejected, reviewer_id, reason, decided_at). KYC = government ID (Emirates ID
-      or passport) + selfie, reviewed by an admin through a `KycProvider` interface (`ManualKycProvider`
-      now). Trade licence (number, issuing authority, expiry, document) is optional in Phase 1 and becomes
-      required for checkout in Phase 3. Shop goes `pending` on submission and `verified` when KYC passes
-      and an admin approves the listing. Only verified, non-suspended shops are public. Publish
-      `shop.verified` on every status change. Audit-log every decision. Notify the seller by email (SMS
-      optional) through a temporary direct call to the email adapter until Phase 2 notifications.
+- [ ] **F1-03 Basic KYC and verification workflow** (depends on F1-02; design: decision T-28)
+      `verification_request` (shop_id, type kyc|trade_license, submitted_by, provider session id or
+      document media ids, status pending/approved/rejected, reviewer_id, reason, decided_at). KYC =
+      government ID (Emirates ID or passport) + selfie through a `KycProvider` interface: `DiditKycProvider`
+      (hosted Didit session; signed webhook to the gateway) and a manual fake for local use and tests.
+      ID documents and selfies **stay with Didit**: store only the session id, status and a decision
+      summary, never Didit's media links. Admins see the documents through the gateway, which asks
+      Didit for fresh links and streams the bytes (no-store, admin only, every view audited). Sellers
+      never see their own KYC documents. The Didit session is deleted when the account is erased.
+      Trade licence (number, issuing authority, expiry, document in our private bucket) is optional in
+      Phase 1 and becomes required for checkout in Phase 3. Shop goes `pending` on submission and
+      `verified` when KYC passes and an admin approves the listing. Only verified, non-suspended shops
+      are public. Publish `shop.verified` on every status change. Audit-log every decision. Notify the
+      seller by email (SMS optional) through a temporary direct call to the email adapter until Phase 2
+      notifications.
 
 - [ ] **F1-04 Catalogue** (depends on F1-02)
       `category` tree (parent_id, slug, name LocalizedText, kind product/service, is_restricted,

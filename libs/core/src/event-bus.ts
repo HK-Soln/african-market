@@ -162,6 +162,11 @@ export class EventBus implements OnApplicationBootstrap, OnModuleDestroy {
         await ch.consume(queue, (msg) => void this.dispatch(ch, msg));
       },
     });
+    // A setup that fails (the broker closing the channel, or the app stopping half-way through)
+    // is retried on the next connection; without a listener the event would crash the process.
+    this.channel.on('error', (err: Error) =>
+      this.logger.warn(`RabbitMQ channel setup failed, will retry: ${err.message}`),
+    );
     // Do not block startup on the broker; amqp-connection-manager reconnects in the background.
     void this.channel.waitForConnect().then(() => this.logger.log(`RabbitMQ connected (${queue})`));
   }

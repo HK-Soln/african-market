@@ -48,7 +48,12 @@ export interface EventPayloads {
   'branch.updated': { branchId: string; shopId: string; deleted: boolean };
   'product.upserted': { productId: string; shopId: string };
   'product.removed': { productId: string; shopId: string };
-  'media.ready': { mediaId: string; ownerId: string; urls: Record<string, string> };
+  'media.ready': {
+    mediaId: string;
+    ownerId: string;
+    purpose: string;
+    urls: Record<string, string>;
+  };
   'message.sent': {
     messageId: string;
     conversationId: string;
@@ -164,12 +169,14 @@ export const EVENT_CATALOG: { [N in EventName]: EventDoc<N> } = {
     payload: { productId: 'The product.', shopId: 'The shop that sold it.' },
   },
   'media.ready': {
-    description: 'An uploaded image passed its checks and its sizes were generated.',
+    description:
+      'An upload passed its checks and was stored: images re-encoded into their sizes, documents kept privately.',
     publisher: 'media',
     payload: {
       mediaId: 'The media item.',
-      ownerId: 'The user or shop that uploaded it.',
-      urls: 'Public URL per generated size, e.g. thumb, card, full.',
+      ownerId: 'The user who uploaded it.',
+      purpose: 'avatar, shop_logo, shop_gallery, product_image or trade_license.',
+      urls: 'Public URL per generated size (thumb, card, full); empty for private documents.',
     },
   },
   'message.sent': {

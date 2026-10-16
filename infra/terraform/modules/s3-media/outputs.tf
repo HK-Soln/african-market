@@ -1,3 +1,12 @@
+output "uploads_bucket" {
+  value = aws_s3_bucket.uploads.bucket
+}
+
+output "distribution_id" {
+  description = "The CloudFront distribution in front of the public bucket (CLOUDFRONT_DISTRIBUTION_ID)."
+  value       = aws_cloudfront_distribution.public.id
+}
+
 output "public_bucket" {
   value = aws_s3_bucket.public.bucket
 }

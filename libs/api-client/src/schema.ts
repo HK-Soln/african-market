@@ -299,6 +299,66 @@ export interface paths {
         patch: operations["AdminCountriesController_update_v1"];
         trace?: never;
     };
+    "/api/v1/media/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start an upload
+         * @description Returns a form for one file, valid 5 minutes: POST `fields` and then the file (as `file`) to `url`, then call confirm. Shop purposes need `shopId` and a role in that shop.
+         */
+        post: operations["MediaController_createUpload_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/uploads/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm an upload
+         * @description Checks the file (its real type, size and pixels) and stores it: images as WebP sizes without their metadata, a trade licence privately. 422 MEDIA_FILE_REJECTED with details.reason when it fails.
+         */
+        post: operations["MediaController_confirmUpload_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/media/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a private document (a trade licence)
+         * @description Every download is logged with the admin and the request id.
+         */
+        get: operations["AdminMediaController_content_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -487,6 +547,65 @@ export interface components {
             phoneEnabled?: boolean;
             originEnabled?: boolean;
             sortOrder?: number;
+        };
+        CreateUploadDto: {
+            /** @enum {string} */
+            purpose: "avatar" | "shop_logo" | "shop_gallery" | "product_image" | "trade_license";
+            /**
+             * @description image/jpeg, image/png or image/webp; also application/pdf for trade_license
+             * @example image/jpeg
+             */
+            contentType: string;
+            /**
+             * @description The file size in bytes; the upload may not exceed it
+             * @example 482113
+             */
+            sizeBytes: number;
+            /**
+             * Format: uuid
+             * @description Required for shop_logo, shop_gallery, product_image and trade_license
+             */
+            shopId?: string;
+        };
+        UploadFormDto: {
+            /** @example https://african-market-staging-uploads.s3.me-central-1.amazonaws.com/ */
+            url: string;
+            /** @description Form fields to send first, before the file (named `file`) */
+            fields: {
+                [key: string]: string;
+            };
+        };
+        CreateUploadResponseDto: {
+            /** Format: uuid */
+            mediaId: string;
+            upload: components["schemas"]["UploadFormDto"];
+            /**
+             * Format: date-time
+             * @description The form stops working then (5 minutes)
+             */
+            expiresAt: string;
+        };
+        MediaUrlsDto: {
+            /** @description 200 px wide */
+            thumb?: string;
+            /** @description 600 px wide */
+            card?: string;
+            /** @description 1600 px wide */
+            full?: string;
+        };
+        MediaDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            purpose: "avatar" | "shop_logo" | "shop_gallery" | "product_image" | "trade_license";
+            /** @enum {string} */
+            status: "pending" | "ready" | "rejected" | "deleted";
+            /** @example image/webp */
+            contentType: string | null;
+            width: number | null;
+            height: number | null;
+            /** @description Empty for private documents, which never have a URL */
+            urls: components["schemas"]["MediaUrlsDto"];
         };
     };
     responses: never;
@@ -939,6 +1058,69 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CountryDto"];
                 };
+            };
+        };
+    };
+    MediaController_createUpload_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUploadDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateUploadResponseDto"];
+                };
+            };
+        };
+    };
+    MediaController_confirmUpload_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MediaDto"];
+                };
+            };
+        };
+    };
+    AdminMediaController_content_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

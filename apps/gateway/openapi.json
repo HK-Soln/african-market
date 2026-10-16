@@ -729,6 +729,120 @@
           "admin"
         ]
       }
+    },
+    "/api/v1/media/uploads": {
+      "post": {
+        "description": "Returns a form for one file, valid 5 minutes: POST `fields` and then the file (as `file`) to `url`, then call confirm. Shop purposes need `shopId` and a role in that shop.",
+        "operationId": "MediaController_createUpload_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUploadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUploadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start an upload",
+        "tags": [
+          "media"
+        ]
+      }
+    },
+    "/api/v1/media/uploads/{id}/confirm": {
+      "post": {
+        "description": "Checks the file (its real type, size and pixels) and stores it: images as WebP sizes without their metadata, a trade licence privately. 422 MEDIA_FILE_REJECTED with details.reason when it fails.",
+        "operationId": "MediaController_confirmUpload_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Confirm an upload",
+        "tags": [
+          "media"
+        ]
+      }
+    },
+    "/api/v1/admin/media/{id}/content": {
+      "get": {
+        "description": "Every download is logged with the admin and the request id.",
+        "operationId": "AdminMediaController_content_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download a private document (a trade licence)",
+        "tags": [
+          "admin"
+        ]
+      }
     }
   },
   "info": {
@@ -1306,6 +1420,158 @@
             "maximum": 100000
           }
         }
+      },
+      "CreateUploadDto": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "avatar",
+              "shop_logo",
+              "shop_gallery",
+              "product_image",
+              "trade_license"
+            ]
+          },
+          "contentType": {
+            "type": "string",
+            "example": "image/jpeg",
+            "description": "image/jpeg, image/png or image/webp; also application/pdf for trade_license"
+          },
+          "sizeBytes": {
+            "type": "number",
+            "example": 482113,
+            "description": "The file size in bytes; the upload may not exceed it"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required for shop_logo, shop_gallery, product_image and trade_license"
+          }
+        },
+        "required": [
+          "purpose",
+          "contentType",
+          "sizeBytes"
+        ]
+      },
+      "UploadFormDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://african-market-staging-uploads.s3.me-central-1.amazonaws.com/"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Form fields to send first, before the file (named `file`)"
+          }
+        },
+        "required": [
+          "url",
+          "fields"
+        ]
+      },
+      "CreateUploadResponseDto": {
+        "type": "object",
+        "properties": {
+          "mediaId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "upload": {
+            "$ref": "#/components/schemas/UploadFormDto"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The form stops working then (5 minutes)"
+          }
+        },
+        "required": [
+          "mediaId",
+          "upload",
+          "expiresAt"
+        ]
+      },
+      "MediaUrlsDto": {
+        "type": "object",
+        "properties": {
+          "thumb": {
+            "type": "string",
+            "description": "200 px wide"
+          },
+          "card": {
+            "type": "string",
+            "description": "600 px wide"
+          },
+          "full": {
+            "type": "string",
+            "description": "1600 px wide"
+          }
+        }
+      },
+      "MediaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "avatar",
+              "shop_logo",
+              "shop_gallery",
+              "product_image",
+              "trade_license"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "ready",
+              "rejected",
+              "deleted"
+            ]
+          },
+          "contentType": {
+            "type": "string",
+            "nullable": true,
+            "example": "image/webp"
+          },
+          "width": {
+            "type": "number",
+            "nullable": true
+          },
+          "height": {
+            "type": "number",
+            "nullable": true
+          },
+          "urls": {
+            "description": "Empty for private documents, which never have a URL",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MediaUrlsDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "purpose",
+          "status",
+          "contentType",
+          "width",
+          "height",
+          "urls"
+        ]
       }
     }
   }

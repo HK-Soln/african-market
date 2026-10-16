@@ -5,12 +5,14 @@ import { OutboxService } from '@am/database';
 import { SessionService } from '../sessions/session.service';
 import { AccountErasure } from './account-erasure';
 import { PrivacyService } from './privacy.service';
+import { ShopOwnerConsumer } from './shop-owner.consumer';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
   controllers: [UsersController],
   providers: [
+    ShopOwnerConsumer,
     {
       provide: UsersService,
       inject: [getDataSourceToken()],

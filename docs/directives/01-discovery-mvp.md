@@ -47,7 +47,7 @@ Location discovery and search, Contact, UAE specifics.
   > Note: also fixed: EventBus crashed the process when the app stopped while its RabbitMQ channel
   > was still being set up (an `error` event with no listener).
 
-- [ ] **F1-02 Shops: shop and branch model** (depends on F1-01)
+- [x] **F1-02 Shops: shop and branch model** (depends on F1-01)
       Entities per the plan: `shop` (name, slug unique, description LocalizedText, logo_media_id, gallery
       media ids, category_ids, origin_countries text[] ISO-3166 alpha-2, legal_name, trade_license_no,
       license_expiry, license_media_id, kyc_status none/pending/passed/failed, verification_status
@@ -62,6 +62,16 @@ Location discovery and search, Contact, UAE specifics.
       `owner` membership (identity consumes `shop.created`, publishes `membership.changed`) and the
       `seller` role. Patterns for create/update/get/list mine/upsert branch/delete branch/set hours.
       Events: `shop.created`, `shop.updated`, `branch.updated`.
+
+  > Note: the service checks every change itself. The owner comes from `shop.owner_id` (so a new
+  > shop is usable before identity grants the membership and the next token carries it);
+  > managers and staff come from the token, which can be up to 15 minutes old.
+  > Note: the gateway routes, attaching logo and gallery media, and the staff-upload lookup are
+  > part of F1-08 (the gateway APIs); `update` already returns the media ids to detach.
+  > Note: limits for now: 5 shops a person, 50 branches a shop, delivery areas up to 5,000 km².
+  > Slugs are made from the name (an Arabic-only name gives `shop` plus a suffix) and are not
+  > editable yet.
+  > Note: trade licence and verification fields exist on `shop` but are not editable here; F1-03.
 
 - [ ] **F1-03 Basic KYC and verification workflow** (depends on F1-02; design: decision T-28)
       `verification_request` (shop_id, type kyc|trade_license, submitted_by, provider session id or

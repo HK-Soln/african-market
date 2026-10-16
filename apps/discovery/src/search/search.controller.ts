@@ -4,12 +4,14 @@ import { z } from 'zod';
 import {
   DiscoveryErrors,
   DiscoveryPatterns,
+  EmirateList,
   RebuildSearchResponse,
   SearchMapResponse,
   SearchNearbyResponse,
 } from '@am/contracts';
 import { AppRpcException } from '@am/core';
 import { EMIRATE_CODES, isInUae, UAE_BOUNDS } from '@am/geo';
+import { EmiratesService } from './emirates.service';
 import { SearchIndexer } from './indexer';
 import { MAX_LIMIT, SearchService } from './search.service';
 
@@ -21,8 +23,18 @@ function parse<T>(schema: z.ZodType<T>, payload: unknown): T {
   });
 }
 
+const actorSchema = z.object({
+  userId: z.uuid(),
+  roles: z.array(z.string().max(32)).max(10),
+  shops: z
+    .array(
+      z.object({ shopId: z.uuid(), role: z.enum(['owner', 'manager', 'staff']) }).passthrough(),
+    )
+    .max(100),
+});
+
 const rebuildSchema = z.object({
-  actor: z.object({ userId: z.uuid(), roles: z.array(z.string().max(32)).max(10) }).passthrough(),
+  actor: actorSchema,
   correlationId: z.string().max(128).optional(),
 });
 
@@ -77,7 +89,30 @@ export class SearchController {
   constructor(
     private readonly indexer: SearchIndexer,
     private readonly search: SearchService,
+    private readonly emirates: EmiratesService,
   ) {}
+
+  /** Public: the emirates and whether search is open there; admins get counts too. */
+  @MessagePattern(DiscoveryPatterns.listEmirates)
+  listEmirates(@Payload() payload: unknown): Promise<EmirateList> {
+    return this.emirates.list(parse(z.object({ actor: actorSchema.optional() }), payload ?? {}));
+  }
+
+  /** Admins: open or close customer search in an emirate. */
+  @MessagePattern(DiscoveryPatterns.setEmirateSearch)
+  setEmirateSearch(@Payload() payload: unknown): Promise<EmirateList> {
+    return this.emirates.setSearch(
+      parse(
+        z.object({
+          actor: actorSchema,
+          code: z.enum(EMIRATE_CODES as [string, ...string[]]),
+          open: z.boolean(),
+          correlationId: z.string().max(128).optional(),
+        }),
+        payload,
+      ),
+    );
+  }
 
   /** Public: branches near a point, ranked, a page at a time. */
   @MessagePattern(DiscoveryPatterns.searchNearby)

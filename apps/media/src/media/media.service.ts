@@ -10,6 +10,8 @@ import {
   MEDIA_RULES,
   MediaActor,
   MediaDto,
+  PublicMediaUrlsRequest,
+  PublicMediaUrlsResponse,
   MediaErrorCode,
   MediaErrors,
   MediaPurpose,
@@ -283,6 +285,18 @@ export class MediaService {
       height: object.height,
       urls: this.urls(object),
     };
+  }
+
+  /** Links of public images only; private documents and unfinished uploads are left out. */
+  async publicUrls(input: PublicMediaUrlsRequest): Promise<PublicMediaUrlsResponse> {
+    const ids = [...new Set(input.mediaIds)];
+    if (!ids.length) return { urls: {} };
+    const objects = await this.dataSource.manager.findBy(MediaObject, {
+      id: In(ids),
+      visibility: 'public',
+      status: 'ready',
+    });
+    return { urls: Object.fromEntries(objects.map((o) => [o.id, this.urls(o)])) };
   }
 
   private urls(object: MediaObject): MediaDto['urls'] {

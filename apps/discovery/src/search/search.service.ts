@@ -115,7 +115,10 @@ function openSql(p: Params, atIso: string): string {
 
 /** The WHERE conditions both the list and the map apply. `open` is openSql's expression. */
 function filterSql(f: SearchFilters, p: Params, tsq: string | null, open: string): string[] {
-  const where: string[] = [];
+  // Customers only see emirates an admin has opened.
+  const where: string[] = [
+    `b.emirate IN (SELECT code FROM discovery.emirate_search WHERE search_open)`,
+  ];
   if (f.categoryId) where.push(`b.category_ids @> ARRAY[${p.add(f.categoryId)}]::uuid[]`);
   if (f.emirate) where.push(`b.emirate = ${p.add(f.emirate)}`);
   if (f.originCountry) {

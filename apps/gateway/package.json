@@ -33,6 +33,7 @@
     "@am/auth": "workspace:*",
     "@am/contracts": "workspace:*",
     "@am/core": "workspace:*",
+    "@am/geo": "workspace:*",
     "@am/i18n": "workspace:*",
     "@nestjs/common": "^11.2.7",
     "@nestjs/core": "^11.2.7",

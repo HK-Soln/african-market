@@ -379,6 +379,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/search/nearby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shops near a point
+         * @description Delivery: branches that deliver to the point. Pickup: branches within the travel radius. Ranked by distance, open now, rating, listing completeness and text match; only emirates where search is open. Pass `nextCursor` back as `cursor` for the next page.
+         */
+        get: operations["SearchController_nearby_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Map markers in a box
+         * @description Single pins from zoom 14, clusters below; at most 500 markers.
+         */
+        get: operations["SearchController_map_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emirates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The seven emirates, with whether search is open in each */
+        get: operations["SearchController_emirates_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The category tree (active categories, parents first) */
+        get: operations["CatalogueController_categories_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A product
+         * @description An active product of a verified shop; the shop’s members and admins see it in any status.
+         */
+        get: operations["CatalogueController_product_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shops/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A verified shop by its slug, with its branches */
+        get: operations["PublicShopsController_shop_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shops/{slug}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A verified shop’s active products, a page at a time */
+        get: operations["PublicShopsController_products_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -653,6 +781,250 @@ export interface components {
             height: number | null;
             /** @description Empty for private documents, which never have a URL */
             urls: components["schemas"]["MediaUrlsDto"];
+        };
+        LatLngDto: {
+            lat: number;
+            lng: number;
+        };
+        LocalizedTextDto: {
+            en?: string;
+            ar?: string;
+            fr?: string;
+        };
+        MatchedProductDto: {
+            /** Format: uuid */
+            productId: string;
+            title: components["schemas"]["LocalizedTextDto"];
+            /** @description Fils, VAT included */
+            minPriceFils: number | null;
+            imageUrl: string | null;
+        };
+        NearbyBranchDto: {
+            /** Format: uuid */
+            branchId: string;
+            /** Format: uuid */
+            shopId: string;
+            shopSlug: string;
+            shopName: string;
+            branchName: string;
+            logoUrl: string | null;
+            emirate: string;
+            area: string | null;
+            location: components["schemas"]["LatLngDto"];
+            distanceM: number;
+            openNow: boolean;
+            pickup: boolean;
+            delivery: boolean;
+            verified: boolean;
+            ratingAvg: number;
+            ratingCount: number;
+            categoryIds: string[];
+            originCountries: string[];
+            matchedProducts: components["schemas"]["MatchedProductDto"][];
+        };
+        SearchNearbyResponseDto: {
+            items: components["schemas"]["NearbyBranchDto"][];
+            nextCursor: string | null;
+        };
+        MapMarkerDto: {
+            /** @enum {string} */
+            kind: "pin" | "cluster";
+            location: components["schemas"]["LatLngDto"];
+            /** @description Clusters */
+            count?: number;
+            /**
+             * Format: uuid
+             * @description Pins
+             */
+            branchId?: string;
+            /** @description Pins */
+            shopSlug?: string;
+            /** @description Pins */
+            shopName?: string;
+            /** @description Pins */
+            openNow?: boolean;
+        };
+        SearchMapResponseDto: {
+            markers: components["schemas"]["MapMarkerDto"][];
+            /** @description More pins than returned: zoom in */
+            truncated: boolean;
+        };
+        EmirateDto: {
+            /** @enum {string} */
+            code: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            slug: string;
+            name: components["schemas"]["LocalizedTextDto"];
+            center: components["schemas"]["LatLngDto"];
+            /** @description Customers can search here */
+            searchOpen: boolean;
+            /** @description Admins only */
+            verifiedShops: number | null;
+            /** @description Admins only */
+            branches: number | null;
+        };
+        EmirateListDto: {
+            items: components["schemas"]["EmirateDto"][];
+        };
+        CategoryDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parentId: string | null;
+            slug: string;
+            name: components["schemas"]["LocalizedTextDto"];
+            /** @enum {string} */
+            kind: "product" | "service";
+            /** @description Products in it are reviewed before they show */
+            isRestricted: boolean;
+            /** @description Food: needs the seller declaration */
+            requiresDeclaration: boolean;
+            checkoutAllowed: boolean;
+            sort: number;
+            active: boolean;
+        };
+        CategoryListDto: {
+            /** @description Parents before children */
+            items: components["schemas"]["CategoryDto"][];
+        };
+        ImageUrlsDto: {
+            thumb?: string;
+            card?: string;
+            full?: string;
+        };
+        FoodDeclarationDto: {
+            /** @enum {boolean} */
+            packagedAndLabelled: true;
+            /** @enum {boolean} */
+            noRestrictedItems: true;
+            /** @enum {string} */
+            storage: "ambient" | "chilled" | "frozen";
+            manufacturer?: string | null;
+            registrationNumber?: string | null;
+            /** Format: uuid */
+            declaredBy?: string;
+            /** Format: date-time */
+            declaredAt?: string;
+        };
+        VariantDto: {
+            /** Format: uuid */
+            id: string;
+            sku: string | null;
+            options: {
+                [key: string]: string;
+            };
+            /** @description Fils, VAT included; null: on request */
+            priceFils: number | null;
+            compareAtFils: number | null;
+            sort: number;
+        };
+        BranchListingDto: {
+            /** Format: uuid */
+            branchId: string;
+            /** Format: uuid */
+            variantId: string;
+            inStock: boolean;
+            quantity: number | null;
+            priceOverrideFils: number | null;
+        };
+        ProductDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** Format: uuid */
+            categoryId: string;
+            /** @enum {string} */
+            type: "product" | "service";
+            title: components["schemas"]["LocalizedTextDto"];
+            description: components["schemas"]["LocalizedTextDto"];
+            originCountry: string | null;
+            imageMediaIds: string[];
+            /** @description Links of the images, in order */
+            images: components["schemas"]["ImageUrlsDto"][];
+            /** @enum {string} */
+            status: "draft" | "pending_review" | "active" | "hidden" | "rejected";
+            /** @description Members only */
+            reviewReason: string | null;
+            /** @description Members only */
+            foodDeclaration: components["schemas"]["FoodDeclarationDto"] | null;
+            variants: components["schemas"]["VariantDto"][];
+            listings: components["schemas"]["BranchListingDto"][];
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        MultiPolygonDto: {
+            /** @enum {string} */
+            type: "MultiPolygon";
+            /** @description GeoJSON, longitude first */
+            coordinates: number[][][][];
+        };
+        OpeningHoursDto: {
+            /** @description 0 = Sunday */
+            weekday: number;
+            /** @example 09:00 */
+            opensAt: string;
+            /**
+             * @description Earlier than opensAt: past midnight
+             * @example 21:00
+             */
+            closesAt: string;
+        };
+        SpecialHoursDto: {
+            /** @example 2026-03-20 */
+            date: string;
+            closed: boolean;
+            opensAt: string | null;
+            closesAt: string | null;
+            label: components["schemas"]["LocalizedTextDto"] | null;
+        };
+        PublicBranchDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            emirate: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            area: string | null;
+            addressLine: string | null;
+            makani: string | null;
+            location: components["schemas"]["LatLngDto"];
+            serviceArea: components["schemas"]["MultiPolygonDto"] | null;
+            serviceRadiusM: number | null;
+            pickup: boolean;
+            delivery: boolean;
+            deliveryFeeFils: number;
+            minOrderFils: number;
+            contactWhatsapp: string | null;
+            contactPhone: string | null;
+            contactEmail: string | null;
+            isPrimary: boolean;
+            openingHours: components["schemas"]["OpeningHoursDto"][];
+            specialHours: components["schemas"]["SpecialHoursDto"][];
+        };
+        PublicShopDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            description: components["schemas"]["LocalizedTextDto"];
+            logo: components["schemas"]["ImageUrlsDto"] | null;
+            gallery: components["schemas"]["ImageUrlsDto"][];
+            categoryIds: string[];
+            originCountries: string[];
+            contactWhatsapp: string | null;
+            contactPhone: string | null;
+            contactEmail: string | null;
+            checkoutEnabled: boolean;
+            codEnabled: boolean;
+            branches: components["schemas"]["PublicBranchDto"][];
+        };
+        ProductPageDto: {
+            items: components["schemas"]["ProductDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
         };
     };
     responses: never;
@@ -1191,6 +1563,202 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    SearchController_nearby_v1: {
+        parameters: {
+            query: {
+                /** @description Shop names, categories, areas, descriptions, products */
+                q?: string;
+                /** @description A category and everything under it */
+                categoryId?: string;
+                /** @description ISO 3166-1 alpha-2 */
+                originCountry?: string;
+                /** @description Open now, Asia/Dubai */
+                openNow?: boolean;
+                emirate?: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+                lat: number;
+                lng: number;
+                /** @description delivery: they deliver here; pickup: near here */
+                mode: "delivery" | "pickup";
+                /** @description Pickup: only branches that would also deliver here */
+                deliversToMe?: boolean;
+                /** @description Pickup: travel radius in metres (default 10,000) */
+                radiusM?: number;
+                /** @description At most 50 (default 20) */
+                limit?: number;
+                /** @description `nextCursor` of the previous page */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchNearbyResponseDto"];
+                };
+            };
+        };
+    };
+    SearchController_map_v1: {
+        parameters: {
+            query: {
+                /** @description Shop names, categories, areas, descriptions, products */
+                q?: string;
+                /** @description A category and everything under it */
+                categoryId?: string;
+                /** @description ISO 3166-1 alpha-2 */
+                originCountry?: string;
+                /** @description Open now, Asia/Dubai */
+                openNow?: boolean;
+                emirate?: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+                minLat: number;
+                minLng: number;
+                maxLat: number;
+                maxLng: number;
+                /** @description Map zoom 0-22; pins from 14, clusters below */
+                zoom: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchMapResponseDto"];
+                };
+            };
+        };
+    };
+    SearchController_emirates_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmirateListDto"];
+                };
+            };
+        };
+    };
+    CatalogueController_categories_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryListDto"];
+                };
+            };
+        };
+    };
+    CatalogueController_product_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+        };
+    };
+    PublicShopsController_shop_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicShopDto"];
+                };
+            };
+        };
+    };
+    PublicShopsController_products_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (draft, pending_review, active, hidden, rejected) */
+                "filter[status]"?: string;
+                /** @description enum (draft, pending_review, active, hidden, rejected), comma-separated */
+                "filter[status][in]"?: string;
+                /** @description uuid */
+                "filter[categoryId]"?: string;
+                /** @description uuid, comma-separated */
+                "filter[categoryId][in]"?: string;
+                /** @description enum (product, service) */
+                "filter[type]"?: string;
+                /** @description string, contains, case-insensitive */
+                "filter[search][like]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: createdAt, updatedAt. Default: -createdAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPageDto"];
+                };
             };
         };
     };

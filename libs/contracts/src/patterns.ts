@@ -102,6 +102,10 @@ export const DiscoveryPatterns = {
   searchMap: 'discovery.search.map',
   /** Admins: rebuild the read model from the owning services. */
   rebuild: 'discovery.search.rebuild',
+  /** Public: the emirates and whether search is open in each (admins: with counts). */
+  listEmirates: 'discovery.emirate.list',
+  /** Admins: open or close search in an emirate. */
+  setEmirateSearch: 'discovery.emirate.set_search',
 } as const;
 
 export const MediaPatterns = {
@@ -111,6 +115,8 @@ export const MediaPatterns = {
   detach: 'media.object.detach',
   /** Admins only: a 60-second link to a private document, for the gateway to stream. */
   privateAccess: 'media.object.private_access',
+  /** Public: CDN links of public, processed images by id (at most 100). */
+  publicUrls: 'media.object.public_urls',
 } as const;
 
 export interface HealthResponse {

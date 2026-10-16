@@ -193,3 +193,13 @@ export const MediaErrors = {
 } as const;
 
 export type MediaErrorCode = (typeof MediaErrors)[keyof typeof MediaErrors];
+
+/** Public: the CDN links of processed public images, for pages that show media by id. */
+export interface PublicMediaUrlsRequest {
+  mediaIds: string[];
+}
+
+export interface PublicMediaUrlsResponse {
+  /** By media id; ids that are not public, processed images are left out. */
+  urls: Record<string, Partial<Record<ImageVariant, string>>>;
+}

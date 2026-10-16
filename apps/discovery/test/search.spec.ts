@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { DiscoveryErrors, SearchNearbyRequest } from '@am/contracts';
+import { EmiratesService } from '../src/search/emirates.service';
 import { prefixQuery, SearchService } from '../src/search/search.service';
 import { insertBranch, insertProduct, PLACES, seedMany, square } from './support/fixtures';
 import { createTestDatabase, TestDatabase } from './support/test-database';
@@ -29,6 +30,8 @@ describe('nearby search (PostGIS)', () => {
     testDb = await createTestDatabase();
     db = testDb.db;
     search = new SearchService(db, () => MONDAY_10AM);
+    // Search is closed everywhere until an admin opens it; these tests search all of it.
+    await db.query(`UPDATE discovery.emirate_search SET search_open = true`);
   }, 60_000);
 
   beforeEach(async () => {
@@ -275,6 +278,36 @@ describe('nearby search (PostGIS)', () => {
       expect(near.markers).toHaveLength(6);
       expect(near.markers.every((m) => m.kind === 'pin')).toBe(true);
       expect(near.truncated).toBe(false);
+    });
+  });
+
+  describe('emirates', () => {
+    it('hide an emirate until an admin opens search there, and count its shops for admins', async () => {
+      const emirates = new EmiratesService(db);
+      await insertBranch(db, { name: 'Majaz Foods', at: PLACES.sharjah, emirate: 'SHJ' });
+      const admin = { userId: randomUUID(), roles: ['admin'], shops: [] };
+      await emirates.setSearch({ actor: admin, code: 'SHJ', open: false });
+      expect(await names({ ...PLACES.sharjah, mode: 'pickup' })).toEqual([]);
+
+      const forAdmin = await emirates.list({ actor: admin });
+      expect(forAdmin.items.find((e) => e.code === 'SHJ')).toMatchObject({
+        searchOpen: false,
+        verifiedShops: 1,
+        branches: 1,
+        name: { en: 'Sharjah', ar: 'الشارقة' },
+      });
+      expect((await emirates.list({})).items.find((e) => e.code === 'SHJ')).toMatchObject({
+        searchOpen: false,
+        verifiedShops: null,
+      });
+
+      await emirates.setSearch({ actor: admin, code: 'SHJ', open: true });
+      expect(await names({ ...PLACES.sharjah, mode: 'pickup' })).toEqual(['Majaz Foods']);
+      expect(
+        await codeOf(
+          emirates.setSearch({ actor: { ...admin, roles: ['seller'] }, code: 'SHJ', open: false }),
+        ),
+      ).toBe(DiscoveryErrors.adminOnly);
     });
   });
 

@@ -12,6 +12,7 @@ import { CountriesModule } from './countries/countries.module';
 import { gatewayEnvSchema } from './env';
 import { GatewayHealthController } from './health/health.controller';
 import { MediaModule } from './media/media.module';
+import { PublicModule } from './public/public.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { testSupportModules } from './test-support/test-support.module';
 
@@ -35,6 +36,7 @@ const env = loadEnv(gatewayEnvSchema);
     ContactsModule,
     CountriesModule,
     MediaModule,
+    PublicModule,
     WebhooksModule,
     ...testSupportModules(loadNodeEnv()),
     // Further feature modules (shops, catalog, search, media, ...) are added per phase; see docs/directives.

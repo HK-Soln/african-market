@@ -274,6 +274,16 @@ describe('seller verification (PostGIS)', () => {
       expect(await codeOf(verification.queue({ actor: first.owner, query }))).toBe(
         VerificationErrors.adminOnly,
       );
+
+      // Admins find a shop by part of its name or slug.
+      const found = await verification.queue({
+        actor: admin(),
+        query: parseListQuery(
+          { 'filter[search][like]': second.shop.slug.slice(-6) },
+          VERIFICATION_QUEUE_LIST_SPEC,
+        ),
+      });
+      expect(found.items.map((s) => s.id)).toContain(second.shop.id);
     });
   });
 

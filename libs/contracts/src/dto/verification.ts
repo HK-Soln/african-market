@@ -127,7 +127,7 @@ export interface DecideTradeLicenseRequest {
   correlationId?: string;
 }
 
-/** Shops waiting for an admin, oldest first. */
+/** Shops that were submitted at least once, oldest first: the queue, and admin shop search. */
 export interface ListVerificationQueueRequest {
   actor: ActorClaims;
   query: ListQuery;
@@ -141,6 +141,8 @@ export const VERIFICATION_QUEUE_LIST_SPEC: ListSpec = {
       ops: ['eq', 'in'],
     },
     kycStatus: { type: 'enum', values: ['none', 'pending', 'passed', 'failed'], ops: ['eq', 'in'] },
+    /** A shop's name or slug contains it (admins finding a shop). */
+    search: { type: 'string', ops: ['like'] },
   },
   sorts: ['submittedAt', 'name'],
   defaultSort: 'submittedAt',

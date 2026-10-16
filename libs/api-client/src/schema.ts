@@ -248,6 +248,229 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/shops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shops submitted for listing
+         * @description Oldest first; filter by status, or search names and slugs to find any shop.
+         */
+        get: operations["AdminVerificationController_queue_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shops/{shopId}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A shop's verification: identity summary, licence, history */
+        get: operations["AdminVerificationController_get_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shops/{shopId}/listing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve, reject, suspend or reinstate a listing
+         * @description The seller sees the reason. Suspending hides the shop from search at once.
+         */
+        post: operations["AdminVerificationController_decideListing_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shops/{shopId}/trade-license/{requestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve or reject a trade licence */
+        post: operations["AdminVerificationController_decideLicense_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shops/{shopId}/verification/{requestId}/documents/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * An identity image of a KYC check
+         * @description Fetched fresh from the provider and streamed; the link never reaches the browser. Every view is recorded with the admin and the request id.
+         */
+        get: operations["AdminVerificationController_kycDocument_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/products/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Products waiting for review (food, restricted, rejected before) */
+        get: operations["AdminCatalogueController_reviewQueue_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/products/{productId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve or reject a product
+         * @description Rejecting also takes down a public product; the seller sees the reason.
+         */
+        post: operations["AdminCatalogueController_decideProduct_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The category tree, inactive categories too if asked */
+        get: operations["AdminCatalogueController_categories_v1"];
+        put?: never;
+        /**
+         * Add a category
+         * @description English and Arabic names required; a child takes its parent’s kind and flags.
+         */
+        post: operations["AdminCatalogueController_createCategory_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/categories/{categoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename, move, reorder, flag or switch off a category */
+        patch: operations["AdminCatalogueController_updateCategory_v1"];
+        trace?: never;
+    };
+    "/api/v1/admin/emirates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The emirates, with search switches and verified shop counts */
+        get: operations["AdminSearchController_emirates_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/emirates/{code}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Open or close customer search in an emirate */
+        put: operations["AdminSearchController_setSearch_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/search/rebuild": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rebuild the search index from the shops and the catalogue
+         * @description Reads every verified shop again; can take a while.
+         */
+        post: operations["AdminSearchController_rebuild_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contact-events": {
         parameters: {
             query?: never;
@@ -983,6 +1206,336 @@ export interface components {
              */
             erasedAfter: string;
         };
+        LocalizedTextDto: {
+            en?: string;
+            ar?: string;
+            fr?: string;
+        };
+        TradeLicenseDto: {
+            legalName: string | null;
+            number: string | null;
+            issuingAuthority: string | null;
+            expiry: string | null;
+        };
+        LatLngDto: {
+            lat: number;
+            lng: number;
+        };
+        MultiPolygonDto: {
+            /** @enum {string} */
+            type: "MultiPolygon";
+            /** @description GeoJSON, longitude first */
+            coordinates: number[][][][];
+        };
+        OpeningHoursDto: {
+            /** @description 0 = Sunday */
+            weekday: number;
+            /** @example 09:00 */
+            opensAt: string;
+            /**
+             * @description Earlier than opensAt: past midnight
+             * @example 21:00
+             */
+            closesAt: string;
+        };
+        SpecialHoursDto: {
+            /** @example 2026-03-20 */
+            date: string;
+            closed: boolean;
+            opensAt: string | null;
+            closesAt: string | null;
+            label: components["schemas"]["LocalizedTextDto"] | null;
+        };
+        SellerBranchDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            emirate: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            area: string | null;
+            addressLine: string | null;
+            makani: string | null;
+            location: components["schemas"]["LatLngDto"];
+            serviceArea: components["schemas"]["MultiPolygonDto"] | null;
+            serviceRadiusM: number | null;
+            pickup: boolean;
+            delivery: boolean;
+            deliveryFeeFils: number;
+            minOrderFils: number;
+            contactWhatsapp: string | null;
+            contactPhone: string | null;
+            contactEmail: string | null;
+            isPrimary: boolean;
+            openingHours: components["schemas"]["OpeningHoursDto"][];
+            specialHours: components["schemas"]["SpecialHoursDto"][];
+            /** Format: uuid */
+            shopId: string;
+        };
+        SellerShopDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            description: components["schemas"]["LocalizedTextDto"];
+            /** Format: uuid */
+            logoMediaId: string | null;
+            galleryMediaIds: string[];
+            categoryIds: string[];
+            originCountries: string[];
+            contactWhatsapp: string | null;
+            contactPhone: string | null;
+            contactEmail: string | null;
+            /** @enum {string} */
+            verificationStatus: "draft" | "pending" | "verified" | "rejected" | "suspended";
+            /** @description Why it was rejected or suspended */
+            verificationReason: string | null;
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** @enum {string} */
+            kycStatus: "none" | "pending" | "passed" | "failed";
+            tradeLicense: components["schemas"]["TradeLicenseDto"];
+            checkoutEnabled: boolean;
+            codEnabled: boolean;
+            staffCanUploadProductImages: boolean;
+            /** Format: uuid */
+            ownerId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            branches: components["schemas"]["SellerBranchDto"][];
+        };
+        SellerShopPageDto: {
+            items: components["schemas"]["SellerShopDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
+        };
+        KycSummaryDto: {
+            providerStatus: string;
+            documentType: string | null;
+            issuingState: string | null;
+            nationality: string | null;
+            documentExpiry: string | null;
+            fullName: string | null;
+            idStatus: string | null;
+            livenessStatus: string | null;
+            livenessScore: number | null;
+            faceMatchStatus: string | null;
+            faceMatchScore: number | null;
+            warnings: string[];
+        };
+        VerificationRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** @enum {string} */
+            type: "kyc" | "trade_license";
+            /** @enum {string} */
+            status: "started" | "pending" | "approved" | "rejected" | "expired";
+            /** @description Admins only */
+            kyc: components["schemas"]["KycSummaryDto"] | null;
+            /**
+             * Format: uuid
+             * @description Admins only
+             */
+            documentMediaId: string | null;
+            reason: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt: string | null;
+        };
+        VerificationOverviewDto: {
+            shop: components["schemas"]["SellerShopDto"];
+            requests: components["schemas"]["VerificationRequestDto"][];
+        };
+        DecideListingBody: {
+            /**
+             * @description approve needs the identity check passed; reject and suspend need a reason
+             * @enum {string}
+             */
+            decision: "approve" | "reject" | "suspend" | "reinstate";
+            /** @description Shown to the seller */
+            reason?: string;
+        };
+        DecideBody: {
+            /** @enum {string} */
+            decision: "approve" | "reject";
+            /** @description Required to reject; shown to the seller */
+            reason?: string;
+        };
+        ImageUrlsDto: {
+            thumb?: string;
+            card?: string;
+            full?: string;
+        };
+        FoodDeclarationDto: {
+            /** @enum {boolean} */
+            packagedAndLabelled: true;
+            /** @enum {boolean} */
+            noRestrictedItems: true;
+            /** @enum {string} */
+            storage: "ambient" | "chilled" | "frozen";
+            manufacturer?: string | null;
+            registrationNumber?: string | null;
+            /** Format: uuid */
+            declaredBy?: string;
+            /** Format: date-time */
+            declaredAt?: string;
+        };
+        VariantDto: {
+            /** Format: uuid */
+            id: string;
+            sku: string | null;
+            options: {
+                [key: string]: string;
+            };
+            /** @description Fils, VAT included; null: on request */
+            priceFils: number | null;
+            compareAtFils: number | null;
+            sort: number;
+        };
+        BranchListingDto: {
+            /** Format: uuid */
+            branchId: string;
+            /** Format: uuid */
+            variantId: string;
+            inStock: boolean;
+            quantity: number | null;
+            priceOverrideFils: number | null;
+        };
+        ProductDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** Format: uuid */
+            categoryId: string;
+            /** @enum {string} */
+            type: "product" | "service";
+            title: components["schemas"]["LocalizedTextDto"];
+            description: components["schemas"]["LocalizedTextDto"];
+            originCountry: string | null;
+            imageMediaIds: string[];
+            /** @description Links of the images, in order */
+            images: components["schemas"]["ImageUrlsDto"][];
+            /** @enum {string} */
+            status: "draft" | "pending_review" | "active" | "hidden" | "rejected";
+            /** @description Members only */
+            reviewReason: string | null;
+            /** @description Members only */
+            foodDeclaration: components["schemas"]["FoodDeclarationDto"] | null;
+            variants: components["schemas"]["VariantDto"][];
+            listings: components["schemas"]["BranchListingDto"][];
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ProductPageDto: {
+            items: components["schemas"]["ProductDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
+        };
+        CategoryDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parentId: string | null;
+            slug: string;
+            name: components["schemas"]["LocalizedTextDto"];
+            /** @enum {string} */
+            kind: "product" | "service";
+            /** @description Products in it are reviewed before they show */
+            isRestricted: boolean;
+            /** @description Food: needs the seller declaration */
+            requiresDeclaration: boolean;
+            checkoutAllowed: boolean;
+            sort: number;
+            active: boolean;
+        };
+        CategoryListDto: {
+            /** @description Parents before children */
+            items: components["schemas"]["CategoryDto"][];
+        };
+        CategoryNameInput: {
+            en: string;
+            ar: string;
+            /** @description English is shown until it is set */
+            fr?: string;
+        };
+        CreateCategoryBody: {
+            /** Format: uuid */
+            parentId?: string | null;
+            /** @example hair-extensions */
+            slug: string;
+            name: components["schemas"]["CategoryNameInput"];
+            /**
+             * @description A child takes its parent’s
+             * @enum {string}
+             */
+            kind?: "product" | "service";
+            /** @description Products in it are reviewed before they show */
+            isRestricted?: boolean;
+            /** @description Food: needs the seller declaration */
+            requiresDeclaration?: boolean;
+            /** @description False: never sold through checkout */
+            checkoutAllowed?: boolean;
+            sort?: number;
+            /** @description Inactive: hidden with everything under it */
+            active?: boolean;
+        };
+        UpdateCategoryBody: {
+            /** Format: uuid */
+            parentId?: string | null;
+            /** @example hair-extensions */
+            slug?: string;
+            name?: components["schemas"]["CategoryNameInput"];
+            /**
+             * @description A child takes its parent’s
+             * @enum {string}
+             */
+            kind?: "product" | "service";
+            /** @description Products in it are reviewed before they show */
+            isRestricted?: boolean;
+            /** @description Food: needs the seller declaration */
+            requiresDeclaration?: boolean;
+            /** @description False: never sold through checkout */
+            checkoutAllowed?: boolean;
+            sort?: number;
+            /** @description Inactive: hidden with everything under it */
+            active?: boolean;
+        };
+        EmirateDto: {
+            /** @enum {string} */
+            code: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            slug: string;
+            name: components["schemas"]["LocalizedTextDto"];
+            center: components["schemas"]["LatLngDto"];
+            /** @description Customers can search here */
+            searchOpen: boolean;
+            /** @description Admins only */
+            verifiedShops: number | null;
+            /** @description Admins only */
+            branches: number | null;
+        };
+        EmirateListDto: {
+            items: components["schemas"]["EmirateDto"][];
+        };
+        EmirateSearchBody: {
+            /** @description Open customer search in the emirate, or close it */
+            open: boolean;
+        };
+        RebuildResponseDto: {
+            shops: number;
+            branches: number;
+            products: number;
+            /** @description Rows of shops no longer verified, or gone */
+            removed: number;
+        };
         RecordContactDto: {
             /** Format: uuid */
             shopId: string;
@@ -1116,15 +1669,6 @@ export interface components {
             /** @description Empty for private documents, which never have a URL */
             urls: components["schemas"]["MediaUrlsDto"];
         };
-        LatLngDto: {
-            lat: number;
-            lng: number;
-        };
-        LocalizedTextDto: {
-            en?: string;
-            ar?: string;
-            fr?: string;
-        };
         MatchedProductDto: {
             /** Format: uuid */
             productId: string;
@@ -1183,138 +1727,6 @@ export interface components {
             /** @description More pins than returned: zoom in */
             truncated: boolean;
         };
-        EmirateDto: {
-            /** @enum {string} */
-            code: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
-            slug: string;
-            name: components["schemas"]["LocalizedTextDto"];
-            center: components["schemas"]["LatLngDto"];
-            /** @description Customers can search here */
-            searchOpen: boolean;
-            /** @description Admins only */
-            verifiedShops: number | null;
-            /** @description Admins only */
-            branches: number | null;
-        };
-        EmirateListDto: {
-            items: components["schemas"]["EmirateDto"][];
-        };
-        CategoryDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            parentId: string | null;
-            slug: string;
-            name: components["schemas"]["LocalizedTextDto"];
-            /** @enum {string} */
-            kind: "product" | "service";
-            /** @description Products in it are reviewed before they show */
-            isRestricted: boolean;
-            /** @description Food: needs the seller declaration */
-            requiresDeclaration: boolean;
-            checkoutAllowed: boolean;
-            sort: number;
-            active: boolean;
-        };
-        CategoryListDto: {
-            /** @description Parents before children */
-            items: components["schemas"]["CategoryDto"][];
-        };
-        ImageUrlsDto: {
-            thumb?: string;
-            card?: string;
-            full?: string;
-        };
-        FoodDeclarationDto: {
-            /** @enum {boolean} */
-            packagedAndLabelled: true;
-            /** @enum {boolean} */
-            noRestrictedItems: true;
-            /** @enum {string} */
-            storage: "ambient" | "chilled" | "frozen";
-            manufacturer?: string | null;
-            registrationNumber?: string | null;
-            /** Format: uuid */
-            declaredBy?: string;
-            /** Format: date-time */
-            declaredAt?: string;
-        };
-        VariantDto: {
-            /** Format: uuid */
-            id: string;
-            sku: string | null;
-            options: {
-                [key: string]: string;
-            };
-            /** @description Fils, VAT included; null: on request */
-            priceFils: number | null;
-            compareAtFils: number | null;
-            sort: number;
-        };
-        BranchListingDto: {
-            /** Format: uuid */
-            branchId: string;
-            /** Format: uuid */
-            variantId: string;
-            inStock: boolean;
-            quantity: number | null;
-            priceOverrideFils: number | null;
-        };
-        ProductDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            shopId: string;
-            /** Format: uuid */
-            categoryId: string;
-            /** @enum {string} */
-            type: "product" | "service";
-            title: components["schemas"]["LocalizedTextDto"];
-            description: components["schemas"]["LocalizedTextDto"];
-            originCountry: string | null;
-            imageMediaIds: string[];
-            /** @description Links of the images, in order */
-            images: components["schemas"]["ImageUrlsDto"][];
-            /** @enum {string} */
-            status: "draft" | "pending_review" | "active" | "hidden" | "rejected";
-            /** @description Members only */
-            reviewReason: string | null;
-            /** @description Members only */
-            foodDeclaration: components["schemas"]["FoodDeclarationDto"] | null;
-            variants: components["schemas"]["VariantDto"][];
-            listings: components["schemas"]["BranchListingDto"][];
-            /** Format: date-time */
-            submittedAt: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        MultiPolygonDto: {
-            /** @enum {string} */
-            type: "MultiPolygon";
-            /** @description GeoJSON, longitude first */
-            coordinates: number[][][][];
-        };
-        OpeningHoursDto: {
-            /** @description 0 = Sunday */
-            weekday: number;
-            /** @example 09:00 */
-            opensAt: string;
-            /**
-             * @description Earlier than opensAt: past midnight
-             * @example 21:00
-             */
-            closesAt: string;
-        };
-        SpecialHoursDto: {
-            /** @example 2026-03-20 */
-            date: string;
-            closed: boolean;
-            opensAt: string | null;
-            closesAt: string | null;
-            label: components["schemas"]["LocalizedTextDto"] | null;
-        };
         PublicBranchDto: {
             /** Format: uuid */
             id: string;
@@ -1354,81 +1766,6 @@ export interface components {
             checkoutEnabled: boolean;
             codEnabled: boolean;
             branches: components["schemas"]["PublicBranchDto"][];
-        };
-        ProductPageDto: {
-            items: components["schemas"]["ProductDto"][];
-            nextCursor: string | null;
-            prevCursor: string | null;
-        };
-        TradeLicenseDto: {
-            legalName: string | null;
-            number: string | null;
-            issuingAuthority: string | null;
-            expiry: string | null;
-        };
-        SellerBranchDto: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            /** @enum {string} */
-            emirate: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
-            area: string | null;
-            addressLine: string | null;
-            makani: string | null;
-            location: components["schemas"]["LatLngDto"];
-            serviceArea: components["schemas"]["MultiPolygonDto"] | null;
-            serviceRadiusM: number | null;
-            pickup: boolean;
-            delivery: boolean;
-            deliveryFeeFils: number;
-            minOrderFils: number;
-            contactWhatsapp: string | null;
-            contactPhone: string | null;
-            contactEmail: string | null;
-            isPrimary: boolean;
-            openingHours: components["schemas"]["OpeningHoursDto"][];
-            specialHours: components["schemas"]["SpecialHoursDto"][];
-            /** Format: uuid */
-            shopId: string;
-        };
-        SellerShopDto: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            slug: string;
-            description: components["schemas"]["LocalizedTextDto"];
-            /** Format: uuid */
-            logoMediaId: string | null;
-            galleryMediaIds: string[];
-            categoryIds: string[];
-            originCountries: string[];
-            contactWhatsapp: string | null;
-            contactPhone: string | null;
-            contactEmail: string | null;
-            /** @enum {string} */
-            verificationStatus: "draft" | "pending" | "verified" | "rejected" | "suspended";
-            /** @description Why it was rejected or suspended */
-            verificationReason: string | null;
-            /** Format: date-time */
-            submittedAt: string | null;
-            /** @enum {string} */
-            kycStatus: "none" | "pending" | "passed" | "failed";
-            tradeLicense: components["schemas"]["TradeLicenseDto"];
-            checkoutEnabled: boolean;
-            codEnabled: boolean;
-            staffCanUploadProductImages: boolean;
-            /** Format: uuid */
-            ownerId: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            branches: components["schemas"]["SellerBranchDto"][];
-        };
-        SellerShopPageDto: {
-            items: components["schemas"]["SellerShopDto"][];
-            nextCursor: string | null;
-            prevCursor: string | null;
         };
         LocalizedInput: {
             en?: string;
@@ -1603,46 +1940,6 @@ export interface components {
             byDay: components["schemas"]["ContactDayDto"][];
             /** @description Top 20 */
             byProduct: components["schemas"]["ProductContactsDto"][];
-        };
-        KycSummaryDto: {
-            providerStatus: string;
-            documentType: string | null;
-            issuingState: string | null;
-            nationality: string | null;
-            documentExpiry: string | null;
-            fullName: string | null;
-            idStatus: string | null;
-            livenessStatus: string | null;
-            livenessScore: number | null;
-            faceMatchStatus: string | null;
-            faceMatchScore: number | null;
-            warnings: string[];
-        };
-        VerificationRequestDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            shopId: string;
-            /** @enum {string} */
-            type: "kyc" | "trade_license";
-            /** @enum {string} */
-            status: "started" | "pending" | "approved" | "rejected" | "expired";
-            /** @description Admins only */
-            kyc: components["schemas"]["KycSummaryDto"] | null;
-            /**
-             * Format: uuid
-             * @description Admins only
-             */
-            documentMediaId: string | null;
-            reason: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            decidedAt: string | null;
-        };
-        VerificationOverviewDto: {
-            shop: components["schemas"]["SellerShopDto"];
-            requests: components["schemas"]["VerificationRequestDto"][];
         };
         StartKycBody: {
             /**
@@ -2116,6 +2413,325 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    AdminVerificationController_queue_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (pending, verified, rejected, suspended) */
+                "filter[verificationStatus]"?: string;
+                /** @description enum (pending, verified, rejected, suspended), comma-separated */
+                "filter[verificationStatus][in]"?: string;
+                /** @description enum (none, pending, passed, failed) */
+                "filter[kycStatus]"?: string;
+                /** @description enum (none, pending, passed, failed), comma-separated */
+                "filter[kycStatus][in]"?: string;
+                /** @description string, contains, case-insensitive */
+                "filter[search][like]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: submittedAt, name. Default: submittedAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerShopPageDto"];
+                };
+            };
+        };
+    };
+    AdminVerificationController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    AdminVerificationController_decideListing_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideListingBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    AdminVerificationController_decideLicense_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    AdminVerificationController_kycDocument_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                requestId: string;
+                kind: "id_front" | "id_back" | "portrait" | "selfie";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminCatalogueController_reviewQueue_v1: {
+        parameters: {
+            query?: {
+                /** @description uuid */
+                "filter[categoryId]"?: string;
+                /** @description uuid, comma-separated */
+                "filter[categoryId][in]"?: string;
+                /** @description uuid */
+                "filter[shopId]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: submittedAt. Default: submittedAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPageDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogueController_decideProduct_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogueController_categories_v1: {
+        parameters: {
+            query?: {
+                /** @description Inactive categories too */
+                includeInactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryListDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogueController_createCategory_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCategoryBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryDto"];
+                };
+            };
+        };
+    };
+    AdminCatalogueController_updateCategory_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCategoryBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryDto"];
+                };
+            };
+        };
+    };
+    AdminSearchController_emirates_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmirateListDto"];
+                };
+            };
+        };
+    };
+    AdminSearchController_setSearch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmirateSearchBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmirateListDto"];
+                };
+            };
+        };
+    };
+    AdminSearchController_rebuild_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RebuildResponseDto"];
                 };
             };
         };

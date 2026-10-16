@@ -183,7 +183,7 @@ Location discovery and search, Contact, UAE specifics.
   > the token and is cleared on account deletion. The analytics pattern is `shops.contact.stats`;
   > its seller route comes with F1-08.
 
-- [ ] **F1-08 Gateway public and seller APIs** (depends on F1-02 to F1-07)
+- [x] **F1-08 Gateway public and seller APIs** (depends on F1-02 to F1-07)
       Public: `GET /search/nearby`, `GET /search/map`, `GET /shops/:slug`, `GET /shops/:slug/products`,
       `GET /products/:id`, `GET /categories`, `GET /emirates` (with search-open flag). Seller (auth,
       `@ShopRoles`): shops CRUD, branches CRUD + hours, products CRUD, uploads, submit for verification,
@@ -196,6 +196,11 @@ Location discovery and search, Contact, UAE specifics.
   > gallery), branches, weekly and special hours, contact analytics, verification (status, start and
   > refresh KYC, submit, trade licence), products (list, create with images, change, status,
   > listings, remove) and branch stock; staff image uploads follow the shop's setting.
+  > Part 3, admin: shop queue and search (`filter[search][like]` on name and slug), verification
+  > overview, listing decisions (approve, reject, suspend, reinstate), trade licence decisions, KYC
+  > images streamed from the provider (images only, never the link), product review queue and
+  > decisions, categories (list with inactive, add, change), emirate search switches with counts,
+  > and the search rebuild.
 
 - [ ] **F1-09 Social sign-in** (depends on Phase 0)
       Google and Facebook sign-in on web and seller (decision P-10; Apple is dropped): verify the

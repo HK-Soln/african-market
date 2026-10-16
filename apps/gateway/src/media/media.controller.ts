@@ -28,6 +28,8 @@ import {
   MediaActor,
   MediaDto as Media,
   MediaPatterns,
+  ShopDto,
+  ShopsPatterns,
   PrivateMediaAccessResponse,
 } from '@am/contracts';
 import { correlationId } from '../common/request-context';
@@ -65,16 +67,27 @@ export class MediaController {
   @Throttle({ default: { limit: 30, ttl: MINUTE } })
   @Post('uploads')
   @HttpCode(200)
-  createUpload(
+  async createUpload(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateUploadDto,
   ): Promise<CreateUploadResponseDto> {
     return this.caller.call<CreateUploadResponse>('media', MediaPatterns.createUpload, {
       ...body,
       actor: actorOf(user),
-      // Staff product uploads depend on a shop setting, read from shops once it exists (F1-02).
-      staffMayUpload: false,
+      staffMayUpload: await this.staffMayUpload(user, body),
     });
+  }
+
+  /** Staff upload product images only where the shop allows it (decision T-29). */
+  private async staffMayUpload(user: AuthenticatedUser, body: CreateUploadDto): Promise<boolean> {
+    if (body.purpose !== 'product_image' || !body.shopId) return false;
+    const role = user.shops.find((s) => s.shopId === body.shopId)?.role;
+    if (role !== 'staff') return false;
+    const shop = await this.caller.call<ShopDto>('shops', ShopsPatterns.get, {
+      actor: actorOf(user),
+      shopId: body.shopId,
+    });
+    return shop.staffCanUploadProductImages;
   }
 
   @ApiOperation({

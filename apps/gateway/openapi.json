@@ -1366,6 +1366,1275 @@
           "shops"
         ]
       }
+    },
+    "/api/v1/seller/shops": {
+      "get": {
+        "operationId": "SellerShopsController_list_v1",
+        "parameters": [
+          {
+            "name": "filter[verificationStatus]",
+            "required": false,
+            "in": "query",
+            "description": "enum (draft, pending, verified, rejected, suspended)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[verificationStatus][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (draft, pending, verified, rejected, suspended), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: createdAt, name. Default: -createdAt.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 20, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerShopPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The shops I own or work in",
+        "tags": [
+          "seller"
+        ]
+      },
+      "post": {
+        "description": "A draft owned by me. Add the logo and gallery afterwards (uploads need the shop id).",
+        "operationId": "SellerShopsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShopBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerShopDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a shop",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}": {
+      "get": {
+        "operationId": "SellerShopsController_get_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerShopDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A shop I work in, with its branches",
+        "tags": [
+          "seller"
+        ]
+      },
+      "patch": {
+        "description": "Owners and managers. New logo and gallery ids are confirmed uploads for this shop.",
+        "operationId": "SellerShopsController_update_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShopBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerShopDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a shop",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/branches": {
+      "post": {
+        "description": "Owners and managers; at most 50 a shop.",
+        "operationId": "SellerShopsController_addBranch_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBranchBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerBranchDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a branch",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}": {
+      "patch": {
+        "operationId": "SellerShopsController_updateBranch_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBranchBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerBranchDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a branch",
+        "tags": [
+          "seller"
+        ]
+      },
+      "delete": {
+        "operationId": "SellerShopsController_deleteBranch_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a branch",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}/hours": {
+      "put": {
+        "description": "Replaces the week; empty: closed.",
+        "operationId": "SellerShopsController_setHours_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetOpeningHoursBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerBranchDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the weekly hours",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}/special-hours/{date}": {
+      "put": {
+        "operationId": "SellerShopsController_setSpecialHours_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "2026-03-20",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSpecialHoursBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerBranchDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set the hours of one date (Eid, Ramadan nights)",
+        "tags": [
+          "seller"
+        ]
+      },
+      "delete": {
+        "operationId": "SellerShopsController_deleteSpecialHours_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "2026-03-20",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerBranchDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Go back to the weekly hours on a date",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/contacts": {
+      "get": {
+        "description": "Owners and managers: by Dubai day, channel and product, for 7, 30 or 90 days.",
+        "operationId": "SellerShopsController_contacts_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "enum": [
+                7,
+                30,
+                90
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "WhatsApp, call and email taps",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/verification": {
+      "get": {
+        "operationId": "SellerVerificationController_get_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationOverviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where the shop stands: identity check, licence and listing",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/verification/kyc": {
+      "post": {
+        "description": "The owner only. Returns the provider's page; an unfinished check is resumed.",
+        "operationId": "SellerVerificationController_startKyc_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartKycBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartKycResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start the identity check",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/verification/kyc/refresh": {
+      "post": {
+        "description": "When the owner comes back from the provider page.",
+        "operationId": "SellerVerificationController_refreshKyc_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationOverviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask for the identity check result",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/verification/submit": {
+      "post": {
+        "description": "The owner; needs a branch, a contact and the identity check started.",
+        "operationId": "SellerVerificationController_submit_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationOverviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask for the shop to be listed",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/verification/trade-license": {
+      "post": {
+        "description": "The owner; `documentMediaId` is a confirmed trade_license upload for this shop.",
+        "operationId": "SellerVerificationController_tradeLicense_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitTradeLicenseBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationOverviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send the trade licence",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/products": {
+      "get": {
+        "operationId": "SellerProductsController_list_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "required": false,
+            "in": "query",
+            "description": "enum (draft, pending_review, active, hidden, rejected)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (draft, pending_review, active, hidden, rejected), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[categoryId]",
+            "required": false,
+            "in": "query",
+            "description": "uuid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[categoryId][in]",
+            "required": false,
+            "in": "query",
+            "description": "uuid, comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[type]",
+            "required": false,
+            "in": "query",
+            "description": "enum (product, service)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[search][like]",
+            "required": false,
+            "in": "query",
+            "description": "string, contains, case-insensitive",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: createdAt, updatedAt. Default: -createdAt.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 20, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The shop's products, in every status",
+        "tags": [
+          "seller"
+        ]
+      },
+      "post": {
+        "description": "Owners and managers. Images are confirmed product_image uploads for this shop.",
+        "operationId": "SellerProductsController_create_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a product (a draft)",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/products/{productId}": {
+      "patch": {
+        "description": "Changing what was reviewed (category, texts, images, declaration) reviews it again.",
+        "operationId": "SellerProductsController_update_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a product",
+        "tags": [
+          "seller"
+        ]
+      },
+      "delete": {
+        "operationId": "SellerProductsController_remove_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a product",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/products/{productId}/status": {
+      "put": {
+        "description": "Food, restricted and previously rejected products go to review before they show.",
+        "operationId": "SellerProductsController_setStatus_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetProductStatusBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Publish, hide, or back to draft",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/products/{productId}/listings": {
+      "put": {
+        "operationId": "SellerProductsController_setListings_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetListingsBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Where the product is: branches, stock and branch prices",
+        "tags": [
+          "seller"
+        ]
+      }
+    },
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}/stock": {
+      "put": {
+        "description": "Branch staff too: in stock and quantity of variants already listed there.",
+        "operationId": "SellerProductsController_updateStock_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "branchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatedCountDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stock at a branch",
+        "tags": [
+          "seller"
+        ]
+      }
     }
   },
   "info": {
@@ -3068,6 +4337,1326 @@
           "items",
           "nextCursor",
           "prevCursor"
+        ]
+      },
+      "TradeLicenseDto": {
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "issuingAuthority": {
+            "type": "string",
+            "nullable": true
+          },
+          "expiry": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "legalName",
+          "number",
+          "issuingAuthority",
+          "expiry"
+        ]
+      },
+      "SellerBranchDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "emirate": {
+            "type": "string",
+            "enum": [
+              "DXB",
+              "AUH",
+              "SHJ",
+              "AJM",
+              "UAQ",
+              "RAK",
+              "FUJ"
+            ]
+          },
+          "area": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "makani": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/LatLngDto"
+          },
+          "serviceArea": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultiPolygonDto"
+              }
+            ]
+          },
+          "serviceRadiusM": {
+            "type": "number",
+            "nullable": true
+          },
+          "pickup": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "type": "boolean"
+          },
+          "deliveryFeeFils": {
+            "type": "number"
+          },
+          "minOrderFils": {
+            "type": "number"
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "openingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningHoursDto"
+            }
+          },
+          "specialHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecialHoursDto"
+            }
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "emirate",
+          "area",
+          "addressLine",
+          "makani",
+          "location",
+          "serviceArea",
+          "serviceRadiusM",
+          "pickup",
+          "delivery",
+          "deliveryFeeFils",
+          "minOrderFils",
+          "contactWhatsapp",
+          "contactPhone",
+          "contactEmail",
+          "isPrimary",
+          "openingHours",
+          "specialHours",
+          "shopId"
+        ]
+      },
+      "SellerShopDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "logoMediaId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "galleryMediaIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "originCountries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "verificationStatus": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending",
+              "verified",
+              "rejected",
+              "suspended"
+            ]
+          },
+          "verificationReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Why it was rejected or suspended"
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "kycStatus": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "passed",
+              "failed"
+            ]
+          },
+          "tradeLicense": {
+            "$ref": "#/components/schemas/TradeLicenseDto"
+          },
+          "checkoutEnabled": {
+            "type": "boolean"
+          },
+          "codEnabled": {
+            "type": "boolean"
+          },
+          "staffCanUploadProductImages": {
+            "type": "boolean"
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SellerBranchDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "logoMediaId",
+          "galleryMediaIds",
+          "categoryIds",
+          "originCountries",
+          "contactWhatsapp",
+          "contactPhone",
+          "contactEmail",
+          "verificationStatus",
+          "verificationReason",
+          "submittedAt",
+          "kycStatus",
+          "tradeLicense",
+          "checkoutEnabled",
+          "codEnabled",
+          "staffCanUploadProductImages",
+          "ownerId",
+          "createdAt",
+          "updatedAt",
+          "branches"
+        ]
+      },
+      "SellerShopPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SellerShopDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "prevCursor"
+        ]
+      },
+      "LocalizedInput": {
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": "string"
+          },
+          "ar": {
+            "type": "string"
+          },
+          "fr": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateShopBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Lagos Kitchen"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedInput"
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "originCountries": {
+            "example": [
+              "NG",
+              "GH"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true,
+            "example": "050 123 4567"
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "staffCanUploadProductImages": {
+            "type": "boolean",
+            "description": "Staff may upload product images too"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateShopBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Lagos Kitchen"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedInput"
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "originCountries": {
+            "example": [
+              "NG",
+              "GH"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true,
+            "example": "050 123 4567"
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "staffCanUploadProductImages": {
+            "type": "boolean",
+            "description": "Staff may upload product images too"
+          },
+          "logoMediaId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "A confirmed shop_logo upload; null removes the logo"
+          },
+          "galleryMediaIds": {
+            "description": "Confirmed shop_gallery uploads, in order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LatLngInput": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "MultiPolygonInput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiPolygon"
+            ]
+          },
+          "coordinates": {
+            "description": "GeoJSON coordinates, longitude first",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultiPolygonDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "CreateBranchBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Al Nahda"
+          },
+          "emirate": {
+            "type": "string",
+            "enum": [
+              "DXB",
+              "AUH",
+              "SHJ",
+              "AJM",
+              "UAQ",
+              "RAK",
+              "FUJ"
+            ]
+          },
+          "location": {
+            "description": "The pin; must be in the UAE",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatLngInput"
+              }
+            ]
+          },
+          "area": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "makani": {
+            "type": "string",
+            "nullable": true,
+            "example": "1234567890"
+          },
+          "serviceArea": {
+            "nullable": true,
+            "description": "Drawn delivery area",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultiPolygonInput"
+              }
+            ]
+          },
+          "serviceRadiusM": {
+            "type": "number",
+            "nullable": true,
+            "description": "Or a delivery radius, metres"
+          },
+          "pickup": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "type": "boolean"
+          },
+          "deliveryFeeFils": {
+            "type": "number",
+            "description": "Fils"
+          },
+          "minOrderFils": {
+            "type": "number",
+            "description": "Fils"
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "emirate",
+          "location"
+        ]
+      },
+      "UpdateBranchBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Al Nahda"
+          },
+          "emirate": {
+            "type": "string",
+            "enum": [
+              "DXB",
+              "AUH",
+              "SHJ",
+              "AJM",
+              "UAQ",
+              "RAK",
+              "FUJ"
+            ]
+          },
+          "location": {
+            "description": "The pin; must be in the UAE",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LatLngInput"
+              }
+            ]
+          },
+          "area": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "makani": {
+            "type": "string",
+            "nullable": true,
+            "example": "1234567890"
+          },
+          "serviceArea": {
+            "nullable": true,
+            "description": "Drawn delivery area",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultiPolygonInput"
+              }
+            ]
+          },
+          "serviceRadiusM": {
+            "type": "number",
+            "nullable": true,
+            "description": "Or a delivery radius, metres"
+          },
+          "pickup": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "type": "boolean"
+          },
+          "deliveryFeeFils": {
+            "type": "number",
+            "description": "Fils"
+          },
+          "minOrderFils": {
+            "type": "number",
+            "description": "Fils"
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OpeningHoursInput": {
+        "type": "object",
+        "properties": {
+          "weekday": {
+            "type": "number",
+            "description": "0 = Sunday"
+          },
+          "opensAt": {
+            "type": "string",
+            "example": "09:00"
+          },
+          "closesAt": {
+            "type": "string",
+            "example": "21:00",
+            "description": "Earlier than opensAt: past midnight"
+          }
+        },
+        "required": [
+          "weekday",
+          "opensAt",
+          "closesAt"
+        ]
+      },
+      "SetOpeningHoursBody": {
+        "type": "object",
+        "properties": {
+          "hours": {
+            "description": "The whole week; empty: closed",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningHoursInput"
+            }
+          }
+        },
+        "required": [
+          "hours"
+        ]
+      },
+      "SetSpecialHoursBody": {
+        "type": "object",
+        "properties": {
+          "closed": {
+            "type": "boolean"
+          },
+          "opensAt": {
+            "type": "string",
+            "nullable": true,
+            "example": "20:00"
+          },
+          "closesAt": {
+            "type": "string",
+            "nullable": true,
+            "example": "03:00"
+          },
+          "label": {
+            "nullable": true,
+            "example": {
+              "en": "Eid",
+              "ar": "العيد"
+            },
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LocalizedInput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "closed",
+          "opensAt",
+          "closesAt",
+          "label"
+        ]
+      },
+      "ChannelCountsDto": {
+        "type": "object",
+        "properties": {
+          "whatsapp": {
+            "type": "number"
+          },
+          "call": {
+            "type": "number"
+          },
+          "email": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "whatsapp",
+          "call",
+          "email"
+        ]
+      },
+      "ContactDayDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-10-12"
+          },
+          "whatsapp": {
+            "type": "number"
+          },
+          "call": {
+            "type": "number"
+          },
+          "email": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "whatsapp",
+          "call",
+          "email"
+        ]
+      },
+      "ProductContactsDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "productId",
+          "count"
+        ]
+      },
+      "ContactStatsDto": {
+        "type": "object",
+        "properties": {
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "days": {
+            "type": "number",
+            "enum": [
+              7,
+              30,
+              90
+            ]
+          },
+          "from": {
+            "type": "string",
+            "example": "2026-10-07"
+          },
+          "to": {
+            "type": "string",
+            "example": "2026-10-13"
+          },
+          "total": {
+            "type": "number"
+          },
+          "byChannel": {
+            "$ref": "#/components/schemas/ChannelCountsDto"
+          },
+          "byDay": {
+            "description": "Every day, Asia/Dubai, oldest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactDayDto"
+            }
+          },
+          "byProduct": {
+            "description": "Top 20",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductContactsDto"
+            }
+          }
+        },
+        "required": [
+          "shopId",
+          "days",
+          "from",
+          "to",
+          "total",
+          "byChannel",
+          "byDay",
+          "byProduct"
+        ]
+      },
+      "KycSummaryDto": {
+        "type": "object",
+        "properties": {
+          "providerStatus": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "string",
+            "nullable": true
+          },
+          "issuingState": {
+            "type": "string",
+            "nullable": true
+          },
+          "nationality": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentExpiry": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "idStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "livenessStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "livenessScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "faceMatchStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "faceMatchScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "providerStatus",
+          "documentType",
+          "issuingState",
+          "nationality",
+          "documentExpiry",
+          "fullName",
+          "idStatus",
+          "livenessStatus",
+          "livenessScore",
+          "faceMatchStatus",
+          "faceMatchScore",
+          "warnings"
+        ]
+      },
+      "VerificationRequestDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "kyc",
+              "trade_license"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "started",
+              "pending",
+              "approved",
+              "rejected",
+              "expired"
+            ]
+          },
+          "kyc": {
+            "nullable": true,
+            "description": "Admins only",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/KycSummaryDto"
+              }
+            ]
+          },
+          "documentMediaId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "Admins only"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "shopId",
+          "type",
+          "status",
+          "kyc",
+          "documentMediaId",
+          "reason",
+          "createdAt",
+          "decidedAt"
+        ]
+      },
+      "VerificationOverviewDto": {
+        "type": "object",
+        "properties": {
+          "shop": {
+            "$ref": "#/components/schemas/SellerShopDto"
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VerificationRequestDto"
+            }
+          }
+        },
+        "required": [
+          "shop",
+          "requests"
+        ]
+      },
+      "StartKycBody": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr"
+            ],
+            "description": "Language of the hosted page"
+          }
+        }
+      },
+      "StartKycResponseDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "description": "The provider's page: send the browser there"
+          }
+        },
+        "required": [
+          "requestId",
+          "url"
+        ]
+      },
+      "SubmitTradeLicenseBody": {
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string"
+          },
+          "licenseNumber": {
+            "type": "string"
+          },
+          "issuingAuthority": {
+            "type": "string",
+            "example": "Dubai Department of Economy and Tourism"
+          },
+          "expiry": {
+            "type": "string",
+            "example": "2027-06-30"
+          },
+          "documentMediaId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "A confirmed trade_license upload"
+          }
+        },
+        "required": [
+          "legalName",
+          "licenseNumber",
+          "issuingAuthority",
+          "expiry",
+          "documentMediaId"
+        ]
+      },
+      "FoodDeclarationInput": {
+        "type": "object",
+        "properties": {
+          "packagedAndLabelled": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Packaged, labelled with maker, origin, ingredients, expiry"
+          },
+          "noRestrictedItems": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Not fresh meat, unlabelled goods or herbal medicine"
+          },
+          "storage": {
+            "type": "string",
+            "enum": [
+              "ambient",
+              "chilled",
+              "frozen"
+            ]
+          },
+          "manufacturer": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationNumber": {
+            "type": "string",
+            "nullable": true,
+            "description": "e.g. Dubai Municipality Montaji"
+          }
+        },
+        "required": [
+          "packagedAndLabelled",
+          "noRestrictedItems",
+          "storage"
+        ]
+      },
+      "VariantInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "An existing variant to keep"
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "size": "5 kg"
+            }
+          },
+          "priceFils": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fils, VAT included"
+          },
+          "compareAtFils": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "CreateProductBody": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocalizedInput"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedInput"
+          },
+          "originCountry": {
+            "type": "string",
+            "nullable": true,
+            "example": "NG"
+          },
+          "imageMediaIds": {
+            "description": "Confirmed product_image uploads, in order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "foodDeclaration": {
+            "nullable": true,
+            "description": "Food categories",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FoodDeclarationInput"
+              }
+            ]
+          },
+          "variants": {
+            "description": "The whole list; at least one",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantInput"
+            }
+          }
+        },
+        "required": [
+          "categoryId",
+          "title",
+          "variants"
+        ]
+      },
+      "UpdateProductBody": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocalizedInput"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedInput"
+          },
+          "originCountry": {
+            "type": "string",
+            "nullable": true,
+            "example": "NG"
+          },
+          "imageMediaIds": {
+            "description": "Confirmed product_image uploads, in order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "foodDeclaration": {
+            "nullable": true,
+            "description": "Food categories",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FoodDeclarationInput"
+              }
+            ]
+          },
+          "variants": {
+            "description": "The whole list; at least one",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantInput"
+            }
+          }
+        }
+      },
+      "SetProductStatusBody": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "hidden",
+              "draft"
+            ],
+            "description": "active publishes, or sends to review when the category needs it"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ListingInput": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "variantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inStock": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "nullable": true
+          },
+          "priceOverrideFils": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fils"
+          }
+        },
+        "required": [
+          "branchId",
+          "variantId",
+          "inStock"
+        ]
+      },
+      "SetListingsBody": {
+        "type": "object",
+        "properties": {
+          "listings": {
+            "description": "Replaces every listing of the product",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListingInput"
+            }
+          }
+        },
+        "required": [
+          "listings"
+        ]
+      },
+      "StockItemInput": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inStock": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "variantId",
+          "inStock"
+        ]
+      },
+      "UpdateStockBody": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockItemInput"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "UpdatedCountDto": {
+        "type": "object",
+        "properties": {
+          "updated": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "updated"
         ]
       }
     }

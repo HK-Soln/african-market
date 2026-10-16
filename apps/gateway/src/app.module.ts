@@ -7,6 +7,7 @@ import { loadEnv, loadNodeEnv, ServiceCoreModule } from '@am/core';
 import { AuthModule } from './auth/auth.module';
 import { ClientsRegistryModule } from './clients.module';
 import { CommonModule } from './common/common.module';
+import { ContactsModule } from './contacts/contacts.module';
 import { CountriesModule } from './countries/countries.module';
 import { gatewayEnvSchema } from './env';
 import { GatewayHealthController } from './health/health.controller';
@@ -31,6 +32,7 @@ const env = loadEnv(gatewayEnvSchema);
     // Per IP. Routes override this with `@Throttle()`, see auth/auth.throttles.ts.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     AuthModule,
+    ContactsModule,
     CountriesModule,
     MediaModule,
     WebhooksModule,

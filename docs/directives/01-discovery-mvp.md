@@ -171,12 +171,17 @@ Location discovery and search, Contact, UAE specifics.
   > Note: the map takes a bounding box and zoom; from zoom 14 it returns pins, below that clusters
   > (a cluster of one is returned as a pin), at most 500 markers with a `truncated` flag.
 
-- [ ] **F1-07 Contact events** (depends on F1-02)
+- [x] **F1-07 Contact events** (depends on F1-02)
       `contact_event` (shop_id, branch_id, product_id nullable, channel whatsapp/call/email, user_id
       nullable, anonymous session id, source page, created_at), partition-ready (monthly). Pattern
       `ShopsPatterns.recordContact`; gateway `POST /contact-events` is public, rate limited and
       de-duplicated per session/shop/channel within 10 minutes. Seller analytics pattern: counts by day,
       channel and product for the last 7/30/90 days.
+
+  > Note: partitioned for real (monthly), with partitions made ahead by the service (decision T-33).
+  > Only verified shops take taps; the visitor id is the app's random id; the user id comes from
+  > the token and is cleared on account deletion. The analytics pattern is `shops.contact.stats`;
+  > its seller route comes with F1-08.
 
 - [ ] **F1-08 Gateway public and seller APIs** (depends on F1-02 to F1-07)
       Public: `GET /search/nearby`, `GET /search/map`, `GET /shops/:slug`, `GET /shops/:slug/products`,

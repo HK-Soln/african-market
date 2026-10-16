@@ -63,7 +63,10 @@ export const ShopsPatterns = {
   setOpeningHours: 'shops.branch.set_hours',
   setSpecialHours: 'shops.branch.set_special_hours',
   deleteSpecialHours: 'shops.branch.delete_special_hours',
+  /** Public: a WhatsApp, call or email tap (F1-07). */
   recordContact: 'shops.contact.record',
+  /** Owners and managers: taps by day, channel and product. */
+  contactStats: 'shops.contact.stats',
   /** Service to service (discovery), never routed by the gateway: a shop's public search data. */
   searchSnapshot: 'shops.search.snapshot',
   /** Service to service (discovery's rebuild): verified shops' ids, a page at a time. */

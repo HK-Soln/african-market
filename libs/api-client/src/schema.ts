@@ -248,6 +248,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contact-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record a WhatsApp, call or email tap
+         * @description Public. Send it when the customer taps, before opening WhatsApp, the dialer or mail. Repeats by the same visitor on the same shop and channel within 10 minutes are not counted again. A signed-in customer's tap carries their account.
+         */
+        post: operations["ContactsController_record_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/countries": {
         parameters: {
             query?: never;
@@ -500,6 +520,33 @@ export interface components {
              * @description When its personal data will have been erased (30 days later).
              */
             erasedAfter: string;
+        };
+        RecordContactDto: {
+            /** Format: uuid */
+            shopId: string;
+            /** Format: uuid */
+            branchId?: string;
+            /**
+             * Format: uuid
+             * @description When the tap was on a product
+             */
+            productId?: string;
+            /** @enum {string} */
+            channel: "whatsapp" | "call" | "email";
+            /**
+             * @description The app's random visitor id (8-64 letters, digits, - or _), kept on the device
+             * @example k3J9xQ2mZpL8
+             */
+            sessionId: string;
+            /**
+             * @description The app path, no query
+             * @example /en/shops/lagos-kitchen
+             */
+            sourcePage?: string;
+        };
+        RecordContactResponseDto: {
+            /** @description False when it repeated a tap within the de-duplication window */
+            recorded: boolean;
         };
         CountryNameDto: {
             /** @example United Arab Emirates */
@@ -956,6 +1003,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    ContactsController_record_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordContactDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordContactResponseDto"];
                 };
             };
         };

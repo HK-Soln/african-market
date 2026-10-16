@@ -101,7 +101,7 @@ Location discovery and search, Contact, UAE specifics.
   > Note: the owner's and admins' routes (start, refresh, submit, licence, queue, decisions, images)
   > come with the gateway APIs (F1-08); the webhook route is here, because Didit calls it.
 
-- [ ] **F1-04 Catalogue** (depends on F1-02)
+- [x] **F1-04 Catalogue** (depends on F1-02)
       `category` tree (parent_id, slug, name LocalizedText, kind product/service, is_restricted,
       requires_declaration, sort). Seed via migration: Groceries & Food (Grains & flours, Spices & soup
       ingredients, Snacks, Drinks, Frozen), Beauty & Hair (Hair & wigs, Skin care, Cosmetics), Fashion
@@ -114,6 +114,19 @@ Location discovery and search, Contact, UAE specifics.
       variant_id, in_stock, quantity nullable, price_override_fils). Food and restricted categories go to
       admin review before `active`. Events `product.upserted`, `product.removed`. Catalogue hides products
       of shops that are not verified (consume `shop.verified`).
+
+  > Note: statuses add `pending_review` (waiting for an admin). A product an admin rejected is
+  > reviewed again before it shows, whatever its category; changing the reviewed parts of an active
+  > food or restricted product sends it back to review (decision T-30).
+  > Note: restricted at launch: Skin care, Cosmetics and Money transfer agents; the declaration
+  > covers Groceries & Food (packaged and labelled, not fresh meat, unlabelled goods or herbal
+  > medicine, storage, maker, registration number). Money transfer agents also carry
+  > `checkout_allowed = false` for Phase 3. Fashion's Tailoring (made to measure) and the Tailoring
+  > service are two categories (`tailoring`, `tailoring-services`).
+  > Note: a variant's price may be empty only for a service (priced on request). Staff update stock
+  > at their own branches; owners and managers set listings and branch prices.
+  > Note: catalog learns shops and branches from events (`known_shop`, `known_branch`); shops that
+  > existed before catalog first ran are picked up by F1-05's rebuild. Gateway routes come with F1-08.
 
 - [ ] **F1-05 Discovery read model** (depends on F1-02, F1-04)
       Tables `search_branch` (branch_id pk, shop_id, shop_slug, shop_name, logo url, category_ids,

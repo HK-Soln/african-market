@@ -67,11 +67,23 @@ export const ShopsPatterns = {
 } as const;
 
 export const CatalogPatterns = {
+  /** Public: the category tree (admins may ask for inactive categories too). */
   listCategories: 'catalog.category.list',
+  /** Admins: create or change a category. */
+  upsertCategory: 'catalog.category.upsert',
   upsertProduct: 'catalog.product.upsert',
+  /** Publish (to review when needed), hide, or back to draft. */
+  setProductStatus: 'catalog.product.set_status',
+  /** Owners and managers: which branches have the product, at what price. */
+  setProductListings: 'catalog.product.set_listings',
+  /** Branch staff too: stock of what is listed at a branch. */
+  updateBranchStock: 'catalog.branch.update_stock',
   removeProduct: 'catalog.product.remove',
   getProduct: 'catalog.product.get',
   listShopProducts: 'catalog.product.list_by_shop',
+  /** Admins: products waiting for review, and decisions on them. */
+  reviewQueue: 'catalog.product.review_queue',
+  decideProduct: 'catalog.product.decide',
 } as const;
 
 export const DiscoveryPatterns = {

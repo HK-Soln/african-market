@@ -6,7 +6,12 @@
 export interface ActorClaims {
   userId: string;
   roles: string[];
-  shops: Array<{ shopId: string; role: 'owner' | 'manager' | 'staff' }>;
+  shops: Array<{
+    shopId: string;
+    role: 'owner' | 'manager' | 'staff';
+    /** Staff: the branches they work at; empty or missing means every branch. */
+    branchIds?: string[];
+  }>;
 }
 
 /** A text in each language the apps use; any of them may be missing. */

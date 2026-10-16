@@ -1,6 +1,16 @@
-/**
- * TypeORM entities owned by the catalog service (category, product, variant, branch_listing).
- * Extend AppBaseEntity from @am/database. See docs/PLAN.md "Data model" and
- * docs/directives for the phase that introduces each one.
- */
-export const entities: Array<new () => unknown> = [];
+import { BranchListing } from './branch-listing.entity';
+import { Category } from './category.entity';
+import { KnownBranch } from './known-branch.entity';
+import { KnownShop } from './known-shop.entity';
+import { Product } from './product.entity';
+import { Variant } from './variant.entity';
+
+export * from './branch-listing.entity';
+export * from './category.entity';
+export * from './known-branch.entity';
+export * from './known-shop.entity';
+export * from './product.entity';
+export * from './variant.entity';
+
+/** TypeORM entities owned by the catalog service. */
+export const entities = [Category, Product, Variant, BranchListing, KnownShop, KnownBranch];

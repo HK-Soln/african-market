@@ -1,4 +1,4 @@
-import { isHealthProbe } from './service-core.module';
+import { isHealthProbe } from './health-probe';
 
 describe('isHealthProbe', () => {
   it.each(['/health', '/health/', '/api/v1/health', '/health?probe=1'])('skips GET %s', (url) => {

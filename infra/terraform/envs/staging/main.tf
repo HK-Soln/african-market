@@ -72,18 +72,32 @@ variable "manual_secrets" {
   default = []
 }
 
+variable "sentry_dsn_backend" {
+  description = "Sentry DSN for the gateway and services; empty: no error reports (see modules/platform)."
+  type        = string
+  default     = ""
+}
+
+variable "sentry_dsn_frontend" {
+  description = "Sentry DSN compiled into the Next apps; empty: no error reports."
+  type        = string
+  default     = ""
+}
+
 module "platform" {
   source = "../../modules/platform"
 
-  environment      = "staging"
-  region           = var.region
-  domain           = var.domain
-  route53_zone_id  = var.route53_zone_id
-  current_phase    = var.current_phase
-  image_tag        = var.image_tag
-  email_from       = "African Market <no-reply@${var.domain}>"
-  manual_secrets   = var.manual_secrets
-  otp_test_numbers = var.otp_test_numbers
+  environment         = "staging"
+  region              = var.region
+  domain              = var.domain
+  route53_zone_id     = var.route53_zone_id
+  current_phase       = var.current_phase
+  image_tag           = var.image_tag
+  email_from          = "African Market <no-reply@${var.domain}>"
+  manual_secrets      = var.manual_secrets
+  sentry_dsn_backend  = var.sentry_dsn_backend
+  sentry_dsn_frontend = var.sentry_dsn_frontend
+  otp_test_numbers    = var.otp_test_numbers
 
   # Up 08:00-20:00 Dubai time, Monday to Friday (decided 2026-10-16). Outside those hours the
   # apps have no tasks and the database is stopped; the deploy workflow starts it if needed.

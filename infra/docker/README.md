@@ -50,6 +50,17 @@ The Next apps need `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_WEB_URL` set (ther
   development secrets or the console SMS provider, so set real values, or `NODE_ENV=development`
   as docker compose does.
 
+## Traces locally
+
+```bash
+docker compose --profile tracing up -d jaeger
+```
+
+Then set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` in `.env`, restart `pnpm dev` (or
+`pnpm dev:api`), and open http://localhost:16686. One trace shows a request from the gateway
+through the services, their queries and the events it caused. Without the endpoint the apps still
+make trace ids (in logs and in the `x-request-id` response header) and send nothing.
+
 ## The whole stack locally
 
 ```bash

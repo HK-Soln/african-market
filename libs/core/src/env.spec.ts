@@ -93,6 +93,33 @@ describe('baseEnvSchema', () => {
   });
 });
 
+describe('telemetry keys', () => {
+  it('are off when unset or empty', () => {
+    for (const value of [undefined, '']) {
+      const env = loadEnv(baseEnvSchema, {
+        ...connections,
+        OTEL_EXPORTER_OTLP_ENDPOINT: value,
+        SENTRY_DSN: value,
+      });
+      expect(env.OTEL_EXPORTER_OTLP_ENDPOINT).toBeUndefined();
+      expect(env.SENTRY_DSN).toBeUndefined();
+      expect(env.OTEL_TRACES_SAMPLE_RATIO).toBe(1);
+    }
+  });
+
+  it('refuses an endpoint or DSN that is not a URL, and a ratio outside 0 to 1', () => {
+    for (const [key, value] of [
+      ['OTEL_EXPORTER_OTLP_ENDPOINT', 'localhost:4318'],
+      ['SENTRY_DSN', 'abc'],
+      ['OTEL_TRACES_SAMPLE_RATIO', '-0.1'],
+    ]) {
+      expect(() => loadEnv(baseEnvSchema, { ...connections, [key]: value })).toThrow(
+        new RegExp(key),
+      );
+    }
+  });
+});
+
 describe('loadNodeEnv', () => {
   it('reads NODE_ENV alone', () => {
     expect(loadNodeEnv({ NODE_ENV: 'test' })).toBe('test');

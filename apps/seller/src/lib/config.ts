@@ -11,6 +11,7 @@ function required(value: string | undefined, name: string): string {
 }
 
 const gatewayUrl = required(process.env.NEXT_PUBLIC_GATEWAY_URL, 'NEXT_PUBLIC_GATEWAY_URL');
+const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN || undefined;
 
 export const config = {
   /** The gateway as the browser reaches it. */
@@ -22,4 +23,17 @@ export const config = {
   serverGatewayUrl: process.env.GATEWAY_URL ?? gatewayUrl,
   /** The customer site: where the Terms and Privacy policy live. */
   webUrl: required(process.env.NEXT_PUBLIC_WEB_URL, 'NEXT_PUBLIC_WEB_URL'),
+  /**
+   * Error reports (Sentry), compiled in like the gateway's address: off without a DSN. With one,
+   * the environment the reports are filed under (staging, production) must be set too.
+   */
+  sentry: sentryDsn
+    ? {
+        dsn: sentryDsn,
+        environment: required(
+          process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+          'NEXT_PUBLIC_SENTRY_ENVIRONMENT',
+        ),
+      }
+    : undefined,
 } as const;

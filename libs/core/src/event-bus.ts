@@ -5,11 +5,14 @@ import {
   OnApplicationBootstrap,
   OnModuleDestroy,
 } from '@nestjs/common';
+import { context, type Context, type Span, SpanKind, trace } from '@opentelemetry/api';
 import * as amqp from 'amqp-connection-manager';
 import type { ConfirmChannel, ConsumeMessage } from 'amqplib';
 import { EventEnvelope, EventName } from '@am/contracts';
 import { APP_ENV, BaseEnv, SERVICE_NAME } from './env';
 import { HealthService } from './health';
+import { extractTraceContext, failSpan, injectTraceContext, tracer } from './telemetry/context';
+import { reportError } from './telemetry/report';
 
 export type EventHandler<N extends EventName> = (event: EventEnvelope<N>) => Promise<void>;
 
@@ -32,6 +35,10 @@ const PUBLISH_TIMEOUT_MS = 5000;
  *   `<service>.events.dlq` with the error, and stays there for a person to look at.
  * - Events can arrive more than once. Handlers must be idempotent: wrap them with
  *   `IdempotentConsumer` from @am/database.
+ * - Tracing: publishing continues the trace of the change that caused the event (the envelope's
+ *   `traceContext`) and puts it in the message's `traceparent` header; handlers run in a span
+ *   that continues it, so one trace runs from the request through every consumer. An event sent
+ *   to the dead-letter queue is reported to Sentry.
  */
 @Injectable()
 export class EventBus implements OnApplicationBootstrap, OnModuleDestroy {
@@ -62,19 +69,55 @@ export class EventBus implements OnApplicationBootstrap, OnModuleDestroy {
   async publish(envelope: EventEnvelope): Promise<void> {
     // Fail fast instead of buffering in memory: the outbox keeps the row and retries next tick.
     if (!this.channel || !this.connection?.isConnected()) throw new Error('RabbitMQ not connected');
-    await this.channel.publish(
-      this.exchange,
-      envelope.name,
-      Buffer.from(JSON.stringify(envelope)),
+    const parent = extractTraceContext(envelope.traceContext);
+    const span = this.startSpan(envelope, 'publish', SpanKind.PRODUCER, parent);
+    try {
+      await this.channel.publish(
+        this.exchange,
+        envelope.name,
+        Buffer.from(JSON.stringify(envelope)),
+        {
+          persistent: true,
+          messageId: envelope.id,
+          contentType: 'application/json',
+          headers: {
+            source: envelope.source,
+            correlationId: envelope.correlationId,
+            ...injectTraceContext(trace.setSpan(parent, span)),
+          },
+          // Without this a publish made as the connection drops would wait for it to come back,
+          // holding the outbox transaction open the whole time.
+          timeout: PUBLISH_TIMEOUT_MS,
+        },
+      );
+    } catch (err) {
+      failSpan(span, err);
+      throw err;
+    } finally {
+      span.end();
+    }
+  }
+
+  private startSpan(
+    envelope: EventEnvelope,
+    operation: 'publish' | 'process',
+    kind: SpanKind,
+    parent: Context,
+  ): Span {
+    return tracer().startSpan(
+      `${envelope.name} ${operation}`,
       {
-        persistent: true,
-        messageId: envelope.id,
-        contentType: 'application/json',
-        headers: { source: envelope.source, correlationId: envelope.correlationId },
-        // Without this a publish made as the connection drops would wait for it to come back,
-        // holding the outbox transaction open the whole time.
-        timeout: PUBLISH_TIMEOUT_MS,
+        kind,
+        attributes: {
+          'messaging.system': 'rabbitmq',
+          'messaging.operation.type': operation,
+          'messaging.destination.name': this.exchange,
+          'messaging.rabbitmq.destination.routing_key': envelope.name,
+          'messaging.message.id': envelope.id,
+          ...(operation === 'process' ? { 'messaging.consumer.group.name': this.queue } : {}),
+        },
       },
+      parent,
     );
   }
 
@@ -148,12 +191,23 @@ export class EventBus implements OnApplicationBootstrap, OnModuleDestroy {
       return;
     }
 
-    try {
-      for (const handler of this.handlers.get(envelope.name) ?? []) await handler(envelope);
-      ch.ack(msg);
-    } catch (err) {
-      await this.retryOrBury(ch, msg, envelope, err as Error);
-    }
+    // The publish span in the headers when there is one; the envelope's context otherwise (an
+    // event published before tracing was on, or by hand).
+    const headers = msg.properties.headers;
+    const parent = extractTraceContext(headers?.traceparent ? headers : envelope.traceContext);
+    const span = this.startSpan(envelope, 'process', SpanKind.CONSUMER, parent);
+    span.setAttribute('messaging.rabbitmq.attempt', Number(headers?.[ATTEMPT_HEADER] ?? 0) + 1);
+    await context.with(trace.setSpan(parent, span), async () => {
+      try {
+        for (const handler of this.handlers.get(envelope.name) ?? []) await handler(envelope);
+        ch.ack(msg);
+      } catch (err) {
+        failSpan(span, err);
+        await this.retryOrBury(ch, msg, envelope, err as Error);
+      } finally {
+        span.end();
+      }
+    });
   }
 
   /**
@@ -176,6 +230,7 @@ export class EventBus implements OnApplicationBootstrap, OnModuleDestroy {
       this.logger.error(
         `Event ${label} failed ${attempt + 1} times, dead-lettering: ${error.stack}`,
       );
+      reportError(error, { event: envelope.name, eventId: envelope.id, queue: this.queue });
     } else {
       this.logger.warn(`Event ${label} failed, retrying in ${delay} ms: ${error.message}`);
     }

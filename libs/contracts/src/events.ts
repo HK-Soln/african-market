@@ -8,6 +8,8 @@
  *   they never carry secrets or full personal data.
  * - Consumers are idempotent: they record `envelope.id` before acting.
  */
+import type { TraceCarrier } from './telemetry';
+
 export interface EventEnvelope<TName extends EventName = EventName> {
   /** UUID, unique per event; used for idempotency. */
   id: string;
@@ -18,6 +20,11 @@ export interface EventEnvelope<TName extends EventName = EventName> {
   occurredAt: string;
   /** Request/trace id that caused the change, for log correlation. */
   correlationId?: string;
+  /**
+   * Trace context of the change that caused the event, so the consumers' work joins the same
+   * trace. Set by OutboxService when tracing is on.
+   */
+  traceContext?: TraceCarrier;
   payload: EventPayloads[TName];
 }
 

@@ -1,14 +1,18 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { APP_ENV, BaseEnv, baseEnvSchema, loadEnv, SERVICE_NAME } from './env';
 import { EventBus } from './event-bus';
 import { HealthController, HealthService } from './health';
+import { isHealthProbe } from './health-probe';
+import { currentTrace } from './telemetry/context';
+import { TelemetryShutdown } from './telemetry/lifecycle';
+import { RpcTraceInterceptor } from './telemetry/rpc-trace.interceptor';
 
-/** Liveness checks: a service's `/health` and the gateway's `/api/v1/health`. */
-export const isHealthProbe = (req: { method?: string; url?: string }): boolean =>
-  req.method === 'GET' && /^(\/api\/v1)?\/health\/?(\?.*)?$/.test(req.url ?? '');
+/** A request id a caller may choose: short, and safe to echo back and to log. */
+const REQUEST_ID = /^[\w.:-]{1,128}$/;
 
 export interface ServiceCoreOptions {
   /** Service name, e.g. 'identity'. Used for logs, queues and health. */
@@ -19,7 +23,8 @@ export interface ServiceCoreOptions {
 
 /**
  * Everything a NestJS service needs besides its domain: validated env,
- * structured JSON logs with request ids, health endpoints and the event bus.
+ * structured JSON logs with request and trace ids, health endpoints, the event bus, and tracing
+ * of TCP calls (startTelemetry, in the app's instrument.ts, does the rest).
  * Import once in each service's AppModule: `ServiceCoreModule.forRoot({ name: 'shops' })`.
  */
 @Global()
@@ -50,7 +55,22 @@ export class ServiceCoreModule {
             // Containers and the load balancer call these every few seconds and report failures
             // themselves; logging each one would bury everything else.
             autoLogging: { ignore: (req) => isHealthProbe(req) },
-            genReqId: (req) => (req.headers['x-request-id'] as string) ?? randomUUID(),
+            // Every line logged inside a trace says which one, so logs and traces join up.
+            mixin: () => {
+              const trace = currentTrace();
+              return trace ? { traceId: trace.traceId, spanId: trace.spanId } : {};
+            },
+            // The trace id doubles as the request id (and so as the events' correlationId), and
+            // goes back in the response, for a person reporting a problem to quote.
+            genReqId: (req, res) => {
+              const header = req.headers['x-request-id'];
+              const id =
+                (typeof header === 'string' && REQUEST_ID.test(header) && header) ||
+                currentTrace()?.traceId ||
+                randomUUID();
+              res.setHeader('x-request-id', id);
+              return id;
+            },
             transport:
               env.NODE_ENV === 'development'
                 ? { target: 'pino-pretty', options: { singleLine: true } }
@@ -64,6 +84,8 @@ export class ServiceCoreModule {
         { provide: SERVICE_NAME, useValue: options.name },
         HealthService,
         EventBus,
+        TelemetryShutdown,
+        { provide: APP_INTERCEPTOR, useClass: RpcTraceInterceptor },
       ],
       exports: [APP_ENV, SERVICE_NAME, HealthService, EventBus],
     };

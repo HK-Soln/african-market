@@ -1,10 +1,17 @@
 import { randomUUID } from 'node:crypto';
 import { Logger } from '@nestjs/common';
+import { SpanKind } from '@opentelemetry/api';
+import {
+  InMemorySpanExporter,
+  NodeTracerProvider,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace-node';
 import { connect, type Channel, type ChannelModel } from 'amqplib';
 import type { EventEnvelope } from '@am/contracts';
 import { baseEnvSchema } from './env';
 import { ATTEMPT_HEADER, EventBus, LAST_ERROR_HEADER } from './event-bus';
 import { HealthService } from './health';
+import { currentTrace, injectTraceContext, tracer } from './telemetry/context';
 
 // Integration tests against a real RabbitMQ: docker compose locally (`pnpm infra:up`), a service
 // container in CI. Each run uses its own exchange and queue names, and removes them afterwards,
@@ -113,6 +120,45 @@ describe('EventBus (RabbitMQ)', () => {
     await bus.publish(sent);
     await waitUntil(() => received.length === 1);
     expect(received[0]).toEqual(sent);
+  });
+
+  it('continues the trace of the change that caused the event in every consumer', async () => {
+    const exporter = new InMemorySpanExporter();
+    const provider = new NodeTracerProvider({
+      spanProcessors: [new SimpleSpanProcessor(exporter)],
+    });
+    provider.register();
+    try {
+      const seen: Array<ReturnType<typeof currentTrace>> = [];
+      const { bus, queue } = await startBus('50', (b) =>
+        b.subscribe('user.registered', async () => void seen.push(currentTrace())),
+      );
+      // What OutboxService stores inside the request; the relay publishes it later, outside it.
+      const { sent, request } = tracer().startActiveSpan('request', (span) => {
+        span.end();
+        return { sent: event({ traceContext: injectTraceContext() }), request: span.spanContext() };
+      });
+
+      await bus.publish(sent);
+      await waitUntil(() => seen.length === 1);
+
+      expect(seen[0]?.traceId).toBe(request.traceId);
+      const spans = exporter.getFinishedSpans();
+      const publish = spans.find((s) => s.name === 'user.registered publish');
+      // Other tests' services are bound to the same exchange and process it too.
+      const process = spans.find(
+        (s) =>
+          s.name === 'user.registered process' &&
+          s.attributes['messaging.consumer.group.name'] === queue,
+      );
+      expect(publish).toMatchObject({ kind: SpanKind.PRODUCER });
+      expect(publish?.parentSpanContext?.spanId).toBe(request.spanId);
+      expect(process).toMatchObject({ kind: SpanKind.CONSUMER });
+      expect(process?.parentSpanContext?.spanId).toBe(publish?.spanContext().spanId);
+      expect(seen[0]?.spanId).toBe(process?.spanContext().spanId);
+    } finally {
+      await provider.shutdown();
+    }
   });
 
   it('refuses to publish when it is not connected, so the outbox keeps the event', async () => {

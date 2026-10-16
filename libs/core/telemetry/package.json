@@ -1,0 +1,7 @@
+{
+  "name": "@am/core-telemetry-entry",
+  "private": true,
+  "description": "Lets TypeScript (node resolution) find @am/core/telemetry; Node itself uses the exports map.",
+  "main": "../dist/telemetry/index.js",
+  "types": "../dist/telemetry/index.d.ts"
+}

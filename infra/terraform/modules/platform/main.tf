@@ -204,7 +204,14 @@ locals {
     S3_PUBLIC_BUCKET      = module.media.public_bucket
     S3_PRIVATE_BUCKET     = module.media.private_bucket
     MEDIA_PUBLIC_BASE_URL = module.media.public_base_url
-  })
+    },
+    # The collector beside each task (modules/ecs-service); absent, spans are made but kept.
+    var.tracing ? { OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318" } : {},
+    # Left out rather than empty when there is none: ECS drops empty values anyway.
+    var.sentry_dsn_backend == "" ? {} : { SENTRY_DSN = var.sentry_dsn_backend },
+  )
+
+  otel_collector = var.tracing ? { image = var.otel_collector_image } : null
 
   backend_secrets = merge(
     {
@@ -237,7 +244,8 @@ module "gateway" {
     COOKIE_DOMAIN    = ".${var.domain}"
     TRUST_PROXY_HOPS = "1"
   })
-  secrets = local.backend_secrets
+  secrets        = local.backend_secrets
+  otel_collector = local.otel_collector
 
   additional_security_group_ids = [aws_security_group.backend.id]
   ingress = concat(
@@ -283,6 +291,7 @@ module "service" {
   )
 
   task_policy_statements = each.key == "media" ? module.media.media_service_statements : []
+  otel_collector         = local.otel_collector
 
   additional_security_group_ids = [aws_security_group.backend.id]
   ingress                       = [{ from = "gateway", source = module.gateway.security_group_id, port = each.value.tcp }]

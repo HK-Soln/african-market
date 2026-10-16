@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EVENTS_EXCHANGE, SERVICE_NAMES, SERVICES, ServiceName } from '@am/contracts';
+import { telemetryEnvShape } from './telemetry/env';
 
 // The only place backend code reads process.env: everything else receives typed values from
 // loadEnv (or APP_ENV in Nest). The lint rule `no-restricted-properties` keeps it that way.
@@ -35,6 +36,7 @@ export const baseEnvSchema = z.object({
   TYPEORM_LOGGING: z.stringbool().default(false),
   /** How often the outbox relay looks for events to publish, in ms. */
   OUTBOX_POLL_MS: z.coerce.number().int().positive().default(500),
+  ...telemetryEnvShape,
 });
 
 export type BaseEnv = z.infer<typeof baseEnvSchema>;

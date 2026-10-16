@@ -111,6 +111,110 @@ export const DiscoveryErrors = {
   adminOnly: 'DISCOVERY_ADMIN_ONLY',
   /** A rebuild is already running. */
   rebuildRunning: 'DISCOVERY_REBUILD_RUNNING',
+  validationFailed: 'DISCOVERY_VALIDATION_FAILED',
+  /** The cursor does not belong to this search. */
+  cursorInvalid: 'DISCOVERY_CURSOR_INVALID',
 } as const;
 
 export type DiscoveryErrorCode = (typeof DiscoveryErrors)[keyof typeof DiscoveryErrors];
+
+/** Delivery: branches that deliver to the point. Pickup: branches near it. */
+export type SearchMode = 'delivery' | 'pickup';
+
+/** Filters shared by the list and the map. */
+export interface SearchFilters {
+  /** Free text: shop names, categories, areas, descriptions and products. */
+  q?: string;
+  /** A category and everything under it. */
+  categoryId?: string;
+  /** ISO 3166-1 alpha-2: the shop's countries or a product's. */
+  originCountry?: string;
+  /** Open at the moment of the search, Asia/Dubai. */
+  openNow?: boolean;
+  /** Pickup mode: only branches that would also deliver to the point. */
+  deliversToMe?: boolean;
+  /** An emirate code (DXB, AUH, ...). */
+  emirate?: string;
+}
+
+export interface SearchNearbyRequest extends SearchFilters {
+  lat: number;
+  lng: number;
+  mode: SearchMode;
+  /** Pickup mode: how far the customer will travel, in metres (default 10 km, at most 50 km). */
+  radiusM?: number;
+  /** At most 50 (default 20). */
+  limit?: number;
+  cursor?: string;
+}
+
+/** A product at the branch that matched the text. */
+export interface MatchedProductDto {
+  productId: string;
+  title: LocalizedString;
+  minPriceFils: number | null;
+  imageUrl: string | null;
+}
+
+export interface NearbyBranchDto {
+  branchId: string;
+  shopId: string;
+  shopSlug: string;
+  shopName: string;
+  branchName: string;
+  logoUrl: string | null;
+  emirate: string;
+  area: string | null;
+  location: LatLngDto;
+  distanceM: number;
+  openNow: boolean;
+  pickup: boolean;
+  delivery: boolean;
+  verified: boolean;
+  ratingAvg: number;
+  ratingCount: number;
+  categoryIds: string[];
+  originCountries: string[];
+  /** Up to three, only when `q` is given and products match it. */
+  matchedProducts: MatchedProductDto[];
+}
+
+export interface SearchNearbyResponse {
+  items: NearbyBranchDto[];
+  /** Pass as `cursor` for the next page; null on the last one. */
+  nextCursor: string | null;
+}
+
+export interface SearchMapRequest extends Omit<SearchFilters, 'deliversToMe'> {
+  minLat: number;
+  minLng: number;
+  maxLat: number;
+  maxLng: number;
+  /** The map's zoom level (0-22): from MAP_PIN_ZOOM up, single pins; below, clusters. */
+  zoom: number;
+}
+
+/** Zoom from which the map shows every branch as its own pin. */
+export const MAP_PIN_ZOOM = 14;
+
+export interface MapPinDto {
+  kind: 'pin';
+  branchId: string;
+  shopSlug: string;
+  shopName: string;
+  location: LatLngDto;
+  openNow: boolean;
+}
+
+export interface MapClusterDto {
+  kind: 'cluster';
+  /** The centre of the branches in it. */
+  location: LatLngDto;
+  count: number;
+}
+
+export interface SearchMapResponse {
+  markers: Array<MapPinDto | MapClusterDto>;
+  /** True when there were more pins than the response carries (zoom in). */
+  truncated: boolean;
+}

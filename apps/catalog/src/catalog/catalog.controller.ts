@@ -7,6 +7,8 @@ import {
   CategoryDto,
   CategoryList,
   PRODUCT_REVIEW_LIST_SPEC,
+  ProductSearchSnapshotResponse,
+  ShopProductSnapshotsResponse,
   ProductDto,
   ProductPage,
   RemoveProductResponse,
@@ -17,6 +19,7 @@ import { listQueryFromPayload } from '@am/core';
 import { catalogError } from '../errors';
 import { CategoriesService } from './categories.service';
 import { ProductsService } from './products.service';
+import { SearchSnapshotService } from './search-snapshot.service';
 
 /** The gateway validates first; the service validates again before it persists anything. */
 function parse<T>(schema: z.ZodType<T>, payload: unknown): T {
@@ -157,6 +160,7 @@ export class CatalogController {
   constructor(
     private readonly categories: CategoriesService,
     private readonly products: ProductsService,
+    private readonly snapshots: SearchSnapshotService,
   ) {}
 
   @MessagePattern(CatalogPatterns.listCategories)
@@ -224,5 +228,16 @@ export class CatalogController {
   @MessagePattern(CatalogPatterns.decideProduct)
   decide(@Payload() payload: unknown): Promise<ProductDto> {
     return this.products.decide(parse(decideSchema, payload));
+  }
+
+  // Read by the discovery service only; the gateway routes neither.
+  @MessagePattern(CatalogPatterns.productSnapshot)
+  productSnapshot(@Payload() payload: unknown): Promise<ProductSearchSnapshotResponse> {
+    return this.snapshots.product(parse(z.object({ productId: uuid }), payload));
+  }
+
+  @MessagePattern(CatalogPatterns.shopProductSnapshots)
+  shopProductSnapshots(@Payload() payload: unknown): Promise<ShopProductSnapshotsResponse> {
+    return this.snapshots.shopProducts(parse(z.object({ shopId: uuid }), payload));
   }
 }

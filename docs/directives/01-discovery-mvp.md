@@ -128,7 +128,7 @@ Location discovery and search, Contact, UAE specifics.
   > Note: catalog learns shops and branches from events (`known_shop`, `known_branch`); shops that
   > existed before catalog first ran are picked up by F1-05's rebuild. Gateway routes come with F1-08.
 
-- [ ] **F1-05 Discovery read model** (depends on F1-02, F1-04)
+- [x] **F1-05 Discovery read model** (depends on F1-02, F1-04)
       Tables `search_branch` (branch_id pk, shop_id, shop_slug, shop_name, logo url, category_ids,
       origin_countries, emirate, area, location, service_area, service_radius_m, pickup, delivery,
       verified, rating_avg, rating_count, completeness_score, hours jsonb (weekly + special, for open-now),
@@ -139,6 +139,17 @@ Location discovery and search, Contact, UAE specifics.
       Idempotent and order-safe. Admin-only `discovery.rebuild` pattern that replays from the owners.
       Create an `unaccent`-based text search configuration (`am_simple`) in the migration and GIN indexes
       on `searchable` plus `pg_trgm` on names.
+
+  > Note: every event makes discovery read the owner's current state (decision T-31): a shop event
+  > re-reads the shop, its branches and its products; a product event the product. Snapshots carry
+  > the owner's read time, and older ones never overwrite newer rows.
+  > Note: only verified shops have rows, so `verified` is always true for now (kept for a later
+  > "unverified but listed" option). `category_ids` holds the shop's and its in-stock products'
+  > categories with every parent, so a filter on a parent category is one array match.
+  > Note: `completeness_score` (0-100): logo 15, description 15, gallery 10, a contact 15, weekly
+  > hours 15, an area 5, at least one product 25. Ratings stay 0 until reviews (Phase 2).
+  > Note: the rebuild runs in the request and answers with counts; shops that are not verified or
+  > gone are dropped. It also picks up shops that existed before catalog or discovery first ran.
 
 - [ ] **F1-06 Nearby search** (depends on F1-05)
       `DiscoveryPatterns.searchNearby`: input point (lat,lng), mode `delivery` (ST_Covers service_area or

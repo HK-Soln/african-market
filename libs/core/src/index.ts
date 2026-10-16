@@ -10,3 +10,4 @@ export { describeTelemetry } from './telemetry/state';
 export * from './event-bus';
 export * from './service-core.module';
 export * from './bootstrap';
+export * from './service-client';

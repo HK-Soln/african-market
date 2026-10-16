@@ -10,6 +10,7 @@ import {
 import { OutboxMessage, OutboxService } from '@am/database';
 import { Shop } from '../src/entities';
 import { BranchesService } from '../src/shops/branches.service';
+import { SearchSnapshotService } from '../src/shops/search-snapshot.service';
 import { ShopsService, MAX_SHOPS_PER_OWNER } from '../src/shops/shops.service';
 import { slugify } from '../src/shops/slug';
 import { createTestDatabase, TestDatabase } from './support/test-database';
@@ -429,6 +430,59 @@ describe('shops and branches (PostGIS)', () => {
           }),
         ),
       ).toBe(ShopErrors.branchNotFound);
+    });
+  });
+
+  describe('search snapshots (for discovery)', () => {
+    it('give the public fields of a shop and its live branches, and when they were read', async () => {
+      const snapshots = new SearchSnapshotService(db);
+      const { owner, shop, branch } = await shopWithBranch();
+      await branches.setOpeningHours({
+        actor: owner,
+        shopId: shop.id,
+        branchId: branch.id,
+        hours: [{ weekday: 1, opensAt: '09:00', closesAt: '21:00' }],
+      });
+      const snap = await snapshots.snapshot({ shopId: shop.id });
+      expect(snap).toMatchObject({
+        shopId: shop.id,
+        verified: false,
+        slug: shop.slug,
+        branches: [
+          {
+            id: branch.id,
+            emirate: 'DXB',
+            location: NAHDA,
+            openingHours: [{ weekday: 1, opensAt: '09:00', closesAt: '21:00' }],
+          },
+        ],
+      });
+      expect(Date.parse(snap!.observedAt)).not.toBeNaN();
+      expect(snap).not.toHaveProperty('tradeLicense');
+
+      await branches.delete({ actor: owner, shopId: shop.id, branchId: branch.id });
+      expect((await snapshots.snapshot({ shopId: shop.id }))!.branches).toEqual([]);
+      expect(await snapshots.snapshot({ shopId: randomUUID() })).toBeNull();
+    });
+
+    it('page through verified shops by id', async () => {
+      const snapshots = new SearchSnapshotService(db);
+      const made = [];
+      for (let i = 0; i < 3; i++) {
+        const { shop } = await shopWithBranch();
+        await db.getRepository(Shop).update({ id: shop.id }, { verificationStatus: 'verified' });
+        made.push(shop.id);
+      }
+      const all: string[] = [];
+      let after: string | undefined;
+      for (;;) {
+        const { shopIds } = await snapshots.verifiedIds({ after, limit: 2 });
+        all.push(...shopIds);
+        if (shopIds.length < 2) break;
+        after = shopIds[shopIds.length - 1];
+      }
+      expect(all).toEqual([...all].sort());
+      expect(all).toEqual(expect.arrayContaining(made));
     });
   });
 });

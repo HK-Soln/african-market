@@ -11,6 +11,7 @@ import {
 import { OutboxMessage, OutboxService } from '@am/database';
 import { CategoriesService } from '../src/catalog/categories.service';
 import { MAX_PRODUCTS_PER_SHOP, ProductsService } from '../src/catalog/products.service';
+import { SearchSnapshotService } from '../src/catalog/search-snapshot.service';
 import { ShopEvents } from '../src/catalog/shop-events';
 import { Category, KnownShop, Product } from '../src/entities';
 import { createTestDatabase, TestDatabase } from './support/test-database';
@@ -648,6 +649,42 @@ describe('catalogue (Postgres)', () => {
       });
       expect(found.items.map((p) => p.title.en)).toEqual(['Egusi seeds']);
       expect(await db.manager.countBy(Product, { shopId })).toBe(3);
+    });
+  });
+
+  describe('search snapshots (for discovery)', () => {
+    it('give each product its status, in-stock branches and lowest price', async () => {
+      const snapshots = new SearchSnapshotService(db);
+      const { owner, shopId, branchId } = await shop({ verified: false });
+      const wig = await product(owner, shopId, 'hair-wigs', {
+        variants: [{ priceFils: 45_000 }, { priceFils: 30_000 }],
+      });
+      const [long, short] = wig.variants;
+      expect(await snapshots.product({ productId: wig.id })).toMatchObject({
+        productId: wig.id,
+        shopId,
+        status: 'draft',
+        minPriceFils: 30_000,
+        branchIds: [],
+      });
+
+      await products.setListings({
+        actor: owner,
+        shopId,
+        productId: wig.id,
+        listings: [
+          { branchId, variantId: long.id, inStock: true, priceOverrideFils: 40_000 },
+          { branchId, variantId: short.id, inStock: false },
+        ],
+      });
+      const listed = await snapshots.shopProducts({ shopId });
+      expect(listed.products).toEqual([
+        expect.objectContaining({ productId: wig.id, minPriceFils: 40_000, branchIds: [branchId] }),
+      ]);
+      expect(Date.parse(listed.observedAt)).not.toBeNaN();
+
+      await products.remove({ actor: owner, shopId, productId: wig.id });
+      expect(await snapshots.product({ productId: wig.id })).toBeNull();
     });
   });
 });

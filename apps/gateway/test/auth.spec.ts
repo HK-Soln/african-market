@@ -6,7 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
-import { IdentityPatterns } from '@am/contracts';
+import { IdentityErrors, IdentityPatterns } from '@am/contracts';
 import { FAKE_OTP_CODE, FakeIdentityController, startFakeIdentity } from './support/fake-identity';
 
 /** A port nothing is listening on, for the stand-in identity service. */
@@ -142,6 +142,36 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
       expect(after.body).toMatchObject({ statusCode: 401, code: 'AUTH_REQUIRED' });
       const dead = await browser.post('/api/v1/auth/refresh').expect(401);
       expect(dead.body.code).toBe('SESSION_INVALID');
+    });
+
+    it('signs in with a social provider, setting the session cookies', async () => {
+      const providers = await http().get('/api/v1/auth/social/providers').expect(200);
+      expect(providers.body).toEqual({
+        google: { clientId: 'web-client.apps.googleusercontent.com' },
+        facebook: null,
+      });
+
+      const res = await http()
+        .post('/api/v1/auth/social')
+        .set('Accept-Language', 'ar')
+        .send({ provider: 'google', token: 'good:ada-0001', termsAccepted: true })
+        .expect(200);
+      expect(res.body).toMatchObject({ isNewUser: true, user: { email: 'ada-0001@example.com' } });
+      expect(String(res.headers['set-cookie'])).toContain('am_at=');
+      expect(FakeIdentityController.last(IdentityPatterns.socialSignIn)).toMatchObject({
+        provider: 'google',
+        preferredLanguage: 'ar',
+      });
+
+      const refused = await http()
+        .post('/api/v1/auth/social')
+        .send({ provider: 'google', token: 'forged-token-value', termsAccepted: true })
+        .expect(401);
+      expect(refused.body.code).toBe(IdentityErrors.socialTokenInvalid);
+      await http()
+        .post('/api/v1/auth/social')
+        .send({ provider: 'apple', token: 'good:x-0000000' })
+        .expect(400);
     });
 
     it('signs an existing person in without asking for the terms again', async () => {

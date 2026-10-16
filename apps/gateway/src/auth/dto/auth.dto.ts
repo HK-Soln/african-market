@@ -210,3 +210,60 @@ export class LoggedOutDto {
   @ApiProperty({ enum: [true] })
   loggedOut!: true;
 }
+
+export class SocialSignInDto {
+  @ApiProperty({ enum: ['google', 'facebook'] })
+  @IsIn(['google', 'facebook'])
+  provider!: 'google' | 'facebook';
+
+  @ApiProperty({
+    description: "Google: the ID token (credential). Facebook: the user's access token.",
+  })
+  @IsString()
+  @MinLength(10)
+  @MaxLength(8192)
+  token!: string;
+
+  @ApiPropertyOptional({
+    description: 'Must be true when this creates the account (TERMS_NOT_ACCEPTED otherwise).',
+  })
+  @IsOptional()
+  @IsBoolean()
+  termsAccepted?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  marketingConsent?: boolean;
+
+  @ApiPropertyOptional({ enum: LANGUAGES })
+  @IsOptional()
+  @IsIn(LANGUAGES)
+  preferredLanguage?: string;
+}
+
+export class GoogleProviderDto {
+  @ApiProperty({ example: '000000000000-web.apps.googleusercontent.com' })
+  clientId!: string;
+}
+
+export class FacebookProviderDto {
+  @ApiProperty({ example: '000000000000000' })
+  appId!: string;
+}
+
+export class SocialProvidersDto {
+  @ApiProperty({
+    type: GoogleProviderDto,
+    nullable: true,
+    description: 'Null when Google sign-in is off',
+  })
+  google!: GoogleProviderDto | null;
+
+  @ApiProperty({
+    type: FacebookProviderDto,
+    nullable: true,
+    description: 'Null when Facebook sign-in is off',
+  })
+  facebook!: FacebookProviderDto | null;
+}

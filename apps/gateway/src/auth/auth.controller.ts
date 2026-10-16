@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Get,
+  Header,
   HttpCode,
   HttpException,
   Inject,
@@ -21,6 +23,7 @@ import {
   LogoutResponse,
   RequestOtpResponse,
   SessionTokens,
+  SocialProvidersResponse,
   UserDto,
   VerifyOtpResponse,
 } from '@am/contracts';
@@ -40,6 +43,8 @@ import {
   RegisterDto,
   RequestOtpDto,
   ResetPasswordDto,
+  SocialProvidersDto,
+  SocialSignInDto,
   VerifyEmailDto,
   VerifyOtpDto,
 } from './dto/auth.dto';
@@ -87,6 +92,42 @@ export class AuthController {
       ...requestOrigin(req),
     });
     return this.signedIn(res, result.user, result.session, result.isNewUser);
+  }
+
+  @ApiOperation({
+    summary: 'Sign in with Google or Facebook',
+    description:
+      "Identity checks the provider's token with the provider. A known account signs in; a " +
+      'verified email of an existing account links to it; otherwise an account is created, which ' +
+      'needs termsAccepted (400 TERMS_NOT_ACCEPTED: ask, then send again).',
+  })
+  @ApiOkResponse({ type: AuthSessionDto })
+  @Throttle(AuthThrottles.login)
+  @HttpCode(200)
+  @Post('social')
+  async social(
+    @Body() body: SocialSignInDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthSessionDto> {
+    const result = await this.identity<VerifyOtpResponse>(IdentityPatterns.socialSignIn, {
+      ...body,
+      preferredLanguage: body.preferredLanguage ?? requestLocale(req),
+      correlationId: correlationId(req),
+      ...requestOrigin(req),
+    });
+    return this.signedIn(res, result.user, result.session, result.isNewUser);
+  }
+
+  @ApiOperation({
+    summary: 'Which social sign-in buttons to show',
+    description: 'Only providers switched on here, with the public ids their scripts need.',
+  })
+  @ApiOkResponse({ type: SocialProvidersDto })
+  @Header('Cache-Control', 'public, max-age=300')
+  @Get('social/providers')
+  socialProviders(): Promise<SocialProvidersResponse> {
+    return this.identity<SocialProvidersResponse>(IdentityPatterns.socialProviders, {});
   }
 
   @ApiOperation({ summary: 'Register with email and password; emails a verification code' })

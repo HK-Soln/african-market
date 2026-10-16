@@ -28,6 +28,7 @@ env:
   MAILPIT_URL: http://localhost:8025
   EMAIL_FROM: African Market <no-reply@africanmarket.local>
   SMS_PROVIDER: console
+  SOCIAL_PROVIDERS: ''
   JWT_ACCESS_SECRET: dev-only-access-secret-change-me-0123456789
   OTP_HMAC_SECRET: dev-only-otp-hmac-secret-change-me-0123456789
   CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002

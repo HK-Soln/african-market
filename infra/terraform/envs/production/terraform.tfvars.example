@@ -10,3 +10,6 @@ domain = "africanmarket.ae"
 # Seller identity verification: the Didit workflow id (not secret). The API key and the webhook
 # secret go in Secrets Manager by hand: african-market/<env>/DIDIT_API_KEY and DIDIT_API_SECRET.
 didit_workflow_id = "00000000-0000-0000-0000-000000000000"
+# Social sign-in (F1-09): leave out to keep it off.
+# google_client_ids = ["000000000000-web.apps.googleusercontent.com", "000000000000-seller.apps.googleusercontent.com"]
+# facebook_app_id   = "000000000000000"

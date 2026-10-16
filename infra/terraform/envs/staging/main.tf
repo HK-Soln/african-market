@@ -77,6 +77,18 @@ variable "didit_workflow_id" {
   type        = string
 }
 
+variable "google_client_ids" {
+  description = "Google OAuth client ids (web and seller) for sign-in; empty leaves it off."
+  type        = list(string)
+  default     = []
+}
+
+variable "facebook_app_id" {
+  description = "Facebook app id for sign-in; empty leaves it off (secret: FACEBOOK_APP_SECRET)."
+  type        = string
+  default     = ""
+}
+
 variable "sentry_dsn_backend" {
   description = "Sentry DSN for the gateway and services; empty: no error reports (see modules/platform)."
   type        = string
@@ -102,6 +114,8 @@ module "platform" {
   manual_secrets      = var.manual_secrets
   sentry_dsn_backend  = var.sentry_dsn_backend
   didit_workflow_id   = var.didit_workflow_id
+  google_client_ids   = var.google_client_ids
+  facebook_app_id     = var.facebook_app_id
   sentry_dsn_frontend = var.sentry_dsn_frontend
   otp_test_numbers    = var.otp_test_numbers
 

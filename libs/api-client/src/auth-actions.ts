@@ -60,6 +60,10 @@ export function createAuthActions(client: ApiClient) {
 
     login: (body: Schemas['LoginDto']) => toResult(client.POST('/api/v1/auth/login', { body })),
 
+    /** Google or Facebook, with the token the provider's button gave (F1-09). */
+    socialSignIn: (body: Schemas['SocialSignInDto']) =>
+      toResult(client.POST('/api/v1/auth/social', { body })),
+
     forgotPassword: (email: string) =>
       toResult(client.POST('/api/v1/auth/password/forgot', { body: { email } })),
 

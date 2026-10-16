@@ -202,11 +202,18 @@ Location discovery and search, Contact, UAE specifics.
   > decisions, categories (list with inactive, add, change), emirate search switches with counts,
   > and the search rebuild.
 
-- [ ] **F1-09 Social sign-in** (depends on Phase 0)
+- [x] **F1-09 Social sign-in** (depends on Phase 0)
       Google and Facebook sign-in on web and seller (decision P-10; Apple is dropped): verify the
       Google ID token and the Facebook access token server-side in identity, link to existing
       accounts by verified email, `credential` rows of type google/facebook (a one-line migration
       adds `facebook` to the type CHECK). Behind env flags so local dev works without client ids.
+  > Note: linking and account rules in decision T-36. `SOCIAL_PROVIDERS` is empty locally and in CI;
+  > the apps show Google's own button and a Facebook button only for providers switched on
+  > (`GET /auth/social/providers`). A new person accepts the terms on the profile screen, as with
+  > phone sign-up. Terraform takes `google_client_ids` and `facebook_app_id`; the Facebook app
+  > secret goes in Secrets Manager (`FACEBOOK_APP_SECRET`), readable by identity only.
+  > Note: also fixed in Terraform: shops and catalog now accept calls from the backend group,
+  > which discovery's reads (F1-05) need in AWS.
 
 ## Web app (customer PWA)
 

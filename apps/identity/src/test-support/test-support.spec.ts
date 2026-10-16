@@ -16,6 +16,7 @@ const required = {
   OTP_HMAC_SECRET: 'test-otp-hmac-secret-0123456789-0123456789',
   SMTP_URL: 'smtp://localhost:1025',
   EMAIL_FROM: 'African Market <no-reply@africanmarket.local>',
+  SOCIAL_PROVIDERS: '',
 };
 
 const envWith = (values: Record<string, string>): IdentityEnv =>
@@ -70,5 +71,29 @@ describe('test-only support for end-to-end tests', () => {
   it('has nothing to give when codes are really being sent', () => {
     const controller = new TestSupportController(new ConsoleSmsProvider());
     expect(controller.lastOtp({ phone: '+971501234567' })).toEqual({ code: null });
+  });
+
+  it('needs the keys of every social provider it switches on', () => {
+    const base = { NODE_ENV: 'development', SMS_PROVIDER: 'console' };
+    expect(envWith({ ...base, SOCIAL_PROVIDERS: '' }).SOCIAL_PROVIDERS).toEqual([]);
+    expect(() => assertSafeIdentityEnv(envWith({ ...base, SOCIAL_PROVIDERS: 'google' }))).toThrow(
+      /GOOGLE_CLIENT_IDS/,
+    );
+    expect(() =>
+      assertSafeIdentityEnv(
+        envWith({ ...base, SOCIAL_PROVIDERS: 'facebook', FACEBOOK_APP_ID: '1' }),
+      ),
+    ).toThrow(/FACEBOOK_APP_SECRET/);
+    const both = envWith({
+      ...base,
+      SOCIAL_PROVIDERS: 'google, facebook',
+      GOOGLE_CLIENT_IDS: 'a.apps.googleusercontent.com,b.apps.googleusercontent.com',
+      FACEBOOK_APP_ID: '1',
+      FACEBOOK_APP_SECRET: 's',
+    });
+    expect(both.SOCIAL_PROVIDERS).toEqual(['google', 'facebook']);
+    expect(both.GOOGLE_CLIENT_IDS).toHaveLength(2);
+    expect(() => assertSafeIdentityEnv(both)).not.toThrow();
+    expect(() => envWith({ ...base, SOCIAL_PROVIDERS: 'apple' })).toThrow();
   });
 });

@@ -35,6 +35,8 @@ export const AUTH_LABEL_KEYS = [
   'close',
   'notNow',
   'or',
+  'continueWithGoogle',
+  'continueWithFacebook',
   'phoneTitle',
   'phoneWhy',
   'phoneLabel',

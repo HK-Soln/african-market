@@ -230,3 +230,39 @@ describe('EmailStep and ResetStep', () => {
     expect(markup).toContain('[setPassword]');
   });
 });
+
+describe('AuthFlow social sign-in', () => {
+  const props = {
+    labels,
+    errorText: (code: string) => code,
+    locale: 'en' as const,
+    emirates: [],
+    termsHref: '/en/legal/terms',
+    privacyHref: '/en/legal/privacy',
+    onClose: never,
+    onDone: never,
+  };
+
+  it('shows a button for each provider switched on', () => {
+    const page = html(
+      <AuthFlow
+        {...props}
+        actions={{ ...actions, socialSignIn: never }}
+        social={{ google: { clientId: 'web-client' }, facebook: { appId: '111' } }}
+      />,
+    );
+    expect(page).toContain('aria-label="[continueWithGoogle]"');
+    expect(page).toContain('[continueWithFacebook]');
+  });
+
+  it('shows none when no provider is on, or the app cannot sign in with one', () => {
+    const off = html(
+      <AuthFlow {...props} actions={{ ...actions, socialSignIn: never }} social={{}} />,
+    );
+    expect(off).not.toContain('[continueWithFacebook]');
+    const noAction = html(
+      <AuthFlow {...props} actions={actions} social={{ facebook: { appId: '111' } }} />,
+    );
+    expect(noAction).not.toContain('[continueWithFacebook]');
+  });
+});

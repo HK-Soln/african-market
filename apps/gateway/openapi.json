@@ -93,6 +93,62 @@
         ]
       }
     },
+    "/api/v1/auth/social": {
+      "post": {
+        "description": "Identity checks the provider's token with the provider. A known account signs in; a verified email of an existing account links to it; otherwise an account is created, which needs termsAccepted (400 TERMS_NOT_ACCEPTED: ask, then send again).",
+        "operationId": "AuthController_social_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialSignInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Sign in with Google or Facebook",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/social/providers": {
+      "get": {
+        "description": "Only providers switched on here, with the public ids their scripts need.",
+        "operationId": "AuthController_socialProviders_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialProvidersDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Which social sign-in buttons to show",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "AuthController_register_v1",
@@ -3536,6 +3592,94 @@
           "isNewUser",
           "accessToken",
           "accessTokenExpiresAt"
+        ]
+      },
+      "SocialSignInDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "google",
+              "facebook"
+            ]
+          },
+          "token": {
+            "type": "string",
+            "description": "Google: the ID token (credential). Facebook: the user's access token."
+          },
+          "termsAccepted": {
+            "type": "boolean",
+            "description": "Must be true when this creates the account (TERMS_NOT_ACCEPTED otherwise)."
+          },
+          "marketingConsent": {
+            "type": "boolean"
+          },
+          "preferredLanguage": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr"
+            ]
+          }
+        },
+        "required": [
+          "provider",
+          "token"
+        ]
+      },
+      "GoogleProviderDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "example": "000000000000-web.apps.googleusercontent.com"
+          }
+        },
+        "required": [
+          "clientId"
+        ]
+      },
+      "FacebookProviderDto": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "example": "000000000000000"
+          }
+        },
+        "required": [
+          "appId"
+        ]
+      },
+      "SocialProvidersDto": {
+        "type": "object",
+        "properties": {
+          "google": {
+            "nullable": true,
+            "description": "Null when Google sign-in is off",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GoogleProviderDto"
+              }
+            ]
+          },
+          "facebook": {
+            "nullable": true,
+            "description": "Null when Facebook sign-in is off",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FacebookProviderDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "google",
+          "facebook"
         ]
       },
       "RegisterDto": {

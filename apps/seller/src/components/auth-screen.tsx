@@ -10,6 +10,7 @@ import {
   safeNextPath,
   type AuthLabels,
   type CountryOption,
+  type SocialConfig,
 } from '@am/ui';
 import { useSession } from '@/components/session-provider';
 import { useRouter } from '@/i18n/navigation';
@@ -23,7 +24,15 @@ const WEB_URL = config.webUrl;
 const DETAIL_DEFAULTS = { attemptsLeft: 0, minLength: 10, retryAfterSeconds: 30 };
 
 /** The sign-in screens from `@am/ui`, given this app's words, API calls and navigation. */
-export function AuthScreen({ next, countries }: { next?: string; countries: CountryOption[] }) {
+export function AuthScreen({
+  next,
+  countries,
+  social,
+}: {
+  next?: string;
+  countries: CountryOption[];
+  social?: SocialConfig;
+}) {
   const locale = useLocale() as Locale;
   const t = useTranslations('auth');
   const errors = useTranslations('errors');
@@ -55,6 +64,7 @@ export function AuthScreen({ next, countries }: { next?: string; countries: Coun
       locale={locale}
       emirates={emirates}
       countries={countries}
+      social={social}
       termsHref={`${WEB_URL}/${locale}/legal/terms`}
       privacyHref={`${WEB_URL}/${locale}/legal/privacy`}
       errorText={(code, details) =>

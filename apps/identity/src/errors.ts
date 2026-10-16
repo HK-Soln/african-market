@@ -16,6 +16,9 @@ const STATUS: Partial<Record<IdentityErrorCode, number>> = {
   [IdentityErrors.loginRateLimited]: 429,
   [IdentityErrors.otpSendFailed]: 502,
   [IdentityErrors.emailSendFailed]: 502,
+  [IdentityErrors.socialTokenInvalid]: 401,
+  [IdentityErrors.socialProviderDisabled]: 404,
+  [IdentityErrors.socialProviderUnavailable]: 503,
 };
 
 /** Developer-facing text. Frontends show their own translated message for the code. */
@@ -44,6 +47,10 @@ const MESSAGE: Record<IdentityErrorCode, string> = {
     'New accounts cannot sign up with a phone number from this country yet',
   [IdentityErrors.countryNotFound]: 'No such country',
   [IdentityErrors.reauthRequired]: 'Sign in again to do this',
+  [IdentityErrors.socialTokenInvalid]: 'That sign-in could not be confirmed; try again',
+  [IdentityErrors.socialProviderDisabled]: 'That sign-in option is not available',
+  [IdentityErrors.socialProviderUnavailable]:
+    'The sign-in provider could not be reached; try again',
 };
 
 /** The one place identity turns an error code into what goes back over TCP. */

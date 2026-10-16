@@ -192,6 +192,10 @@ Location discovery and search, Contact, UAE specifics.
 
   > Note: delivered in three pull requests (decision T-34). Part 1, public: search nearby and map,
   > emirates with the search switch, shop by slug and its products, product, categories.
+  > Part 2, seller (decision T-35): `/seller/shops` (list, create, get, change with logo and
+  > gallery), branches, weekly and special hours, contact analytics, verification (status, start and
+  > refresh KYC, submit, trade licence), products (list, create with images, change, status,
+  > listings, remove) and branch stock; staff image uploads follow the shop's setting.
 
 - [ ] **F1-09 Social sign-in** (depends on Phase 0)
       Google and Facebook sign-in on web and seller (decision P-10; Apple is dropped): verify the

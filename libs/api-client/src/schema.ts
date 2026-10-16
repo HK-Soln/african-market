@@ -507,6 +507,340 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/seller/shops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The shops I own or work in */
+        get: operations["SellerShopsController_list_v1"];
+        put?: never;
+        /**
+         * Create a shop
+         * @description A draft owned by me. Add the logo and gallery afterwards (uploads need the shop id).
+         */
+        post: operations["SellerShopsController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A shop I work in, with its branches */
+        get: operations["SellerShopsController_get_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change a shop
+         * @description Owners and managers. New logo and gallery ids are confirmed uploads for this shop.
+         */
+        patch: operations["SellerShopsController_update_v1"];
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/branches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a branch
+         * @description Owners and managers; at most 50 a shop.
+         */
+        post: operations["SellerShopsController_addBranch_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a branch */
+        delete: operations["SellerShopsController_deleteBranch_v1"];
+        options?: never;
+        head?: never;
+        /** Change a branch */
+        patch: operations["SellerShopsController_updateBranch_v1"];
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}/hours": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the weekly hours
+         * @description Replaces the week; empty: closed.
+         */
+        put: operations["SellerShopsController_setHours_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}/special-hours/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the hours of one date (Eid, Ramadan nights) */
+        put: operations["SellerShopsController_setSpecialHours_v1"];
+        post?: never;
+        /** Go back to the weekly hours on a date */
+        delete: operations["SellerShopsController_deleteSpecialHours_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * WhatsApp, call and email taps
+         * @description Owners and managers: by Dubai day, channel and product, for 7, 30 or 90 days.
+         */
+        get: operations["SellerShopsController_contacts_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where the shop stands: identity check, licence and listing */
+        get: operations["SellerVerificationController_get_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/verification/kyc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start the identity check
+         * @description The owner only. Returns the provider's page; an unfinished check is resumed.
+         */
+        post: operations["SellerVerificationController_startKyc_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/verification/kyc/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask for the identity check result
+         * @description When the owner comes back from the provider page.
+         */
+        post: operations["SellerVerificationController_refreshKyc_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/verification/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask for the shop to be listed
+         * @description The owner; needs a branch, a contact and the identity check started.
+         */
+        post: operations["SellerVerificationController_submit_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/verification/trade-license": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send the trade licence
+         * @description The owner; `documentMediaId` is a confirmed trade_license upload for this shop.
+         */
+        post: operations["SellerVerificationController_tradeLicense_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The shop's products, in every status */
+        get: operations["SellerProductsController_list_v1"];
+        put?: never;
+        /**
+         * Create a product (a draft)
+         * @description Owners and managers. Images are confirmed product_image uploads for this shop.
+         */
+        post: operations["SellerProductsController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/products/{productId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a product */
+        delete: operations["SellerProductsController_remove_v1"];
+        options?: never;
+        head?: never;
+        /**
+         * Change a product
+         * @description Changing what was reviewed (category, texts, images, declaration) reviews it again.
+         */
+        patch: operations["SellerProductsController_update_v1"];
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/products/{productId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Publish, hide, or back to draft
+         * @description Food, restricted and previously rejected products go to review before they show.
+         */
+        put: operations["SellerProductsController_setStatus_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/products/{productId}/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Where the product is: branches, stock and branch prices */
+        put: operations["SellerProductsController_setListings_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seller/shops/{shopId}/branches/{branchId}/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Stock at a branch
+         * @description Branch staff too: in stock and quantity of variants already listed there.
+         */
+        put: operations["SellerProductsController_updateStock_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1025,6 +1359,413 @@ export interface components {
             items: components["schemas"]["ProductDto"][];
             nextCursor: string | null;
             prevCursor: string | null;
+        };
+        TradeLicenseDto: {
+            legalName: string | null;
+            number: string | null;
+            issuingAuthority: string | null;
+            expiry: string | null;
+        };
+        SellerBranchDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            emirate: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            area: string | null;
+            addressLine: string | null;
+            makani: string | null;
+            location: components["schemas"]["LatLngDto"];
+            serviceArea: components["schemas"]["MultiPolygonDto"] | null;
+            serviceRadiusM: number | null;
+            pickup: boolean;
+            delivery: boolean;
+            deliveryFeeFils: number;
+            minOrderFils: number;
+            contactWhatsapp: string | null;
+            contactPhone: string | null;
+            contactEmail: string | null;
+            isPrimary: boolean;
+            openingHours: components["schemas"]["OpeningHoursDto"][];
+            specialHours: components["schemas"]["SpecialHoursDto"][];
+            /** Format: uuid */
+            shopId: string;
+        };
+        SellerShopDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            description: components["schemas"]["LocalizedTextDto"];
+            /** Format: uuid */
+            logoMediaId: string | null;
+            galleryMediaIds: string[];
+            categoryIds: string[];
+            originCountries: string[];
+            contactWhatsapp: string | null;
+            contactPhone: string | null;
+            contactEmail: string | null;
+            /** @enum {string} */
+            verificationStatus: "draft" | "pending" | "verified" | "rejected" | "suspended";
+            /** @description Why it was rejected or suspended */
+            verificationReason: string | null;
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** @enum {string} */
+            kycStatus: "none" | "pending" | "passed" | "failed";
+            tradeLicense: components["schemas"]["TradeLicenseDto"];
+            checkoutEnabled: boolean;
+            codEnabled: boolean;
+            staffCanUploadProductImages: boolean;
+            /** Format: uuid */
+            ownerId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            branches: components["schemas"]["SellerBranchDto"][];
+        };
+        SellerShopPageDto: {
+            items: components["schemas"]["SellerShopDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
+        };
+        LocalizedInput: {
+            en?: string;
+            ar?: string;
+            fr?: string;
+        };
+        CreateShopBody: {
+            /** @example Lagos Kitchen */
+            name: string;
+            description?: components["schemas"]["LocalizedInput"];
+            categoryIds?: string[];
+            /**
+             * @example [
+             *       "NG",
+             *       "GH"
+             *     ]
+             */
+            originCountries?: string[];
+            /** @example 050 123 4567 */
+            contactWhatsapp?: string | null;
+            contactPhone?: string | null;
+            contactEmail?: string | null;
+            /** @description Staff may upload product images too */
+            staffCanUploadProductImages?: boolean;
+        };
+        UpdateShopBody: {
+            /** @example Lagos Kitchen */
+            name?: string;
+            description?: components["schemas"]["LocalizedInput"];
+            categoryIds?: string[];
+            /**
+             * @example [
+             *       "NG",
+             *       "GH"
+             *     ]
+             */
+            originCountries?: string[];
+            /** @example 050 123 4567 */
+            contactWhatsapp?: string | null;
+            contactPhone?: string | null;
+            contactEmail?: string | null;
+            /** @description Staff may upload product images too */
+            staffCanUploadProductImages?: boolean;
+            /**
+             * Format: uuid
+             * @description A confirmed shop_logo upload; null removes the logo
+             */
+            logoMediaId?: string | null;
+            /** @description Confirmed shop_gallery uploads, in order */
+            galleryMediaIds?: string[];
+        };
+        LatLngInput: {
+            lat: number;
+            lng: number;
+        };
+        MultiPolygonInput: {
+            /** @enum {string} */
+            type: "MultiPolygon";
+            /** @description GeoJSON coordinates, longitude first */
+            coordinates: components["schemas"]["MultiPolygonDto"];
+        };
+        CreateBranchBody: {
+            /** @example Al Nahda */
+            name: string;
+            /** @enum {string} */
+            emirate: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            /** @description The pin; must be in the UAE */
+            location: components["schemas"]["LatLngInput"];
+            area?: string | null;
+            addressLine?: string | null;
+            /** @example 1234567890 */
+            makani?: string | null;
+            /** @description Drawn delivery area */
+            serviceArea?: components["schemas"]["MultiPolygonInput"] | null;
+            /** @description Or a delivery radius, metres */
+            serviceRadiusM?: number | null;
+            pickup?: boolean;
+            delivery?: boolean;
+            /** @description Fils */
+            deliveryFeeFils?: number;
+            /** @description Fils */
+            minOrderFils?: number;
+            contactWhatsapp?: string | null;
+            contactPhone?: string | null;
+            contactEmail?: string | null;
+            isPrimary?: boolean;
+        };
+        UpdateBranchBody: {
+            /** @example Al Nahda */
+            name?: string;
+            /** @enum {string} */
+            emirate?: "DXB" | "AUH" | "SHJ" | "AJM" | "UAQ" | "RAK" | "FUJ";
+            /** @description The pin; must be in the UAE */
+            location?: components["schemas"]["LatLngInput"];
+            area?: string | null;
+            addressLine?: string | null;
+            /** @example 1234567890 */
+            makani?: string | null;
+            /** @description Drawn delivery area */
+            serviceArea?: components["schemas"]["MultiPolygonInput"] | null;
+            /** @description Or a delivery radius, metres */
+            serviceRadiusM?: number | null;
+            pickup?: boolean;
+            delivery?: boolean;
+            /** @description Fils */
+            deliveryFeeFils?: number;
+            /** @description Fils */
+            minOrderFils?: number;
+            contactWhatsapp?: string | null;
+            contactPhone?: string | null;
+            contactEmail?: string | null;
+            isPrimary?: boolean;
+        };
+        OpeningHoursInput: {
+            /** @description 0 = Sunday */
+            weekday: number;
+            /** @example 09:00 */
+            opensAt: string;
+            /**
+             * @description Earlier than opensAt: past midnight
+             * @example 21:00
+             */
+            closesAt: string;
+        };
+        SetOpeningHoursBody: {
+            /** @description The whole week; empty: closed */
+            hours: components["schemas"]["OpeningHoursInput"][];
+        };
+        SetSpecialHoursBody: {
+            closed: boolean;
+            /** @example 20:00 */
+            opensAt: string | null;
+            /** @example 03:00 */
+            closesAt: string | null;
+            /**
+             * @example {
+             *       "en": "Eid",
+             *       "ar": "العيد"
+             *     }
+             */
+            label: components["schemas"]["LocalizedInput"] | null;
+        };
+        ChannelCountsDto: {
+            whatsapp: number;
+            call: number;
+            email: number;
+        };
+        ContactDayDto: {
+            /** @example 2026-10-12 */
+            date: string;
+            whatsapp: number;
+            call: number;
+            email: number;
+        };
+        ProductContactsDto: {
+            /** Format: uuid */
+            productId: string;
+            count: number;
+        };
+        ContactStatsDto: {
+            /** Format: uuid */
+            shopId: string;
+            /** @enum {number} */
+            days: 7 | 30 | 90;
+            /** @example 2026-10-07 */
+            from: string;
+            /** @example 2026-10-13 */
+            to: string;
+            total: number;
+            byChannel: components["schemas"]["ChannelCountsDto"];
+            /** @description Every day, Asia/Dubai, oldest first */
+            byDay: components["schemas"]["ContactDayDto"][];
+            /** @description Top 20 */
+            byProduct: components["schemas"]["ProductContactsDto"][];
+        };
+        KycSummaryDto: {
+            providerStatus: string;
+            documentType: string | null;
+            issuingState: string | null;
+            nationality: string | null;
+            documentExpiry: string | null;
+            fullName: string | null;
+            idStatus: string | null;
+            livenessStatus: string | null;
+            livenessScore: number | null;
+            faceMatchStatus: string | null;
+            faceMatchScore: number | null;
+            warnings: string[];
+        };
+        VerificationRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** @enum {string} */
+            type: "kyc" | "trade_license";
+            /** @enum {string} */
+            status: "started" | "pending" | "approved" | "rejected" | "expired";
+            /** @description Admins only */
+            kyc: components["schemas"]["KycSummaryDto"] | null;
+            /**
+             * Format: uuid
+             * @description Admins only
+             */
+            documentMediaId: string | null;
+            reason: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt: string | null;
+        };
+        VerificationOverviewDto: {
+            shop: components["schemas"]["SellerShopDto"];
+            requests: components["schemas"]["VerificationRequestDto"][];
+        };
+        StartKycBody: {
+            /**
+             * @description Language of the hosted page
+             * @enum {string}
+             */
+            locale?: "en" | "ar" | "fr";
+        };
+        StartKycResponseDto: {
+            /** Format: uuid */
+            requestId: string;
+            /** @description The provider's page: send the browser there */
+            url: string;
+        };
+        SubmitTradeLicenseBody: {
+            legalName: string;
+            licenseNumber: string;
+            /** @example Dubai Department of Economy and Tourism */
+            issuingAuthority: string;
+            /** @example 2027-06-30 */
+            expiry: string;
+            /**
+             * Format: uuid
+             * @description A confirmed trade_license upload
+             */
+            documentMediaId: string;
+        };
+        FoodDeclarationInput: {
+            /**
+             * @description Packaged, labelled with maker, origin, ingredients, expiry
+             * @enum {boolean}
+             */
+            packagedAndLabelled: true;
+            /**
+             * @description Not fresh meat, unlabelled goods or herbal medicine
+             * @enum {boolean}
+             */
+            noRestrictedItems: true;
+            /** @enum {string} */
+            storage: "ambient" | "chilled" | "frozen";
+            manufacturer?: string | null;
+            /** @description e.g. Dubai Municipality Montaji */
+            registrationNumber?: string | null;
+        };
+        VariantInput: {
+            /**
+             * Format: uuid
+             * @description An existing variant to keep
+             */
+            id?: string;
+            sku?: string | null;
+            /**
+             * @example {
+             *       "size": "5 kg"
+             *     }
+             */
+            options?: {
+                [key: string]: string;
+            };
+            /** @description Fils, VAT included */
+            priceFils?: number | null;
+            compareAtFils?: number | null;
+        };
+        CreateProductBody: {
+            /** Format: uuid */
+            categoryId: string;
+            title: components["schemas"]["LocalizedInput"];
+            description?: components["schemas"]["LocalizedInput"];
+            /** @example NG */
+            originCountry?: string | null;
+            /** @description Confirmed product_image uploads, in order */
+            imageMediaIds?: string[];
+            /** @description Food categories */
+            foodDeclaration?: components["schemas"]["FoodDeclarationInput"] | null;
+            /** @description The whole list; at least one */
+            variants: components["schemas"]["VariantInput"][];
+        };
+        UpdateProductBody: {
+            /** Format: uuid */
+            categoryId?: string;
+            title?: components["schemas"]["LocalizedInput"];
+            description?: components["schemas"]["LocalizedInput"];
+            /** @example NG */
+            originCountry?: string | null;
+            /** @description Confirmed product_image uploads, in order */
+            imageMediaIds?: string[];
+            /** @description Food categories */
+            foodDeclaration?: components["schemas"]["FoodDeclarationInput"] | null;
+            /** @description The whole list; at least one */
+            variants?: components["schemas"]["VariantInput"][];
+        };
+        SetProductStatusBody: {
+            /**
+             * @description active publishes, or sends to review when the category needs it
+             * @enum {string}
+             */
+            status: "active" | "hidden" | "draft";
+        };
+        ListingInput: {
+            /** Format: uuid */
+            branchId: string;
+            /** Format: uuid */
+            variantId: string;
+            inStock: boolean;
+            quantity?: number | null;
+            /** @description Fils */
+            priceOverrideFils?: number | null;
+        };
+        SetListingsBody: {
+            /** @description Replaces every listing of the product */
+            listings: components["schemas"]["ListingInput"][];
+        };
+        StockItemInput: {
+            /** Format: uuid */
+            variantId: string;
+            inStock: boolean;
+            quantity?: number | null;
+        };
+        UpdateStockBody: {
+            items: components["schemas"]["StockItemInput"][];
+        };
+        UpdatedCountDto: {
+            updated: number;
         };
     };
     responses: never;
@@ -1758,6 +2499,577 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductPageDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_list_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (draft, pending, verified, rejected, suspended) */
+                "filter[verificationStatus]"?: string;
+                /** @description enum (draft, pending, verified, rejected, suspended), comma-separated */
+                "filter[verificationStatus][in]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: createdAt, name. Default: -createdAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerShopPageDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShopBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerShopDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerShopDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShopBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerShopDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_addBranch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBranchBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerBranchDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_deleteBranch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                branchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SellerShopsController_updateBranch_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                branchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBranchBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerBranchDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_setHours_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                branchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetOpeningHoursBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerBranchDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_setSpecialHours_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                branchId: string;
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetSpecialHoursBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerBranchDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_deleteSpecialHours_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                branchId: string;
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerBranchDto"];
+                };
+            };
+        };
+    };
+    SellerShopsController_contacts_v1: {
+        parameters: {
+            query: {
+                days: 7 | 30 | 90;
+            };
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactStatsDto"];
+                };
+            };
+        };
+    };
+    SellerVerificationController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    SellerVerificationController_startKyc_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartKycBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartKycResponseDto"];
+                };
+            };
+        };
+    };
+    SellerVerificationController_refreshKyc_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    SellerVerificationController_submit_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    SellerVerificationController_tradeLicense_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitTradeLicenseBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOverviewDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_list_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (draft, pending_review, active, hidden, rejected) */
+                "filter[status]"?: string;
+                /** @description enum (draft, pending_review, active, hidden, rejected), comma-separated */
+                "filter[status][in]"?: string;
+                /** @description uuid */
+                "filter[categoryId]"?: string;
+                /** @description uuid, comma-separated */
+                "filter[categoryId][in]"?: string;
+                /** @description enum (product, service) */
+                "filter[type]"?: string;
+                /** @description string, contains, case-insensitive */
+                "filter[search][like]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: createdAt, updatedAt. Default: -createdAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPageDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_create_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_remove_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SellerProductsController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_setStatus_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetProductStatusBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_setListings_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetListingsBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_updateStock_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                branchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStockBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdatedCountDto"];
                 };
             };
         };

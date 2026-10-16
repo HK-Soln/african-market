@@ -410,11 +410,29 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: the keys are optional (empty means off) rather than required: observability does not
   > change what an app does, and each app logs at start what is on.
 
-- [ ] **F0-16 Privacy basics (UAE PDPL)** (depends on F0-08)
+- [x] **F0-16 Privacy basics (UAE PDPL)** (depends on F0-08)
       Privacy policy and terms pages in en/ar (placeholder legal text, clearly marked for legal review),
       cookie/consent notice, `GET /me/export` (JSON of the user's identity data) and `DELETE /me`
       (soft-delete + anonymise PII after 30 days via a scheduled job; publishes `user.deleted`, add it to
       contracts). Record consent versions on the user.
+
+  > Note: decision T-23. The legal texts are drafts written to match what the platform does, in
+  > en and ar (fr shows the English until Phase 2), with a banner saying they await legal review;
+  > company details, providers, retention periods for orders, the minimum age and the liability
+  > clause are [bracketed] for the owner and a lawyer. They are versioned (`LEGAL_VERSIONS`), and
+  > accepting the terms records both versions on the user.
+  > Note: deleting needs a sign-in from the last 10 minutes (`auth_time` in the access token): a
+  > stolen or left-open session cannot erase someone's account. The account closes at once
+  > (signed out everywhere, phone and email free again); the 30 days before erasure leave time to
+  > look into a mistaken or fraudulent deletion, and are not a way to undo it yourself.
+  > Note: `user.deleted` carries `eraseBy`; services that keep personal data (shops, messaging,
+  > orders, media for the avatar) must consume it from Phase 1. Orders kept for tax law will need
+  > their own retention rule in Phase 3.
+  > Note: also deleted: everyone's one-time codes after 7 days (they hold phone numbers and emails
+  > and were kept forever).
+  > Note: the cookie notice informs rather than asks: only necessary storage is used (sign-in
+  > cookies, language, browser notes). It must become a real choice before any analytics or
+  > advertising is added. The account page also lets people withdraw marketing consent.
 
 - [ ] **F0-17 Staging sign-off** (depends on all above)
       Deploy to staging. Walk sign-up by phone and by email in English and Arabic on a phone browser,

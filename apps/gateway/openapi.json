@@ -395,6 +395,69 @@
         "tags": [
           "me"
         ]
+      },
+      "delete": {
+        "description": "Closes the account at once and signs it out everywhere; its personal data is erased 30 days later. Needs a sign-in in the last 10 minutes, otherwise 403 AUTH_REAUTH_REQUIRED.",
+        "operationId": "MeController_deleteMe_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteMeResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "AUTH_REAUTH_REQUIRED: sign in again, then retry."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete your account",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/export": {
+      "get": {
+        "description": "Profile, consents, sign-in methods, sign-ins with their devices, addresses and shop roles. Never secrets. Sent as a file (Content-Disposition: attachment).",
+        "operationId": "MeController_exportMe_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The export (format african-market.identity/1).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download everything identity holds about you, as JSON",
+        "tags": [
+          "me"
+        ]
       }
     },
     "/api/v1/countries": {
@@ -1097,6 +1160,25 @@
             "description": "True records consent now; false withdraws it."
           }
         }
+      },
+      "DeleteMeResponseDto": {
+        "type": "object",
+        "properties": {
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the account was closed."
+          },
+          "erasedAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When its personal data will have been erased (30 days later)."
+          }
+        },
+        "required": [
+          "deletedAt",
+          "erasedAfter"
+        ]
       },
       "CountryNameDto": {
         "type": "object",

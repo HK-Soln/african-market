@@ -9,6 +9,7 @@ const STATUS: Partial<Record<IdentityErrorCode, number>> = {
   [IdentityErrors.countryNotFound]: 404,
   [IdentityErrors.userSuspended]: 403,
   [IdentityErrors.emailNotVerified]: 403,
+  [IdentityErrors.reauthRequired]: 403,
   [IdentityErrors.otpTooManyAttempts]: 429,
   [IdentityErrors.otpResendTooSoon]: 429,
   [IdentityErrors.otpRateLimited]: 429,
@@ -42,6 +43,7 @@ const MESSAGE: Record<IdentityErrorCode, string> = {
   [IdentityErrors.phoneCountryNotSupported]:
     'New accounts cannot sign up with a phone number from this country yet',
   [IdentityErrors.countryNotFound]: 'No such country',
+  [IdentityErrors.reauthRequired]: 'Sign in again to do this',
 };
 
 /** The one place identity turns an error code into what goes back over TCP. */

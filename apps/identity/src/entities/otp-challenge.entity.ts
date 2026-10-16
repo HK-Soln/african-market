@@ -14,6 +14,7 @@ export type OtpPurpose = (typeof OTP_PURPOSES)[number];
  */
 @Entity({ name: 'otp_challenge' })
 @Index('otp_challenge_target_idx', ['target', 'purpose', 'createdAt'])
+@Index('otp_challenge_created_idx', ['createdAt'])
 @Check('otp_challenge_channel_chk', `channel IN ('sms', 'whatsapp', 'email')`)
 @Check('otp_challenge_purpose_chk', `purpose IN ('signup', 'login', 'verify', 'reset')`)
 @Check('otp_challenge_attempts_chk', `attempts >= 0`)

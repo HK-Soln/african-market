@@ -5,9 +5,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { textDirection, type Locale } from '@am/i18n';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
 import { AccountMenu } from '@/components/account-menu';
+import { CookieNotice } from '@/components/cookie-notice';
 import { InstallPrompt } from '@/components/install-prompt';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SessionProvider } from '@/components/session-provider';
+import { SiteFooter } from '@/components/site-footer';
 import { routing } from '@/i18n/routing';
 import { Logo } from '@am/ui';
 import { fontVariables } from '../fonts';
@@ -66,7 +68,9 @@ export default async function LocaleLayout({
               </div>
             </header>
             {children}
+            <SiteFooter />
             <InstallPrompt />
+            <CookieNotice />
           </SessionProvider>
           <ServiceWorkerRegistrar />
         </NextIntlClientProvider>

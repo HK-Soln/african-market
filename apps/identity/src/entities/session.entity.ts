@@ -35,6 +35,10 @@ export class Session extends AppBaseEntity {
   @Column({ type: 'timestamptz' })
   expiresAt!: Date;
 
+  /** When the person signed in to start this family; copied on every rotation. */
+  @Column({ type: 'timestamptz', default: () => 'now()' })
+  authenticatedAt!: Date;
+
   @Column({ type: 'timestamptz', nullable: true })
   revokedAt!: Date | null;
 

@@ -67,7 +67,7 @@ export class SessionService {
    * transaction, so a sign-in that rolls back leaves no session behind.
    */
   async start(manager: EntityManager, user: User, context: SessionContext): Promise<SessionTokens> {
-    return (await this.issue(manager, user, randomUUID(), context)).tokens;
+    return (await this.issue(manager, user, randomUUID(), new Date(), context)).tokens;
   }
 
   /**
@@ -113,7 +113,13 @@ export class SessionService {
         return { error: user ? IdentityErrors.userSuspended : IdentityErrors.sessionInvalid };
       }
 
-      const issued = await this.issue(manager, user, session.familyId, input);
+      const issued = await this.issue(
+        manager,
+        user,
+        session.familyId,
+        session.authenticatedAt,
+        input,
+      );
       if (!session.replacedBy) {
         await manager.update(Session, { id: session.id }, { replacedBy: issued.sessionId });
       }
@@ -146,6 +152,7 @@ export class SessionService {
     manager: EntityManager,
     user: User,
     familyId: string,
+    authenticatedAt: Date,
     context: SessionContext,
   ): Promise<{ sessionId: string; tokens: SessionTokens }> {
     const sessionId = randomUUID();
@@ -162,6 +169,7 @@ export class SessionService {
       // The column is `inet`; anything that is not an address is dropped, not stored.
       ip: context.ip && isIP(context.ip) ? context.ip : null,
       expiresAt: refreshExpiresAt,
+      authenticatedAt,
     });
 
     const claims: AccessTokenClaims = {
@@ -169,6 +177,7 @@ export class SessionService {
       roles: user.roles,
       shops: await loadMemberships(manager, user.id),
       locale: user.preferredLanguage,
+      auth_time: Math.floor(authenticatedAt.getTime() / 1000),
     };
     return {
       sessionId,

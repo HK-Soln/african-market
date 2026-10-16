@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { BottomSheet, Button, IconButton } from '@am/ui';
 import { useSession } from '@/components/session-provider';
+import { config } from '@/lib/config';
 import { usePathname, useRouter } from '@/i18n/navigation';
 
 /**
@@ -13,6 +14,7 @@ import { usePathname, useRouter } from '@/i18n/navigation';
  */
 export function AccountMenu() {
   const t = useTranslations('account');
+  const locale = useLocale();
   const session = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -55,20 +57,29 @@ export function AccountMenu() {
         open={open}
         onClose={() => setOpen(false)}
         footer={
-          <Button
-            fullWidth
-            loading={leaving}
-            loadingLabel={t('signingOut')}
-            onClick={async () => {
-              setLeaving(true);
-              await session.signOut();
-              setLeaving(false);
-              setOpen(false);
-              router.refresh();
-            }}
-          >
-            {t('signOut')}
-          </Button>
+          <div className="flex flex-col gap-3">
+            {/* Download and deletion live on the customer site, for every kind of account. */}
+            <a
+              href={`${config.webUrl}/${locale}/account`}
+              className="text-center font-semibold text-clay underline"
+            >
+              {t('yourData')}
+            </a>
+            <Button
+              fullWidth
+              loading={leaving}
+              loadingLabel={t('signingOut')}
+              onClick={async () => {
+                setLeaving(true);
+                await session.signOut();
+                setLeaving(false);
+                setOpen(false);
+                router.refresh();
+              }}
+            >
+              {t('signOut')}
+            </Button>
+          </div>
         }
       />
     </>

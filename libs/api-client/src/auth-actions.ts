@@ -71,6 +71,12 @@ export function createAuthActions(client: ApiClient) {
     updateProfile: (body: Schemas['UpdateMeDto']) => toResult(client.PATCH('/api/v1/me', { body })),
 
     logout: () => toResult(client.POST('/api/v1/auth/logout')),
+
+    /** Everything identity holds about the signed-in person (PersonalDataExport in @am/contracts). */
+    exportData: () => toResult(client.GET('/api/v1/me/export')),
+
+    /** Closes the account; AUTH_REAUTH_REQUIRED when the last sign-in is over 10 minutes old. */
+    deleteAccount: () => toResult(client.DELETE('/api/v1/me')),
   };
 }
 

@@ -30,6 +30,7 @@ export interface EventEnvelope<TName extends EventName = EventName> {
 
 export interface EventPayloads {
   'user.registered': { userId: string; phone?: string; email?: string; preferredLanguage: string };
+  'user.deleted': { userId: string; deletedAt: string; eraseBy: string };
   'membership.changed': {
     userId: string;
     shopId: string;
@@ -96,6 +97,16 @@ export const EVENT_CATALOG: { [N in EventName]: EventDoc<N> } = {
       phone: 'E.164 phone, when the account was created by phone.',
       email: 'Email address, when the account was created by email.',
       preferredLanguage: 'en, ar or fr; the language to greet them in.',
+    },
+  },
+  'user.deleted': {
+    description:
+      'A person deleted their account: it is closed now, and every service must erase their personal data by eraseBy.',
+    publisher: 'identity',
+    payload: {
+      userId: 'The user whose account was deleted.',
+      deletedAt: 'ISO-8601 UTC: when it was closed; hide their content from then on.',
+      eraseBy: 'ISO-8601 UTC: by when copies of their personal data must be erased.',
     },
   },
   'membership.changed': {

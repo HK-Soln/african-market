@@ -6,7 +6,7 @@ Phase introduced: **0** (see `docs/directives/`).
 | -------------------------- | ---------------------------------------------------------------------------------------------- |
 | Owns                       | Users, credentials, OTP, sessions and refresh tokens, roles, shop memberships, saved addresses |
 | Tables (schema `identity`) | user, credential, otp_challenge, session (refresh token family), shop_member, address          |
-| Publishes                  | `user.registered`, `membership.changed`                                                        |
+| Publishes                  | `user.registered`, `user.deleted`, `membership.changed`                                        |
 | Consumes                   | `shop.created` (create the owner membership)                                                   |
 | Ports (dev)                | TCP and HTTP from `SERVICES.identity` in `libs/contracts/src/services.ts`                      |
 
@@ -69,6 +69,23 @@ Phase introduced: **0** (see `docs/directives/`).
 - The access token carries `sub`, `roles`, `shops` and `locale`, read from the database each time
   one is issued, so role and membership changes arrive at the next refresh.
 - A suspended user cannot refresh, and trying signs that session out.
+
+## Privacy (F0-16, UAE PDPL)
+
+| Pattern (`IdentityPatterns`) | What it does                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `exportMe`                   | Everything identity holds about the person, as JSON (`PersonalDataExport`); never secrets.     |
+| `deleteMe`                   | Closes the account and signs it out everywhere; queues `user.deleted`. Needs a recent sign-in. |
+
+- Accepting the terms stores `terms_version` and `privacy_version` (`LEGAL_VERSIONS` in
+  `@am/contracts`) with `terms_accepted_at`.
+- The access token carries `auth_time`, the sign-in time of its session family, kept across
+  refreshes. Deleting the account needs it to be under 10 minutes old (`AUTH_REAUTH_REQUIRED`).
+- A deleted account is soft-deleted at once: nobody can sign in to it, and its phone and email are
+  free for a new account. `AccountErasure` (hourly) erases it `ACCOUNT_ERASURE_DAYS` (30) later:
+  phone, email, name, home emirate, avatar and marketing consent are cleared and `erased_at` set;
+  sessions, sign-in methods, addresses, shop memberships and one-time codes are deleted. The same
+  job deletes everyone's one-time codes after 7 days.
 
 Rules: never read another service's schema; publish events through `OutboxService.enqueue` inside
 the same transaction as the change; wrap every consumer in `IdempotentConsumer.handle`; add new

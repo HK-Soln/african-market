@@ -90,7 +90,9 @@
     "sendResetCode": "Send reset code",
     "resetTitle": "Choose a new password",
     "resetBody": "If there is an account for it, we emailed a 6-digit code to",
-    "setPassword": "Save new password"
+    "setPassword": "Save new password",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook"
   },
   "errors": {
     "PHONE_COUNTRY_NOT_SUPPORTED": "Sign-up with a number from this country is not available yet. Use another number or your email.",
@@ -118,7 +120,10 @@
     "LOGIN_RATE_LIMITED": "Too many sign-in attempts. Try again in 15 minutes or reset your password.",
     "EMAIL_SEND_FAILED": "We couldn’t send the email. Try again.",
     "SESSION_INVALID": "Your session has ended. Sign in again.",
-    "SESSION_REUSED": "For your safety you were signed out. Sign in again."
+    "SESSION_REUSED": "For your safety you were signed out. Sign in again.",
+    "SOCIAL_TOKEN_INVALID": "That sign-in could not be confirmed. Try again.",
+    "SOCIAL_PROVIDER_DISABLED": "That sign-in option is not available.",
+    "SOCIAL_PROVIDER_UNAVAILABLE": "The sign-in service could not be reached. Try again or use your phone."
   },
   "account": {
     "signIn": "Sign in",

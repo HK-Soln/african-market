@@ -6,6 +6,11 @@ import { OtpTestNumbers } from '../otp/otp-test-numbers';
 const DEV_OTP_SECRET = 'dev-only-otp-hmac-secret-change-me-0123456789';
 const DEV_ACCESS_SECRET = 'dev-only-access-secret-change-me-0123456789';
 
+const optional = z
+  .string()
+  .optional()
+  .transform((value) => value || undefined);
+
 /** Environment the identity service needs on top of the base keys. */
 export const identityEnvSchema = z.object({
   /** Signs access tokens. The gateway verifies them with the same value (decision T-11). */
@@ -26,6 +31,32 @@ export const identityEnvSchema = z.object({
    * on staging. Optional, since most environments have none; refused in production.
    */
   OTP_TEST_NUMBERS: z.string().default(''),
+  /**
+   * Social sign-in switched on here, comma-separated: `google`, `facebook`, both, or empty
+   * for none (local work without client ids). Differs per environment, so it has no default.
+   */
+  SOCIAL_PROVIDERS: z
+    .string()
+    .transform((v) =>
+      v
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.enum(['google', 'facebook']))),
+  /** Google OAuth client ids whose ID tokens are accepted (web and seller), comma-separated. */
+  GOOGLE_CLIENT_IDS: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean),
+    ),
+  FACEBOOK_APP_ID: optional,
+  /** The Facebook app secret (Secrets Manager in AWS). */
+  FACEBOOK_APP_SECRET: optional,
 });
 
 export type IdentityEnv = BaseEnv & z.infer<typeof identityEnvSchema>;
@@ -45,6 +76,13 @@ export function assertSafeIdentityEnv(env: IdentityEnv): void {
     throw new Error(
       'OTP_TEST_NUMBERS signs in without a real code; it must be empty in production',
     );
+  if (env.SOCIAL_PROVIDERS.includes('google') && !env.GOOGLE_CLIENT_IDS.length)
+    throw new Error('SOCIAL_PROVIDERS has google: set GOOGLE_CLIENT_IDS');
+  if (
+    env.SOCIAL_PROVIDERS.includes('facebook') &&
+    (!env.FACEBOOK_APP_ID || !env.FACEBOOK_APP_SECRET)
+  )
+    throw new Error('SOCIAL_PROVIDERS has facebook: set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET');
   if (!isDeployed(env)) return;
   if (env.JWT_ACCESS_SECRET === DEV_ACCESS_SECRET)
     throw new Error('JWT_ACCESS_SECRET must be set to a real secret in staging and production');

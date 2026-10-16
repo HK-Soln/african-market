@@ -161,7 +161,13 @@ module "secrets" {
     },
   )
   # Didit's keys are set by hand too (Didit Console > API & Webhooks); only shops gets them.
-  manual               = concat(var.manual_secrets, local.ses ? [] : ["SMTP_URL"], ["DIDIT_API_KEY", "DIDIT_API_SECRET"])
+  # Facebook's app secret likewise (Meta for Developers > App settings), when Facebook is on.
+  manual = concat(
+    var.manual_secrets,
+    local.ses ? [] : ["SMTP_URL"],
+    ["DIDIT_API_KEY", "DIDIT_API_SECRET"],
+    var.facebook_app_id != "" ? ["FACEBOOK_APP_SECRET"] : [],
+  )
   recovery_window_days = var.protect_data ? 7 : 0
 }
 
@@ -289,6 +295,12 @@ module "service" {
   environment = merge(
     local.backend_env,
     # Seller identity verification (decision T-28): the hosted page sends sellers back here.
+    # Social sign-in (F1-09): only the providers with ids set are switched on.
+    each.key == "identity" ? {
+      SOCIAL_PROVIDERS  = join(",", compact([length(var.google_client_ids) > 0 ? "google" : "", var.facebook_app_id != "" ? "facebook" : ""]))
+      GOOGLE_CLIENT_IDS = join(",", var.google_client_ids)
+      FACEBOOK_APP_ID   = var.facebook_app_id
+    } : {},
     each.key == "shops" ? {
       KYC_PROVIDER      = "didit"
       SELLER_APP_URL    = "https://${local.hosts.seller}"
@@ -296,10 +308,11 @@ module "service" {
       DIDIT_WORKFLOW_ID = var.didit_workflow_id
     } : {},
   )
-  # Only identity may see the test numbers' codes, and only shops Didit's keys.
+  # Only identity may see the test numbers' codes and Facebook's secret, and only shops Didit's keys.
   secrets = merge(
     local.backend_secrets,
     each.key == "identity" && local.has_test_numbers ? { OTP_TEST_NUMBERS = module.secrets.arns["OTP_TEST_NUMBERS"] } : {},
+    each.key == "identity" && var.facebook_app_id != "" ? { FACEBOOK_APP_SECRET = module.secrets.arns["FACEBOOK_APP_SECRET"] } : {},
     each.key == "shops" ? {
       DIDIT_API_KEY    = module.secrets.arns["DIDIT_API_KEY"]
       DIDIT_API_SECRET = module.secrets.arns["DIDIT_API_SECRET"]
@@ -310,9 +323,14 @@ module "service" {
   otel_collector         = local.otel_collector
 
   additional_security_group_ids = [aws_security_group.backend.id]
-  ingress                       = [{ from = "gateway", source = module.gateway.security_group_id, port = each.value.tcp }]
-  discoverable                  = true
-  namespace_id                  = module.cluster.namespace_id
+  # The gateway calls every service; discovery also reads shops and catalog (decision T-31), so
+  # those two take calls from the backend group too (no service-to-service call changes data).
+  ingress = concat(
+    [{ from = "gateway", source = module.gateway.security_group_id, port = each.value.tcp }],
+    contains(["shops", "catalog"], each.key) ? [{ from = "backend", source = aws_security_group.backend.id, port = each.value.tcp }] : [],
+  )
+  discoverable = true
+  namespace_id = module.cluster.namespace_id
 }
 
 module "next" {

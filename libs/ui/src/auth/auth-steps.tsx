@@ -128,6 +128,8 @@ export interface PhoneStepProps {
   onSubmit: () => void;
   onEmail: () => void;
   onClose: () => void;
+  /** Google and Facebook buttons, when the app has them switched on. */
+  social?: ReactNode;
   termsHref: string;
   privacyHref: string;
   busy?: boolean;
@@ -146,6 +148,7 @@ export function PhoneStep({
   onSubmit,
   onEmail,
   onClose,
+  social,
   termsHref,
   privacyHref,
   busy,
@@ -215,6 +218,7 @@ export function PhoneStep({
       <Button fullWidth iconStart="mail" onClick={onEmail}>
         {labels.continueWithEmail}
       </Button>
+      {social}
 
       <BottomSheet
         title={labels.countryTitle}

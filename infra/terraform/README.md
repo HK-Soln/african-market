@@ -256,3 +256,14 @@ The shops service sends sellers to Didit's hosted page (decision T-28). Before t
   `tracing = false` (spans are still made and their ids logged) until it is.
 - **ARM.** Tasks run on x86 because CI builds x86 images. Graviton (ARM64) is cheaper; it needs
   multi-architecture builds.
+
+## Social sign-in (F1-09)
+
+Off until it is set up. To switch it on in an environment:
+
+- **Google:** create an OAuth client (Google Cloud console > APIs & Services > Credentials, type
+  "Web application") with the web and seller origins as authorised JavaScript origins, and set
+  `google_client_ids = ["<client id>"]`.
+- **Facebook:** create an app with Facebook Login (Meta for Developers), add the web and seller
+  domains, set `facebook_app_id = "<app id>"`, and put the app secret in Secrets Manager as
+  `african-market/<environment>/FACEBOOK_APP_SECRET` (only identity can read it).

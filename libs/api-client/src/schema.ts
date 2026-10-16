@@ -70,6 +70,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/social": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in with Google or Facebook
+         * @description Identity checks the provider's token with the provider. A known account signs in; a verified email of an existing account links to it; otherwise an account is created, which needs termsAccepted (400 TERMS_NOT_ACCEPTED: ask, then send again).
+         */
+        post: operations["AuthController_social_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/social/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Which social sign-in buttons to show
+         * @description Only providers switched on here, with the public ids their scripts need.
+         */
+        get: operations["AuthController_socialProviders_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -1127,6 +1167,31 @@ export interface components {
             /** Format: date-time */
             accessTokenExpiresAt: string;
         };
+        SocialSignInDto: {
+            /** @enum {string} */
+            provider: "google" | "facebook";
+            /** @description Google: the ID token (credential). Facebook: the user's access token. */
+            token: string;
+            /** @description Must be true when this creates the account (TERMS_NOT_ACCEPTED otherwise). */
+            termsAccepted?: boolean;
+            marketingConsent?: boolean;
+            /** @enum {string} */
+            preferredLanguage?: "en" | "ar" | "fr";
+        };
+        GoogleProviderDto: {
+            /** @example 000000000000-web.apps.googleusercontent.com */
+            clientId: string;
+        };
+        FacebookProviderDto: {
+            /** @example 000000000000000 */
+            appId: string;
+        };
+        SocialProvidersDto: {
+            /** @description Null when Google sign-in is off */
+            google: components["schemas"]["GoogleProviderDto"] | null;
+            /** @description Null when Facebook sign-in is off */
+            facebook: components["schemas"]["FacebookProviderDto"] | null;
+        };
         RegisterDto: {
             /** @example amina@example.com */
             email: string;
@@ -2149,6 +2214,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthSessionDto"];
+                };
+            };
+        };
+    };
+    AuthController_social_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SocialSignInDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSessionDto"];
+                };
+            };
+        };
+    };
+    AuthController_socialProviders_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialProvidersDto"];
                 };
             };
         };

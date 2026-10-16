@@ -115,6 +115,12 @@ export const IdentityErrors = {
   countryNotFound: 'COUNTRY_NOT_FOUND',
   /** The action needs a recent sign-in (deleting the account): sign in again and retry. */
   reauthRequired: 'AUTH_REAUTH_REQUIRED',
+  /** The provider's token did not check out (expired, for another app, tampered). */
+  socialTokenInvalid: 'SOCIAL_TOKEN_INVALID',
+  /** That provider is not switched on here. */
+  socialProviderDisabled: 'SOCIAL_PROVIDER_DISABLED',
+  /** The provider could not be reached; try again. */
+  socialProviderUnavailable: 'SOCIAL_PROVIDER_UNAVAILABLE',
 } as const;
 
 export type IdentityErrorCode = (typeof IdentityErrors)[keyof typeof IdentityErrors];
@@ -368,4 +374,33 @@ export interface DeleteMeResponse {
   deletedAt: string;
   /** ISO-8601 UTC: when its personal data will be gone. */
   erasedAfter: string;
+}
+
+// ---- Social sign-in (F1-09, decision P-10)
+
+export const SOCIAL_PROVIDERS = ['google', 'facebook'] as const;
+export type SocialProvider = (typeof SOCIAL_PROVIDERS)[number];
+
+/**
+ * Signs in with Google (its ID token) or Facebook (its access token), checked by identity with
+ * the provider. A known account signs in; a verified email of an existing account links to it;
+ * otherwise an account is created, which needs `termsAccepted` (TERMS_NOT_ACCEPTED otherwise, so
+ * the app can ask and send again).
+ */
+export interface SocialSignInRequest {
+  provider: SocialProvider;
+  /** Google: the ID token (credential). Facebook: the user access token. */
+  token: string;
+  termsAccepted?: boolean;
+  marketingConsent?: boolean;
+  preferredLanguage?: string;
+  ip?: string;
+  userAgent?: string;
+  correlationId?: string;
+}
+
+/** What the apps need to show the buttons: only providers that are switched on. */
+export interface SocialProvidersResponse {
+  google: { clientId: string } | null;
+  facebook: { appId: string } | null;
 }

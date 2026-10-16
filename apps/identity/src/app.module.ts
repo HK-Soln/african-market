@@ -10,6 +10,7 @@ import { OtpModule } from './otp/otp.module';
 import { RedisModule } from './redis/redis.module';
 import { SessionModule } from './sessions/session.module';
 import { SmsModule } from './sms/sms.module';
+import { SocialModule } from './social/social.module';
 import { testSupportModules } from './test-support/test-support.module';
 import { UsersModule } from './users/users.module';
 
@@ -24,6 +25,7 @@ import { UsersModule } from './users/users.module';
     CountriesModule,
     OtpModule,
     EmailAuthModule,
+    SocialModule,
     UsersModule,
     ...testSupportModules(loadNodeEnv()),
   ],

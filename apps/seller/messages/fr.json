@@ -90,7 +90,9 @@
     "sendResetCode": "Envoyer le code",
     "resetTitle": "Choisissez un nouveau mot de passe",
     "resetBody": "S’il existe un compte à cette adresse, nous avons envoyé un code à 6 chiffres à",
-    "setPassword": "Enregistrer le mot de passe"
+    "setPassword": "Enregistrer le mot de passe",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithFacebook": "Continuer avec Facebook"
   },
   "errors": {
     "PHONE_COUNTRY_NOT_SUPPORTED": "L’inscription avec un numéro de ce pays n’est pas encore possible. Utilisez un autre numéro ou votre e-mail.",
@@ -118,7 +120,10 @@
     "LOGIN_RATE_LIMITED": "Trop de tentatives de connexion. Réessayez dans 15 minutes ou réinitialisez votre mot de passe.",
     "EMAIL_SEND_FAILED": "Impossible d’envoyer l’e-mail. Réessayez.",
     "SESSION_INVALID": "Votre session est terminée. Reconnectez-vous.",
-    "SESSION_REUSED": "Par sécurité, vous avez été déconnecté. Reconnectez-vous."
+    "SESSION_REUSED": "Par sécurité, vous avez été déconnecté. Reconnectez-vous.",
+    "SOCIAL_TOKEN_INVALID": "Cette connexion n'a pas pu être confirmée. Réessayez.",
+    "SOCIAL_PROVIDER_DISABLED": "Cette option de connexion n'est pas disponible.",
+    "SOCIAL_PROVIDER_UNAVAILABLE": "Le service de connexion est injoignable. Réessayez ou utilisez votre téléphone."
   },
   "account": {
     "signIn": "Se connecter",

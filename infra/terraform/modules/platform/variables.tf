@@ -159,3 +159,15 @@ variable "didit_workflow_id" {
   description = "The Didit workflow seller verification sessions follow (Didit Console > Workflows)."
   type        = string
 }
+
+variable "google_client_ids" {
+  description = "Google OAuth client ids (web and seller) whose sign-in tokens identity accepts; empty leaves Google sign-in off."
+  type        = list(string)
+  default     = []
+}
+
+variable "facebook_app_id" {
+  description = "The Facebook app id for sign-in; empty leaves Facebook sign-in off. Its secret goes in Secrets Manager (FACEBOOK_APP_SECRET)."
+  type        = string
+  default     = ""
+}

@@ -27,6 +27,10 @@ export const IdentityPatterns = {
   /** Every country, for admins. Payload: ListRequest. */
   listAllCountries: 'identity.country.list_all',
   updateCountry: 'identity.country.update',
+  /** Google or Facebook sign-in (F1-09). */
+  socialSignIn: 'identity.social.sign_in',
+  /** Which social providers are on, with their public client ids. */
+  socialProviders: 'identity.social.providers',
 } as const;
 
 /**

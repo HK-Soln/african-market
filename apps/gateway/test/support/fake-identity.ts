@@ -141,6 +141,35 @@ export class FakeIdentityController {
     return { user, isNewUser, session: await this.issue(user) };
   }
 
+  /** A token `good:<subject>` is that person; anything else is refused. */
+  @MessagePattern(IdentityPatterns.socialSignIn)
+  async socialSignIn(@Payload() data: Data): Promise<VerifyOtpResponse> {
+    this.record(IdentityPatterns.socialSignIn, data);
+    const token = String(data.token);
+    if (!token.startsWith('good:')) throw fail(401, IdentityErrors.socialTokenInvalid);
+    if (data.termsAccepted !== true) throw fail(400, IdentityErrors.termsNotAccepted);
+    const user: UserDto = {
+      id: randomUUID(),
+      phone: null,
+      email: `${token.slice(5)}@example.com`,
+      name: null,
+      preferredLanguage: typeof data.preferredLanguage === 'string' ? data.preferredLanguage : 'en',
+      roles: ['customer'],
+      phoneVerified: false,
+      emailVerified: true,
+      homeEmirate: null,
+      marketingConsent: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.users.set(user.id, user);
+    return { user, isNewUser: true, session: await this.issue(user) };
+  }
+
+  @MessagePattern(IdentityPatterns.socialProviders)
+  socialProviders() {
+    return { google: { clientId: 'web-client.apps.googleusercontent.com' }, facebook: null };
+  }
+
   @MessagePattern(IdentityPatterns.refreshSession)
   async refresh(@Payload() data: Data): Promise<AuthenticatedUserResponse> {
     this.record(IdentityPatterns.refreshSession, data);

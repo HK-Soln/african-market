@@ -31,6 +31,7 @@ x-backend-env: &backend-env
   MEDIA_PUBLIC_BASE_URL: http://localhost:9000/am-media-public
   EMAIL_FROM: African Market <no-reply@africanmarket.local>
   SMS_PROVIDER: console # prints codes to the log: docker compose logs identity
+  SOCIAL_PROVIDERS: '' # none locally; see .env.example
   JWT_ACCESS_SECRET: dev-only-access-secret-change-me-0123456789
   OTP_HMAC_SECRET: dev-only-otp-hmac-secret-change-me-0123456789
   IDENTITY_HOST: identity

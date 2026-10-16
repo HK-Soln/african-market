@@ -7,6 +7,7 @@ import { OtpResetPurpose1791720000000 } from '../../src/migrations/1791720000000
 import { UserHomeEmirate1791800000000 } from '../../src/migrations/1791800000000-UserHomeEmirate';
 import { Countries1791900000000 } from '../../src/migrations/1791900000000-Countries';
 import { PrivacyBasics1792000000000 } from '../../src/migrations/1792000000000-PrivacyBasics';
+import { FacebookCredential1792512000000 } from '../../src/migrations/1792512000000-FacebookCredential';
 
 export type { TestDatabase };
 
@@ -21,5 +22,6 @@ export const createTestDatabase = (): Promise<TestDatabase> =>
       UserHomeEmirate1791800000000,
       Countries1791900000000,
       PrivacyBasics1792000000000,
+      FacebookCredential1792512000000,
     ],
   });

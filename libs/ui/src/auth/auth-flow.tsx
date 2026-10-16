@@ -13,6 +13,7 @@ import {
   ResetStep,
   type ProfileValues,
 } from './auth-steps';
+import { SocialButtons, type SocialConfig, type SocialProviderName } from './social-buttons';
 
 /** A call that worked, or failed with one of the gateway's stable error codes. */
 export type AuthFlowResult<T> =
@@ -73,6 +74,14 @@ export interface AuthFlowActions {
     homeEmirate?: string | null;
     marketingConsent?: boolean;
   }): Promise<AuthFlowResult<{ user: AuthFlowUser }>>;
+  /** Google or Facebook (F1-09); only needed when `social` switches one on. */
+  socialSignIn?(input: {
+    provider: SocialProviderName;
+    token: string;
+    termsAccepted?: boolean;
+    marketingConsent?: boolean;
+    preferredLanguage?: string;
+  }): Promise<AuthFlowResult<{ user: AuthFlowUser; isNewUser: boolean }>>;
 }
 
 export interface AuthFlowProps {
@@ -91,6 +100,8 @@ export interface AuthFlowProps {
   countries?: CountryOption[];
   termsHref: string;
   privacyHref: string;
+  /** Social sign-in switched on (`GET /api/v1/auth/social/providers`); none when missing. */
+  social?: SocialConfig;
   /** Close or "Not now" on the first screen. */
   onClose: () => void;
   /** Signed in. The app stores the user and moves on, in the user's own language. */
@@ -101,7 +112,13 @@ type Step =
   | { name: 'phone' }
   | { name: 'phone-code'; phone: string }
   /** `pending` is a phone whose code is right but whose account does not exist yet. */
-  | { name: 'profile'; pending?: { phone: string; code: string }; user?: AuthFlowUser }
+  | {
+      name: 'profile';
+      pending?: { phone: string; code: string };
+      /** A provider vouched for a person with no account yet; the terms create it. */
+      social?: { provider: SocialProviderName; token: string };
+      user?: AuthFlowUser;
+    }
   | { name: 'email'; mode: 'login' | 'register' }
   | { name: 'email-code'; email: string; password: string }
   | { name: 'forgot' }
@@ -138,6 +155,7 @@ export function AuthFlow({
   countries: offered,
   termsHref,
   privacyHref,
+  social,
   onClose,
   onDone,
 }: AuthFlowProps) {
@@ -202,9 +220,39 @@ export function AuthFlow({
       fail(result);
     });
 
-  const saveProfile = (values: ProfileValues, pending?: { phone: string; code: string }) =>
+  const signInWith = (provider: SocialProviderName, token: string) =>
+    run(async () => {
+      if (!actions.socialSignIn) return;
+      const result = await actions.socialSignIn({ provider, token, preferredLanguage: locale });
+      if (result.ok) return onDone(result.data.user, { isNewUser: result.data.isNewUser });
+      // A new person: the profile screen has the terms box that creates the account.
+      if (result.code === 'TERMS_NOT_ACCEPTED') {
+        return go({ name: 'profile', social: { provider, token } });
+      }
+      fail(result);
+    });
+
+  const saveProfile = (
+    values: ProfileValues,
+    pending?: { phone: string; code: string },
+    pendingSocial?: { provider: SocialProviderName; token: string },
+  ) =>
     run(async () => {
       let isNewUser = false;
+      if (pendingSocial && actions.socialSignIn) {
+        const created = await actions.socialSignIn({
+          ...pendingSocial,
+          termsAccepted: true,
+          marketingConsent: values.marketingConsent,
+          preferredLanguage: values.preferredLanguage,
+        });
+        if (!created.ok) {
+          // The provider's token ran out while the form was open: start again from the buttons.
+          if (created.code === 'SOCIAL_TOKEN_INVALID') setStep({ name: 'phone' });
+          return fail(created);
+        }
+        isNewUser = created.data.isNewUser;
+      }
       if (pending) {
         const created = await actions.verifyOtp({
           ...pending,
@@ -228,7 +276,7 @@ export function AuthFlow({
         marketingConsent: values.marketingConsent,
       });
       if (!saved.ok) return fail(saved);
-      onDone(saved.data.user, { isNewUser: isNewUser || !pending });
+      onDone(saved.data.user, { isNewUser: isNewUser || (!pending && !pendingSocial) });
     });
 
   const submitEmail = (mode: 'login' | 'register', password: string, termsAccepted: boolean) =>
@@ -315,6 +363,18 @@ export function AuthFlow({
           onSubmit={() => sendPhoneCode(composePhone(country.dialCode, number))}
           onEmail={() => go({ name: 'email', mode: 'login' })}
           onClose={onClose}
+          social={
+            social && actions.socialSignIn ? (
+              <SocialButtons
+                config={social}
+                locale={locale}
+                labels={labels}
+                busy={busy}
+                onToken={signInWith}
+                onUnavailable={() => fail({ code: 'SOCIAL_PROVIDER_UNAVAILABLE' })}
+              />
+            ) : undefined
+          }
           termsHref={termsHref}
           privacyHref={privacyHref}
           busy={busy}
@@ -347,8 +407,8 @@ export function AuthFlow({
             marketingConsent: step.user?.marketingConsent ?? false,
           }}
           emirates={emirates}
-          askTerms={!!step.pending}
-          onSubmit={(values) => saveProfile(values, step.pending)}
+          askTerms={!!step.pending || !!step.social}
+          onSubmit={(values) => saveProfile(values, step.pending, step.social)}
           // An email account already exists here, so leaving the form is simply being done.
           onBack={() => {
             if (step.user) onDone(step.user, { isNewUser: true });

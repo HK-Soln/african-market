@@ -10,6 +10,7 @@ import { CommonModule } from './common/common.module';
 import { CountriesModule } from './countries/countries.module';
 import { gatewayEnvSchema } from './env';
 import { GatewayHealthController } from './health/health.controller';
+import { MediaModule } from './media/media.module';
 import { testSupportModules } from './test-support/test-support.module';
 
 const env = loadEnv(gatewayEnvSchema);
@@ -30,6 +31,7 @@ const env = loadEnv(gatewayEnvSchema);
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     AuthModule,
     CountriesModule,
+    MediaModule,
     ...testSupportModules(loadNodeEnv()),
     // Further feature modules (shops, catalog, search, media, ...) are added per phase; see docs/directives.
   ],

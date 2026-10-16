@@ -148,13 +148,14 @@ Published by **catalog**. A product was removed from sale.
 
 ### `media.ready`
 
-Published by **media**. An uploaded image passed its checks and its sizes were generated.
+Published by **media**. An upload passed its checks and was stored: images re-encoded into their sizes, documents kept privately.
 
-| Field     | Meaning                                                |
-| --------- | ------------------------------------------------------ |
-| `mediaId` | The media item.                                        |
-| `ownerId` | The user or shop that uploaded it.                     |
-| `urls`    | Public URL per generated size, e.g. thumb, card, full. |
+| Field     | Meaning                                                                         |
+| --------- | ------------------------------------------------------------------------------- |
+| `mediaId` | The media item.                                                                 |
+| `ownerId` | The user who uploaded it.                                                       |
+| `purpose` | avatar, shop_logo, shop_gallery, product_image or trade_license.                |
+| `urls`    | Public URL per generated size (thumb, card, full); empty for private documents. |
 
 ### `message.sent`
 

@@ -3,6 +3,7 @@ import type { paths } from './schema';
 
 export type { components, paths } from './schema';
 export * from './auth-actions';
+export * from './uploads';
 
 export interface ApiClientOptions {
   /** Gateway base URL, e.g. http://localhost:4000 (server) or '' when proxied (browser). */

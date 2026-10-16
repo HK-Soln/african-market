@@ -1,6 +1,8 @@
-/**
- * TypeORM entities owned by the media service (media_object).
- * Extend AppBaseEntity from @am/database. See docs/PLAN.md "Data model" and
- * docs/directives for the phase that introduces each one.
- */
-export const entities: Array<new () => unknown> = [];
+import { MediaAccessLog } from './media-access-log.entity';
+import { MediaObject } from './media-object.entity';
+
+export * from './media-access-log.entity';
+export * from './media-object.entity';
+
+/** TypeORM entities owned by the media service. */
+export const entities = [MediaObject, MediaAccessLog];

@@ -197,13 +197,15 @@ locals {
     CURRENT_PHASE = tostring(var.current_phase)
     # Phone codes: the real provider (WhatsApp first). Until it is built identity answers
     # SMS_PROVIDER_NOT_CONFIGURED, and the console provider is refused outside development.
-    SMS_PROVIDER          = "twilio"
-    EMAIL_PROVIDER        = "smtp"
-    EMAIL_FROM            = var.email_from
-    S3_REGION             = var.region
-    S3_PUBLIC_BUCKET      = module.media.public_bucket
-    S3_PRIVATE_BUCKET     = module.media.private_bucket
-    MEDIA_PUBLIC_BASE_URL = module.media.public_base_url
+    SMS_PROVIDER               = "twilio"
+    EMAIL_PROVIDER             = "smtp"
+    EMAIL_FROM                 = var.email_from
+    S3_REGION                  = var.region
+    S3_UPLOADS_BUCKET          = module.media.uploads_bucket
+    S3_PUBLIC_BUCKET           = module.media.public_bucket
+    CLOUDFRONT_DISTRIBUTION_ID = module.media.distribution_id
+    S3_PRIVATE_BUCKET          = module.media.private_bucket
+    MEDIA_PUBLIC_BASE_URL      = module.media.public_base_url
     },
     # The collector beside each task (modules/ecs-service); absent, spans are made but kept.
     var.tracing ? { OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318" } : {},

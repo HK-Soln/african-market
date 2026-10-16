@@ -4,7 +4,7 @@ variable "name" {
 }
 
 variable "upload_origins" {
-  description = "Web origins that upload with presigned URLs."
+  description = "Web origins that post upload forms to the quarantine bucket."
   type        = list(string)
 }
 

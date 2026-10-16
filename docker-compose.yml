@@ -20,6 +20,13 @@ x-backend-env: &backend-env
   S3_ENDPOINT: http://minio:9000
   S3_ACCESS_KEY_ID: am-minio
   S3_SECRET_ACCESS_KEY: am-minio-secret
+  S3_REGION: me-central-1
+  S3_PRESIGN_ENDPOINT: http://localhost:9000
+  S3_UPLOADS_BUCKET: am-media-uploads
+  S3_PUBLIC_BUCKET: am-media-public
+  S3_PRIVATE_BUCKET: am-media-private
+  S3_CREATE_BUCKETS: 'true'
+  MEDIA_PUBLIC_BASE_URL: http://localhost:9000/am-media-public
   EMAIL_FROM: African Market <no-reply@africanmarket.local>
   SMS_PROVIDER: console # prints codes to the log: docker compose logs identity
   JWT_ACCESS_SECRET: dev-only-access-secret-change-me-0123456789
@@ -154,6 +161,9 @@ services:
     <<: *service
     image: african-market/media:local
     build: { context: ., dockerfile: infra/docker/service.Dockerfile, args: { APP: media } }
+    depends_on:
+      <<: *backend-deps
+      minio: { condition: service_started }
 
   messaging:
     <<: *service

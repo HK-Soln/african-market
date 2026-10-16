@@ -64,6 +64,10 @@ export const DiscoveryPatterns = {
 export const MediaPatterns = {
   createUpload: 'media.upload.create',
   confirmUpload: 'media.upload.confirm',
+  attach: 'media.object.attach',
+  detach: 'media.object.detach',
+  /** Admins only: a 60-second link to a private document, for the gateway to stream. */
+  privateAccess: 'media.object.private_access',
 } as const;
 
 export interface HealthResponse {

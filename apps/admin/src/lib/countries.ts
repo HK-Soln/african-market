@@ -8,8 +8,11 @@ import { api } from './api';
  */
 export async function phoneCountries(locale: string): Promise<CountryOption[]> {
   try {
-    const { data, error, response } = await api(locale).GET('/api/v1/countries');
-    if (data) return data.countries.filter((country) => country.phoneEnabled);
+    // Fewer than 100 countries are ever offered for sign-up: one page.
+    const { data, error, response } = await api(locale).GET('/api/v1/countries', {
+      params: { query: { 'filter[phoneEnabled]': true, limit: 100 } },
+    });
+    if (data) return data.items;
     console.warn(
       `Countries could not be loaded (${response.status} ${JSON.stringify(error)}); the phone field offers the UAE only`,
     );

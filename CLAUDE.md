@@ -129,6 +129,11 @@ Mailpit 8025. Docker credentials are `am` / `am`, except MinIO: `am-minio` / `am
   providers, origins, phase): the app must stop at start and name the missing key. Defaults are
   only for values that are the same everywhere (ports, log level, timings). Add a new required
   key to `.env.example`, CI's `env:` and docker compose in the same change.
+- **Lists** take one query format and use cursor (keyset) pagination, never offset:
+  `filter[field][op]=`, `sort=-a,b`, `limit` (max 100), `cursor` → `{ items, nextCursor, prevCursor }`.
+  Declare a `ListSpec` in `@am/contracts`; use `@ListQueryParams`/`@ApiListQuery` in the gateway and
+  `findPage` from `@am/database` in the service. No route returns a whole table that can grow
+  (`docs/architecture/conventions.md` §5).
 - **Secrets** never in the repo. `.env` is git-ignored; production uses AWS Secrets Manager.
 - **Logging:** pino JSON via `nestjs-pino`, request id propagated as `correlationId` on events.
   Never log tokens, OTP codes, passwords, full card or ID data.

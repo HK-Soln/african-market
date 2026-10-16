@@ -4,3 +4,4 @@ export * from './data-source';
 export * from './outbox.service';
 export * from './database.module';
 export * from './migration-helpers';
+export * from './list-query';

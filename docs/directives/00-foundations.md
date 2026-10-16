@@ -371,6 +371,23 @@ delivery is ignored); F0-10 turns that into automated tests.
   > Note: also fixed: web served `/icon.svg` with a 500, because the same file was in both
   > `public/` and `src/app/`.
 
+- [x] **F0-19 List queries: filtering, sorting, cursor pagination** (added 2026-10-16, before F0-15)
+      One query format for every list endpoint, checked against a per-endpoint spec, with keyset
+      (cursor) pagination; shared code in contracts, gateway, core and database; the country lists
+      use it.
+
+  > Note: owner's point (2026-10-16): no endpoint may return a whole table that can grow (orders,
+  > shops...), every list takes the same filter/sort/page format, and pagination is by cursor.
+  > Decision T-21.
+  > Note: Express 5 does not parse `filter[a][b]` into objects, so the parser reads the flat keys
+  > itself (and nested objects too). That also gives the generated API client one typed parameter
+  > per filter and operator.
+  > Note: cursors are base64url JSON of the last row's sort values and id, bound to the sort they
+  > were made with; a cursor from another sort is refused. `prevCursor` walks back exactly.
+  > Mixed sort directions use the expanded `(a > x) OR (a = x AND b < y) ...` form.
+  > Note: no totals by default: counting every row is what pagination avoids. The admin Countries
+  > screen lost its "9 of 245" line and gained server-side search and "Load more".
+
 - [ ] **F0-15 Observability** (depends on F0-01)
       OpenTelemetry SDK in `libs/core` (HTTP, Nest, pg, amqplib instrumentation), trace id propagated
       gateway → TCP → events (`correlationId`), OTLP exporter configured by env. Sentry in the gateway,

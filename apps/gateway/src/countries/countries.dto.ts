@@ -46,9 +46,19 @@ export class CountryDto {
   sortOrder!: number;
 }
 
-export class CountryListDto {
+export class CountryPageDto {
   @ApiProperty({ type: [CountryDto] })
-  countries!: CountryDto[];
+  items!: CountryDto[];
+
+  @ApiProperty({ type: String, nullable: true, description: 'Pass as `cursor` for the next page' })
+  nextCursor!: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: 'Pass as `cursor` for the page before',
+  })
+  prevCursor!: string | null;
 }
 
 export class UpdateCountryNameDto {

@@ -9,7 +9,7 @@ import {
   IdentityErrors,
   IdentityPatterns,
   IdentityTestPatterns,
-  ListCountriesResponse,
+  CountryPage,
   MeResponse,
   RequestOtpResponse,
   SessionTokens,
@@ -81,13 +81,16 @@ export class FakeIdentityController {
   ];
 
   @MessagePattern(IdentityPatterns.listCountries)
-  listCountries(): ListCountriesResponse {
-    return { countries: this.countries.filter((c) => c.phoneEnabled || c.originEnabled) };
+  listCountries(@Payload() data: Data): CountryPage {
+    this.record(IdentityPatterns.listCountries, data);
+    const items = this.countries.filter((c) => c.phoneEnabled || c.originEnabled);
+    return { items, nextCursor: null, prevCursor: null };
   }
 
   @MessagePattern(IdentityPatterns.listAllCountries)
-  listAllCountries(): ListCountriesResponse {
-    return { countries: this.countries };
+  listAllCountries(@Payload() data: Data): CountryPage {
+    this.record(IdentityPatterns.listAllCountries, data);
+    return { items: this.countries, nextCursor: null, prevCursor: null };
   }
 
   @MessagePattern(IdentityPatterns.updateCountry)

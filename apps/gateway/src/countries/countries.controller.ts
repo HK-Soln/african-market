@@ -8,9 +8,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Public, Roles } from '@am/auth';
-import { CountryDto as Country, IdentityPatterns, ListCountriesResponse } from '@am/contracts';
+import {
+  COUNTRY_LIST_SPEC,
+  CountryDto as Country,
+  CountryPage,
+  IdentityPatterns,
+  type ListQuery,
+} from '@am/contracts';
+import { ApiListQuery, ListQueryParams } from '../common/list-query';
 import { ServiceCaller } from '../common/service-caller';
-import { CountryDto, CountryListDto, UpdateCountryDto } from './countries.dto';
+import { CountryDto, CountryPageDto, UpdateCountryDto } from './countries.dto';
 
 /** Countries for the pickers and badges in every app. */
 @ApiTags('countries')
@@ -18,16 +25,15 @@ import { CountryDto, CountryListDto, UpdateCountryDto } from './countries.dto';
 export class CountriesController {
   constructor(private readonly caller: ServiceCaller) {}
 
-  @ApiOperation({
-    summary: 'Countries enabled for phone sign-up or as an origin, in display order',
-  })
-  @ApiOkResponse({ type: CountryListDto })
+  @ApiOperation({ summary: 'Countries enabled for phone sign-up or as an origin' })
+  @ApiOkResponse({ type: CountryPageDto })
+  @ApiListQuery(COUNTRY_LIST_SPEC)
   @Public()
   // Changes rarely, and an admin's edit may take five minutes to show.
   @Header('Cache-Control', 'public, max-age=300')
   @Get()
-  list(): Promise<CountryListDto> {
-    return this.caller.call<ListCountriesResponse>('identity', IdentityPatterns.listCountries, {});
+  list(@ListQueryParams(COUNTRY_LIST_SPEC) query: ListQuery): Promise<CountryPageDto> {
+    return this.caller.call<CountryPage>('identity', IdentityPatterns.listCountries, { query });
   }
 }
 
@@ -41,15 +47,12 @@ export class AdminCountriesController {
   constructor(private readonly caller: ServiceCaller) {}
 
   @ApiOperation({ summary: 'Every country, enabled or not' })
-  @ApiOkResponse({ type: CountryListDto })
+  @ApiOkResponse({ type: CountryPageDto })
+  @ApiListQuery(COUNTRY_LIST_SPEC)
   @Header('Cache-Control', 'no-store')
   @Get()
-  listAll(): Promise<CountryListDto> {
-    return this.caller.call<ListCountriesResponse>(
-      'identity',
-      IdentityPatterns.listAllCountries,
-      {},
-    );
+  listAll(@ListQueryParams(COUNTRY_LIST_SPEC) query: ListQuery): Promise<CountryPageDto> {
+    return this.caller.call<CountryPage>('identity', IdentityPatterns.listAllCountries, { query });
   }
 
   @ApiOperation({

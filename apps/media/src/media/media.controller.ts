@@ -10,6 +10,7 @@ import {
   MediaErrors,
   MediaPatterns,
   PrivateMediaAccessResponse,
+  PublicMediaUrlsResponse,
 } from '@am/contracts';
 import { mediaError } from '../errors';
 import { MediaService } from './media.service';
@@ -51,6 +52,7 @@ const attachSchema = z.object({
 });
 const detachSchema = z.object({ target, mediaIds: z.array(uuid).min(1).max(100) });
 const accessSchema = z.object({ actor, mediaId: uuid, correlationId });
+const publicUrlsSchema = z.object({ mediaIds: z.array(uuid).max(100) });
 
 @Controller()
 export class MediaController {
@@ -79,5 +81,10 @@ export class MediaController {
   @MessagePattern(MediaPatterns.privateAccess)
   privateAccess(@Payload() payload: unknown): Promise<PrivateMediaAccessResponse> {
     return this.media.privateAccess(parse(accessSchema, payload));
+  }
+
+  @MessagePattern(MediaPatterns.publicUrls)
+  publicUrls(@Payload() payload: unknown): Promise<PublicMediaUrlsResponse> {
+    return this.media.publicUrls(parse(publicUrlsSchema, payload));
   }
 }

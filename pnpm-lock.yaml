@@ -195,6 +195,9 @@ importers:
       '@am/core':
         specifier: workspace:*
         version: link:../../libs/core
+      '@am/geo':
+        specifier: workspace:*
+        version: link:../../libs/geo
       '@am/i18n':
         specifier: workspace:*
         version: link:../../libs/i18n

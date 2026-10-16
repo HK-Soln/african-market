@@ -876,6 +876,496 @@
           "admin"
         ]
       }
+    },
+    "/api/v1/search/nearby": {
+      "get": {
+        "description": "Delivery: branches that deliver to the point. Pickup: branches within the travel radius. Ranked by distance, open now, rating, listing completeness and text match; only emirates where search is open. Pass `nextCursor` back as `cursor` for the next page.",
+        "operationId": "SearchController_nearby_v1",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Shop names, categories, areas, descriptions, products",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "A category and everything under it",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "originCountry",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alpha-2",
+            "schema": {
+              "example": "NG",
+              "type": "string"
+            }
+          },
+          {
+            "name": "openNow",
+            "required": false,
+            "in": "query",
+            "description": "Open now, Asia/Dubai",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "emirate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DXB",
+                "AUH",
+                "SHJ",
+                "AJM",
+                "UAQ",
+                "RAK",
+                "FUJ"
+              ]
+            }
+          },
+          {
+            "name": "lat",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": 25.2897,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": 55.3712,
+              "type": "number"
+            }
+          },
+          {
+            "name": "mode",
+            "required": true,
+            "in": "query",
+            "description": "delivery: they deliver here; pickup: near here",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "delivery",
+                "pickup"
+              ]
+            }
+          },
+          {
+            "name": "deliversToMe",
+            "required": false,
+            "in": "query",
+            "description": "Pickup: only branches that would also deliver here",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "radiusM",
+            "required": false,
+            "in": "query",
+            "description": "Pickup: travel radius in metres (default 10,000)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "At most 50 (default 20)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "`nextCursor` of the previous page",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchNearbyResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Shops near a point",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/map": {
+      "get": {
+        "description": "Single pins from zoom 14, clusters below; at most 500 markers.",
+        "operationId": "SearchController_map_v1",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Shop names, categories, areas, descriptions, products",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "A category and everything under it",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "originCountry",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alpha-2",
+            "schema": {
+              "example": "NG",
+              "type": "string"
+            }
+          },
+          {
+            "name": "openNow",
+            "required": false,
+            "in": "query",
+            "description": "Open now, Asia/Dubai",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "emirate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DXB",
+                "AUH",
+                "SHJ",
+                "AJM",
+                "UAQ",
+                "RAK",
+                "FUJ"
+              ]
+            }
+          },
+          {
+            "name": "minLat",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minLng",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxLat",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxLng",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "zoom",
+            "required": true,
+            "in": "query",
+            "description": "Map zoom 0-22; pins from 14, clusters below",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchMapResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Map markers in a box",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/emirates": {
+      "get": {
+        "operationId": "SearchController_emirates_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmirateListDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The seven emirates, with whether search is open in each",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/categories": {
+      "get": {
+        "operationId": "CatalogueController_categories_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryListDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The category tree (active categories, parents first)",
+        "tags": [
+          "catalogue"
+        ]
+      }
+    },
+    "/api/v1/products/{id}": {
+      "get": {
+        "description": "An active product of a verified shop; the shop’s members and admins see it in any status.",
+        "operationId": "CatalogueController_product_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A product",
+        "tags": [
+          "catalogue"
+        ]
+      }
+    },
+    "/api/v1/shops/{slug}": {
+      "get": {
+        "operationId": "PublicShopsController_shop_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "lagos-kitchen",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicShopDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A verified shop by its slug, with its branches",
+        "tags": [
+          "shops"
+        ]
+      }
+    },
+    "/api/v1/shops/{slug}/products": {
+      "get": {
+        "operationId": "PublicShopsController_products_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "lagos-kitchen",
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "required": false,
+            "in": "query",
+            "description": "enum (draft, pending_review, active, hidden, rejected)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (draft, pending_review, active, hidden, rejected), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[categoryId]",
+            "required": false,
+            "in": "query",
+            "description": "uuid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[categoryId][in]",
+            "required": false,
+            "in": "query",
+            "description": "uuid, comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[type]",
+            "required": false,
+            "in": "query",
+            "description": "enum (product, service)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[search][like]",
+            "required": false,
+            "in": "query",
+            "description": "string, contains, case-insensitive",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: createdAt, updatedAt. Default: -createdAt.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 20, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPageDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A verified shop’s active products, a page at a time",
+        "tags": [
+          "shops"
+        ]
+      }
     }
   },
   "info": {
@@ -1657,6 +2147,927 @@
           "width",
           "height",
           "urls"
+        ]
+      },
+      "LatLngDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "LocalizedTextDto": {
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": "string"
+          },
+          "ar": {
+            "type": "string"
+          },
+          "fr": {
+            "type": "string"
+          }
+        }
+      },
+      "MatchedProductDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "minPriceFils": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fils, VAT included"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "productId",
+          "title",
+          "minPriceFils",
+          "imageUrl"
+        ]
+      },
+      "NearbyBranchDto": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopSlug": {
+            "type": "string"
+          },
+          "shopName": {
+            "type": "string"
+          },
+          "branchName": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "emirate": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/LatLngDto"
+          },
+          "distanceM": {
+            "type": "number"
+          },
+          "openNow": {
+            "type": "boolean"
+          },
+          "pickup": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "type": "boolean"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "ratingAvg": {
+            "type": "number"
+          },
+          "ratingCount": {
+            "type": "number"
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "originCountries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "matchedProducts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MatchedProductDto"
+            }
+          }
+        },
+        "required": [
+          "branchId",
+          "shopId",
+          "shopSlug",
+          "shopName",
+          "branchName",
+          "logoUrl",
+          "emirate",
+          "area",
+          "location",
+          "distanceM",
+          "openNow",
+          "pickup",
+          "delivery",
+          "verified",
+          "ratingAvg",
+          "ratingCount",
+          "categoryIds",
+          "originCountries",
+          "matchedProducts"
+        ]
+      },
+      "SearchNearbyResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NearbyBranchDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "MapMarkerDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "pin",
+              "cluster"
+            ]
+          },
+          "location": {
+            "$ref": "#/components/schemas/LatLngDto"
+          },
+          "count": {
+            "type": "number",
+            "description": "Clusters"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Pins"
+          },
+          "shopSlug": {
+            "type": "string",
+            "description": "Pins"
+          },
+          "shopName": {
+            "type": "string",
+            "description": "Pins"
+          },
+          "openNow": {
+            "type": "boolean",
+            "description": "Pins"
+          }
+        },
+        "required": [
+          "kind",
+          "location"
+        ]
+      },
+      "SearchMapResponseDto": {
+        "type": "object",
+        "properties": {
+          "markers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapMarkerDto"
+            }
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "More pins than returned: zoom in"
+          }
+        },
+        "required": [
+          "markers",
+          "truncated"
+        ]
+      },
+      "EmirateDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "DXB",
+              "AUH",
+              "SHJ",
+              "AJM",
+              "UAQ",
+              "RAK",
+              "FUJ"
+            ]
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "center": {
+            "$ref": "#/components/schemas/LatLngDto"
+          },
+          "searchOpen": {
+            "type": "boolean",
+            "description": "Customers can search here"
+          },
+          "verifiedShops": {
+            "type": "number",
+            "nullable": true,
+            "description": "Admins only"
+          },
+          "branches": {
+            "type": "number",
+            "nullable": true,
+            "description": "Admins only"
+          }
+        },
+        "required": [
+          "code",
+          "slug",
+          "name",
+          "center",
+          "searchOpen",
+          "verifiedShops",
+          "branches"
+        ]
+      },
+      "EmirateListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmirateDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ]
+          },
+          "isRestricted": {
+            "type": "boolean",
+            "description": "Products in it are reviewed before they show"
+          },
+          "requiresDeclaration": {
+            "type": "boolean",
+            "description": "Food: needs the seller declaration"
+          },
+          "checkoutAllowed": {
+            "type": "boolean"
+          },
+          "sort": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "parentId",
+          "slug",
+          "name",
+          "kind",
+          "isRestricted",
+          "requiresDeclaration",
+          "checkoutAllowed",
+          "sort",
+          "active"
+        ]
+      },
+      "CategoryListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Parents before children",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ImageUrlsDto": {
+        "type": "object",
+        "properties": {
+          "thumb": {
+            "type": "string"
+          },
+          "card": {
+            "type": "string"
+          },
+          "full": {
+            "type": "string"
+          }
+        }
+      },
+      "FoodDeclarationDto": {
+        "type": "object",
+        "properties": {
+          "packagedAndLabelled": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "noRestrictedItems": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "storage": {
+            "type": "string",
+            "enum": [
+              "ambient",
+              "chilled",
+              "frozen"
+            ]
+          },
+          "manufacturer": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "declaredBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "declaredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "packagedAndLabelled",
+          "noRestrictedItems",
+          "storage"
+        ]
+      },
+      "VariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "priceFils": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fils, VAT included; null: on request"
+          },
+          "compareAtFils": {
+            "type": "number",
+            "nullable": true
+          },
+          "sort": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "options",
+          "priceFils",
+          "compareAtFils",
+          "sort"
+        ]
+      },
+      "BranchListingDto": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "variantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inStock": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "nullable": true
+          },
+          "priceOverrideFils": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "branchId",
+          "variantId",
+          "inStock",
+          "quantity",
+          "priceOverrideFils"
+        ]
+      },
+      "ProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ]
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "originCountry": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageMediaIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "images": {
+            "description": "Links of the images, in order",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageUrlsDto"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending_review",
+              "active",
+              "hidden",
+              "rejected"
+            ]
+          },
+          "reviewReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Members only"
+          },
+          "foodDeclaration": {
+            "nullable": true,
+            "description": "Members only",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FoodDeclarationDto"
+              }
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantDto"
+            }
+          },
+          "listings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BranchListingDto"
+            }
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "shopId",
+          "categoryId",
+          "type",
+          "title",
+          "description",
+          "originCountry",
+          "imageMediaIds",
+          "images",
+          "status",
+          "reviewReason",
+          "foodDeclaration",
+          "variants",
+          "listings",
+          "submittedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "MultiPolygonDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MultiPolygon"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "description": "GeoJSON, longitude first"
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "OpeningHoursDto": {
+        "type": "object",
+        "properties": {
+          "weekday": {
+            "type": "number",
+            "description": "0 = Sunday"
+          },
+          "opensAt": {
+            "type": "string",
+            "example": "09:00"
+          },
+          "closesAt": {
+            "type": "string",
+            "example": "21:00",
+            "description": "Earlier than opensAt: past midnight"
+          }
+        },
+        "required": [
+          "weekday",
+          "opensAt",
+          "closesAt"
+        ]
+      },
+      "SpecialHoursDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-03-20"
+          },
+          "closed": {
+            "type": "boolean"
+          },
+          "opensAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "closesAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LocalizedTextDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "closed",
+          "opensAt",
+          "closesAt",
+          "label"
+        ]
+      },
+      "PublicBranchDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "emirate": {
+            "type": "string",
+            "enum": [
+              "DXB",
+              "AUH",
+              "SHJ",
+              "AJM",
+              "UAQ",
+              "RAK",
+              "FUJ"
+            ]
+          },
+          "area": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "makani": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/LatLngDto"
+          },
+          "serviceArea": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultiPolygonDto"
+              }
+            ]
+          },
+          "serviceRadiusM": {
+            "type": "number",
+            "nullable": true
+          },
+          "pickup": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "type": "boolean"
+          },
+          "deliveryFeeFils": {
+            "type": "number"
+          },
+          "minOrderFils": {
+            "type": "number"
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "openingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningHoursDto"
+            }
+          },
+          "specialHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecialHoursDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "emirate",
+          "area",
+          "addressLine",
+          "makani",
+          "location",
+          "serviceArea",
+          "serviceRadiusM",
+          "pickup",
+          "delivery",
+          "deliveryFeeFils",
+          "minOrderFils",
+          "contactWhatsapp",
+          "contactPhone",
+          "contactEmail",
+          "isPrimary",
+          "openingHours",
+          "specialHours"
+        ]
+      },
+      "PublicShopDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "logo": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImageUrlsDto"
+              }
+            ]
+          },
+          "gallery": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageUrlsDto"
+            }
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "originCountries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "checkoutEnabled": {
+            "type": "boolean"
+          },
+          "codEnabled": {
+            "type": "boolean"
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicBranchDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "logo",
+          "gallery",
+          "categoryIds",
+          "originCountries",
+          "contactWhatsapp",
+          "contactPhone",
+          "contactEmail",
+          "checkoutEnabled",
+          "codEnabled",
+          "branches"
+        ]
+      },
+      "ProductPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "prevCursor"
         ]
       }
     }

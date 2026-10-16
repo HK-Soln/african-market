@@ -218,3 +218,33 @@ export interface SearchMapResponse {
   /** True when there were more pins than the response carries (zoom in). */
   truncated: boolean;
 }
+
+/** An emirate as the apps show it, with whether customer search is open there. */
+export interface EmirateDto {
+  code: string;
+  slug: string;
+  name: LocalizedString;
+  center: LatLngDto;
+  /** Search opens per emirate once it has enough verified shops (an admin's switch). */
+  searchOpen: boolean;
+  /** Admins only: verified shops and branches in it; null for everyone else. */
+  verifiedShops: number | null;
+  branches: number | null;
+}
+
+export interface ListEmiratesRequest {
+  /** With an admin actor, the counts are filled in. */
+  actor?: ActorClaims;
+}
+
+export interface EmirateList {
+  items: EmirateDto[];
+}
+
+/** Admins: open or close customer search in an emirate. */
+export interface SetEmirateSearchRequest {
+  actor: ActorClaims;
+  code: string;
+  open: boolean;
+  correlationId?: string;
+}

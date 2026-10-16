@@ -326,6 +326,25 @@ describe('media service (Postgres + MinIO)', () => {
     });
   });
 
+  describe('public links', () => {
+    it('gives the links of public images by id, and nothing for documents or unknown ids', async () => {
+      const owner = actor('owner');
+      const logo = await upload(owner, 'shop_logo', await photo(), 'image/jpeg');
+      const licence = await upload(owner, 'trade_license', pdf, 'application/pdf');
+      const pending = await media.createUpload({
+        actor: owner,
+        purpose: 'product_image',
+        contentType: 'image/jpeg',
+        sizeBytes: 1000,
+        shopId,
+      });
+      const { urls } = await media.publicUrls({
+        mediaIds: [logo.id, licence.id, pending.mediaId, randomUUID()],
+      });
+      expect(urls).toEqual({ [logo.id]: logo.urls });
+    });
+  });
+
   describe('attaching', () => {
     it('binds an object only for its uploader, its purpose and its shop, once', async () => {
       const manager = actor('manager');

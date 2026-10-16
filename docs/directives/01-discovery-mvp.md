@@ -190,6 +190,9 @@ Location discovery and search, Contact, UAE specifics.
       analytics. Admin (`@Roles('admin')`): verification queue + decisions, product moderation, category
       CRUD, emirate search switches, shop suspend. Regenerate the api-client.
 
+  > Note: delivered in three pull requests (decision T-34). Part 1, public: search nearby and map,
+  > emirates with the search switch, shop by slug and its products, product, categories.
+
 - [ ] **F1-09 Social sign-in** (depends on Phase 0)
       Google and Facebook sign-in on web and seller (decision P-10; Apple is dropped): verify the
       Google ID token and the Facebook access token server-side in identity, link to existing

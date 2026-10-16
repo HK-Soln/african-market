@@ -3,6 +3,7 @@ import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { EventBus, loadServiceEndpoints, ServiceClient } from '@am/core';
 import { IdempotentConsumer } from '@am/database';
+import { EmiratesService } from './emirates.service';
 import { SearchIndexer } from './indexer';
 import { SEARCH_OWNERS, SearchOwners, TcpSearchOwners } from './owners';
 import { SearchController } from './search.controller';
@@ -26,6 +27,11 @@ import { SearchService } from './search.service';
       inject: [getDataSourceToken(), SEARCH_OWNERS],
       useFactory: (dataSource: DataSource, owners: SearchOwners) =>
         new SearchIndexer(dataSource, owners),
+    },
+    {
+      provide: EmiratesService,
+      inject: [getDataSourceToken()],
+      useFactory: (dataSource: DataSource) => new EmiratesService(dataSource),
     },
     {
       provide: SearchService,

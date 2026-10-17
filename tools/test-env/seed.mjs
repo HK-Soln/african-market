@@ -1,0 +1,263 @@
+#!/usr/bin/env node
+/**
+ * Fills a test environment with made-up shops through the gateway, as a seller and an admin
+ * would (decision T-39): sign-up by test number, shops, branches, hours, products, the stand-in
+ * identity check, admin approval, and search opened in Dubai and Sharjah (Abu Dhabi stays closed,
+ * to show that state). Never run it against staging or production: it needs OTP_TEST_NUMBERS,
+ * which identity refuses there.
+ *
+ *   node tools/test-env/seed.mjs        (SEED_GATEWAY_URL defaults to http://localhost:4000)
+ *
+ * Running it again skips shops that already exist.
+ */
+import { execFileSync } from 'node:child_process';
+
+const GATEWAY = (process.env.SEED_GATEWAY_URL ?? 'http://localhost:4000') + '/api/v1';
+const SELLER = '+971500000010';
+const ADMIN = '+971500000011';
+
+/** The fixed codes, from the same variable identity reads. */
+const codes = new Map(
+  (process.env.OTP_TEST_NUMBERS ?? '')
+    .split(',')
+    .filter(Boolean)
+    .map((entry) => entry.trim().split(':')),
+);
+
+async function call(method, path, token, body) {
+  const response = await fetch(GATEWAY + path, {
+    method,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`${method} ${path}: ${response.status} ${text}`);
+  return text ? JSON.parse(text) : undefined;
+}
+
+async function signIn(phone) {
+  const code = codes.get(phone);
+  if (!code) throw new Error(`${phone} is not in OTP_TEST_NUMBERS`);
+  await call('POST', '/auth/otp/request', undefined, { phone });
+  const session = await call('POST', '/auth/otp/verify', undefined, {
+    phone,
+    code,
+    termsAccepted: true,
+    preferredLanguage: 'en',
+  });
+  return session.accessToken;
+}
+
+const EVERY_DAY = (opensAt, closesAt, closedOn = []) =>
+  [0, 1, 2, 3, 4, 5, 6]
+    .filter((day) => !closedOn.includes(day))
+    .map((weekday) => ({ weekday, opensAt, closesAt }));
+
+const SHOPS = [
+  {
+    name: 'Mama Nkechi African Foods',
+    description: {
+      en: 'Nigerian groceries: egusi, ogbono, garri, palm oil and stockfish.',
+      ar: 'بقالة نيجيرية: إيغوسي وأوغبونو وغاري وزيت النخيل والسمك المجفف.',
+    },
+    category: 'groceries-food',
+    originCountries: ['NG'],
+    contactWhatsapp: '+971501110001',
+    contactPhone: '+971501110001',
+    branch: {
+      name: 'Al Nahda',
+      emirate: 'DXB',
+      area: 'Al Nahda',
+      location: { lat: 25.2897, lng: 55.3712 },
+      pickup: true,
+      delivery: true,
+      serviceRadiusM: 8000,
+    },
+    hours: EVERY_DAY('09:00', '22:00'),
+    products: [
+      {
+        category: 'spices-soup-ingredients',
+        en: 'Egusi seeds 500 g',
+        ar: 'بذور إيغوسي 500 غ',
+        fils: 1800,
+      },
+      { category: 'spices-soup-ingredients', en: 'Ogbono 250 g', ar: 'أوغبونو 250 غ', fils: 2200 },
+      { category: 'grains-flours', en: 'Yellow garri 2 kg', ar: 'غاري أصفر 2 كغ', fils: 2500 },
+    ],
+  },
+  {
+    name: 'Accra Braids Lounge',
+    description: {
+      en: 'Knotless braids, cornrows and wig installs by Ghanaian stylists.',
+      ar: 'ضفائر بدون عقد وكورنرو وتركيب باروكات على يد مصففات من غانا.',
+    },
+    category: 'services',
+    originCountries: ['GH'],
+    contactWhatsapp: '+971501110002',
+    branch: {
+      name: 'Deira',
+      emirate: 'DXB',
+      area: 'Deira',
+      location: { lat: 25.2711, lng: 55.3075 },
+      pickup: true,
+      delivery: false,
+    },
+    // Closed on Sundays, to show a closed shop on that day.
+    hours: EVERY_DAY('10:00', '21:00', [0]),
+    products: [
+      {
+        category: 'hair-salons-braiding',
+        en: 'Knotless braids',
+        ar: 'ضفائر بدون عقد',
+        fils: 25000,
+      },
+    ],
+  },
+  {
+    name: 'Addis Spice House',
+    description: {
+      en: 'Ethiopian berbere, mitmita, coffee and injera flour.',
+      ar: 'بربري وميتميتا وقهوة ودقيق إنجيرا من إثيوبيا.',
+    },
+    category: 'groceries-food',
+    originCountries: ['ET'],
+    contactWhatsapp: '+971501110003',
+    contactPhone: '+971501110003',
+    branch: {
+      name: 'Al Majaz',
+      emirate: 'SHJ',
+      area: 'Al Majaz',
+      location: { lat: 25.326, lng: 55.386 },
+      pickup: true,
+      delivery: true,
+      serviceRadiusM: 12000,
+    },
+    hours: EVERY_DAY('08:00', '23:00'),
+    products: [
+      { category: 'spices-soup-ingredients', en: 'Berbere 250 g', ar: 'بربري 250 غ', fils: 1500 },
+      { category: 'grains-flours', en: 'Teff flour 1 kg', ar: 'دقيق التيف 1 كغ', fils: 2800 },
+    ],
+  },
+  {
+    name: 'Kente & Ankara Tailors',
+    description: {
+      en: 'Made-to-measure Ankara and Kente outfits.',
+      ar: 'أزياء أنقرة وكنتي حسب المقاس.',
+    },
+    category: 'fashion',
+    originCountries: ['GH', 'NG'],
+    contactWhatsapp: '+971501110004',
+    branch: {
+      name: 'Mussafah',
+      emirate: 'AUH',
+      area: 'Mussafah',
+      location: { lat: 24.35, lng: 54.5 },
+      pickup: true,
+      delivery: false,
+    },
+    hours: EVERY_DAY('10:00', '20:00'),
+    products: [
+      {
+        category: 'tailoring',
+        en: 'Ankara dress, made to measure',
+        ar: 'فستان أنقرة حسب المقاس',
+        fils: 32000,
+      },
+    ],
+  },
+];
+
+/** Search opens in these; the others stay closed (an admin's switch, F1-08). */
+const OPEN_EMIRATES = ['DXB', 'SHJ'];
+
+async function main() {
+  console.log(`Seeding ${GATEWAY}`);
+  const categories = new Map((await call('GET', '/categories')).items.map((c) => [c.slug, c]));
+  const category = (slug) => {
+    const found = categories.get(slug);
+    if (!found) throw new Error(`No category ${slug}`);
+    return found;
+  };
+
+  // The admin: signs up, gets the role from the identity container, signs in again for it.
+  await signIn(ADMIN);
+  execFileSync(
+    'docker',
+    ['compose', 'exec', '-T', 'identity', 'node', 'dist/scripts/grant-role.js', ADMIN, 'admin'],
+    { stdio: 'inherit' },
+  );
+  const admin = await signIn(ADMIN);
+
+  const seller = await signIn(SELLER);
+  const existing = new Set((await call('GET', '/seller/shops', seller)).items.map((s) => s.name));
+
+  for (const spec of SHOPS) {
+    if (existing.has(spec.name)) {
+      console.log(`- ${spec.name}: already there`);
+      continue;
+    }
+    const shop = await call('POST', '/seller/shops', seller, {
+      name: spec.name,
+      description: spec.description,
+      categoryIds: [category(spec.category).id],
+      originCountries: spec.originCountries,
+      contactWhatsapp: spec.contactWhatsapp,
+      contactPhone: spec.contactPhone,
+    });
+    const base = `/seller/shops/${shop.id}`;
+    const branch = await call('POST', `${base}/branches`, seller, {
+      ...spec.branch,
+      isPrimary: true,
+    });
+    await call('PUT', `${base}/branches/${branch.id}/hours`, seller, { hours: spec.hours });
+
+    for (const p of spec.products) {
+      const c = category(p.category);
+      const product = await call('POST', `${base}/products`, seller, {
+        categoryId: c.id,
+        title: { en: p.en, ar: p.ar },
+        originCountry: spec.originCountries[0],
+        variants: [{ priceFils: p.fils }],
+        ...(c.requiresDeclaration
+          ? {
+              foodDeclaration: {
+                packagedAndLabelled: true,
+                noRestrictedItems: true,
+                storage: 'ambient',
+              },
+            }
+          : {}),
+      });
+      await call('PUT', `${base}/products/${product.id}/listings`, seller, {
+        listings: [{ branchId: branch.id, variantId: product.variants[0].id, inStock: true }],
+      });
+      await call('PUT', `${base}/products/${product.id}/status`, seller, { status: 'active' });
+    }
+
+    // The stand-in identity check passes as soon as its result is asked for.
+    await call('POST', `${base}/verification/kyc`, seller, { locale: 'en' });
+    await call('POST', `${base}/verification/kyc/refresh`, seller);
+    await call('POST', `${base}/verification/submit`, seller);
+    await call('POST', `/admin/shops/${shop.id}/listing`, admin, { decision: 'approve' });
+    console.log(`+ ${spec.name} (${spec.branch.emirate})`);
+  }
+
+  // Products in categories that are reviewed first.
+  const review = await call('GET', '/admin/products/review?limit=100', admin);
+  for (const product of review.items) {
+    await call('POST', `/admin/products/${product.id}/decision`, admin, { decision: 'approve' });
+  }
+
+  for (const code of OPEN_EMIRATES) {
+    await call('PUT', `/admin/emirates/${code}/search`, admin, { open: true });
+  }
+  console.log(`Search open in ${OPEN_EMIRATES.join(', ')}. Seller ${SELLER}, admin ${ADMIN}.`);
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exit(1);
+});

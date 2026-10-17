@@ -1,0 +1,28 @@
+{
+  // The cloud test environment (decision T-39): a GitHub codespace runs the whole stack with
+  // docker compose, as `pnpm stack:up` does on a developer machine. See .devcontainer/README.md.
+  "name": "African Market",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  // The stack's images build on 4 cores with 16 GB; fewer runs out of memory.
+  "hostRequirements": { "cpus": 4, "memory": "16gb", "storage": "32gb" },
+  "containerEnv": {
+    // Fixed sign-in codes, so the seed and the tests never need a real phone. The codespace is
+    // private to its owner and holds made-up data only; identity refuses these in production.
+    "OTP_TEST_NUMBERS": "+971500000001:135790,+971500000002:246801,+971500000010:314159,+971500000011:271828"
+  },
+  "postCreateCommand": "corepack enable",
+  // Forwarded privately: open them on your machine with `gh codespace ports forward` (README).
+  "forwardPorts": [3000, 3001, 3002, 4000, 9000, 8025, 15672],
+  "portsAttributes": {
+    "3000": { "label": "web", "onAutoForward": "silent" },
+    "3001": { "label": "seller", "onAutoForward": "silent" },
+    "3002": { "label": "admin", "onAutoForward": "silent" },
+    "4000": { "label": "gateway", "onAutoForward": "silent" },
+    "9000": { "label": "minio (uploads, images)", "onAutoForward": "silent" },
+    "8025": { "label": "mailpit", "onAutoForward": "silent" },
+    "15672": { "label": "rabbitmq", "onAutoForward": "silent" }
+  }
+}

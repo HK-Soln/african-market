@@ -33,6 +33,9 @@ output "next_public_build_args" {
     # Empty DSN: the apps report nothing. The environment is what reports are filed under.
     NEXT_PUBLIC_SENTRY_DSN         = var.sentry_dsn_frontend
     NEXT_PUBLIC_SENTRY_ENVIRONMENT = var.environment
+    # A browser key (public by design; limit it to the site's addresses in Google Cloud).
+    NEXT_PUBLIC_GOOGLE_MAPS_KEY = var.google_maps_browser_key
+    NEXT_PUBLIC_GOOGLE_MAP_ID   = var.google_map_id
   }
 }
 

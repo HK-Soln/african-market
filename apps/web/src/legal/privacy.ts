@@ -23,6 +23,7 @@ export const PRIVACY_POLICY: LegalTexts = {
           'Your account: your phone number or email address, and if you add them your name, preferred language and home emirate. If you set a password we keep only a one-way scrambled form of it, never the password itself.',
           'Signing in: when you signed in, and the IP address and browser or device you used, so you can recognise your sessions and we can stop misuse.',
           'Addresses you save for deliveries, including the map pin you drop.',
+          'The area you search from: your device’s location (only when you tap “Use my current location”), an area you search for or an emirate you choose. It is kept in a cookie on your device, to about 100 metres, so results are near you; we do not store it. Until you choose, we may guess your emirate from your connection, without keeping the guess.',
           'If you sell: your shop details and branches, and the identity documents needed to verify you as a seller.',
           'If you order and pay online (when available): your orders. Card details are entered with Stripe and never reach us.',
         ],
@@ -39,7 +40,7 @@ export const PRIVACY_POLICY: LegalTexts = {
         heading: 'Where it is kept',
         paragraphs: [
           'Your data is stored in the United Arab Emirates, in the UAE region of Amazon Web Services.',
-          'Some providers we need to run the service may process data outside the UAE, only for their task: sending one-time codes by WhatsApp or SMS ([provider]), sending emails ([provider]) and verifying sellers’ identity ([provider]). This list will be completed before launch.',
+          'Some providers we need to run the service may process data outside the UAE, only for their task: sending one-time codes by WhatsApp or SMS ([provider]), sending emails ([provider]), verifying sellers’ identity ([provider]) and showing maps and finding places (Google Maps, which receives the places you type and the parts of the map you look at). This list will be completed before launch.',
         ],
       },
       {
@@ -73,7 +74,7 @@ export const PRIVACY_POLICY: LegalTexts = {
       {
         heading: 'Cookies and storage in your browser',
         paragraphs: [
-          'We only use what the service needs to work: cookies that keep you signed in (they cannot be read by page scripts), a cookie that remembers your language, and storage in your browser that remembers you have signed in before, that you have seen our cookie notice, and the pages kept for offline use.',
+          'We only use what the service needs to work: cookies that keep you signed in (they cannot be read by page scripts), a cookie that remembers your language, a cookie that remembers the area you search from, and storage in your browser that remembers you have signed in before, that you have seen our cookie notice, and the pages kept for offline use.',
           'We do not use advertising or tracking cookies. If that ever changes, we will ask you first.',
         ],
       },
@@ -107,6 +108,7 @@ export const PRIVACY_POLICY: LegalTexts = {
           'حسابك: رقم هاتفك أو بريدك الإلكتروني، وإن أضفتها: اسمك ولغتك المفضلة وإمارتك. إذا عيّنت كلمة مرور فإننا نحتفظ بصيغة مشفّرة باتجاه واحد فقط، ولا نحتفظ بكلمة المرور نفسها أبدًا.',
           'تسجيل الدخول: وقت تسجيل دخولك، وعنوان IP والمتصفح أو الجهاز الذي استخدمته، لتتعرّف على جلساتك ولنمنع إساءة الاستخدام.',
           'العناوين التي تحفظها للتوصيل، بما فيها الموقع الذي تحدده على الخريطة.',
+          'المنطقة التي تبحث منها: موقع جهازك (فقط عندما تضغط «استخدم موقعي الحالي»)، أو منطقة تبحث عنها، أو إمارة تختارها. تُحفظ في ملف تعريف ارتباط على جهازك، بدقة نحو 100 متر، لتظهر لك النتائج القريبة؛ ولا نحفظها لدينا. وإلى أن تختار، قد نخمّن إمارتك من اتصالك دون الاحتفاظ بهذا التخمين.',
           'إذا كنت بائعًا: بيانات متجرك وفروعه، ووثائق الهوية اللازمة للتحقق منك كبائع.',
           'إذا طلبت ودفعت عبر الإنترنت (عند توفّر ذلك): طلباتك. تُدخل بيانات البطاقة لدى Stripe ولا تصل إلينا أبدًا.',
         ],
@@ -123,7 +125,7 @@ export const PRIVACY_POLICY: LegalTexts = {
         heading: 'أين تُحفظ',
         paragraphs: [
           'تُحفظ بياناتك في دولة الإمارات العربية المتحدة، في منطقة الإمارات لدى خدمات أمازون السحابية (AWS).',
-          'قد يعالج بعض مزوّدي الخدمة الذين نحتاج إليهم بياناتٍ خارج الإمارات، لأداء مهمتهم فقط: إرسال الرموز لمرة واحدة عبر واتساب أو الرسائل النصية ([المزوّد])، وإرسال الرسائل الإلكترونية ([المزوّد])، والتحقق من هوية البائعين ([المزوّد]). ستُستكمل هذه القائمة قبل الإطلاق.',
+          'قد يعالج بعض مزوّدي الخدمة الذين نحتاج إليهم بياناتٍ خارج الإمارات، لأداء مهمتهم فقط: إرسال الرموز لمرة واحدة عبر واتساب أو الرسائل النصية ([المزوّد])، وإرسال الرسائل الإلكترونية ([المزوّد])، والتحقق من هوية البائعين ([المزوّد])، وعرض الخرائط والبحث عن الأماكن (خرائط Google، التي تتلقى الأماكن التي تكتبها وأجزاء الخريطة التي تعرضها). ستُستكمل هذه القائمة قبل الإطلاق.',
         ],
       },
       {
@@ -157,7 +159,7 @@ export const PRIVACY_POLICY: LegalTexts = {
       {
         heading: 'ملفات تعريف الارتباط والتخزين في متصفحك',
         paragraphs: [
-          'نستخدم فقط ما تحتاجه الخدمة لتعمل: ملفات تعريف ارتباط تُبقيك مسجّلًا للدخول (لا يمكن لنصوص الصفحة قراءتها)، وملف تعريف ارتباط يتذكر لغتك، وتخزينًا في متصفحك يتذكر أنك سجّلت الدخول من قبل، وأنك اطّلعت على إشعار ملفات تعريف الارتباط، والصفحات المحفوظة للاستخدام دون اتصال.',
+          'نستخدم فقط ما تحتاجه الخدمة لتعمل: ملفات تعريف ارتباط تُبقيك مسجّلًا للدخول (لا يمكن لنصوص الصفحة قراءتها)، وملف تعريف ارتباط يتذكر لغتك، وملف تعريف ارتباط يتذكر المنطقة التي تبحث منها، وتخزينًا في متصفحك يتذكر أنك سجّلت الدخول من قبل، وأنك اطّلعت على إشعار ملفات تعريف الارتباط، والصفحات المحفوظة للاستخدام دون اتصال.',
           'لا نستخدم ملفات تعريف ارتباط إعلانية أو للتتبع. وإذا تغيّر ذلك يومًا، فسنطلب موافقتك أولًا.',
         ],
       },

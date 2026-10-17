@@ -12,6 +12,7 @@ function required(value: string | undefined, name: string): string {
 
 const gatewayUrl = required(process.env.NEXT_PUBLIC_GATEWAY_URL, 'NEXT_PUBLIC_GATEWAY_URL');
 const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN || undefined;
+const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || undefined;
 
 export const config = {
   /** The gateway as the browser reaches it. */
@@ -34,6 +35,17 @@ export const config = {
           process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
           'NEXT_PUBLIC_SENTRY_ENVIRONMENT',
         ),
+      }
+    : undefined,
+  /**
+   * Google Maps in the browser (map, Places search): off without a key, and the app then shows
+   * lists and an emirate choice only. The key is a browser key, limited to this site's addresses
+   * in Google Cloud; with it, the map id (Map Management, needed for the markers) must be set too.
+   */
+  googleMaps: googleMapsKey
+    ? {
+        apiKey: googleMapsKey,
+        mapId: required(process.env.NEXT_PUBLIC_GOOGLE_MAP_ID, 'NEXT_PUBLIC_GOOGLE_MAP_ID'),
       }
     : undefined,
 } as const;

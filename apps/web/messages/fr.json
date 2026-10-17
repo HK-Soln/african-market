@@ -6,12 +6,31 @@
   "home": {
     "tagline": "Boutiques, produits et services africains près de chez vous, dans les sept émirats.",
     "searchPlaceholder": "Rechercher egusi, beurre de karité, tailleur…",
-    "useMyLocation": "Utiliser ma position",
     "browseByEmirate": "Parcourir par émirat",
     "forSellers": "Inscrivez votre boutique gratuitement",
     "whatsapp": "WhatsApp",
     "call": "Appeler",
     "email": "E-mail"
+  },
+  "location": {
+    "sheetTitle": "Chercher près de",
+    "close": "Fermer",
+    "useMyLocation": "Utiliser ma position actuelle",
+    "locating": "Recherche de votre position…",
+    "denied": "La localisation est bloquée pour ce site. Autorisez-la dans les réglages du navigateur, ou choisissez un quartier ci-dessous.",
+    "unavailable": "Nous n’avons pas pu trouver votre position. Choisissez un quartier ci-dessous.",
+    "searchArea": "Quartier ou bâtiment",
+    "searchAreaPlaceholder": "Par exemple Deira, Al Nahda, Mussafah",
+    "noPlaces": "Aucun lieu trouvé aux Émirats. Essayez une autre orthographe.",
+    "placesUnavailable": "La recherche de lieux ne fonctionne pas pour le moment. Utilisez votre position ou choisissez un émirat.",
+    "orEmirate": "Ou choisissez un émirat",
+    "near": "Près de",
+    "noneYet": "Choisissez d’où chercher",
+    "change": "Modifier",
+    "set": "Choisir le lieu",
+    "yourLocation": "votre position",
+    "guessed": "{place} (d’après votre connexion)",
+    "pinnedPoint": "un point sur la carte"
   },
   "emirates": {
     "DXB": "Dubai",
@@ -166,7 +185,7 @@
   },
   "cookies": {
     "label": "Cookies",
-    "body": "We only store what the app needs to work: keeping you signed in and remembering your language. No advertising or tracking.",
+    "body": "Nous ne gardons que ce dont l’application a besoin : vous garder connecté, retenir votre langue et le quartier d’où vous cherchez. Ni publicité ni pistage.",
     "more": "Privacy policy",
     "ok": "OK"
   },

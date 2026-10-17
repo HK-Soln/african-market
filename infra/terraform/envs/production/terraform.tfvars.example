@@ -13,3 +13,8 @@ didit_workflow_id = "00000000-0000-0000-0000-000000000000"
 # Social sign-in (F1-09): leave out to keep it off.
 # google_client_ids = ["000000000000-web.apps.googleusercontent.com", "000000000000-seller.apps.googleusercontent.com"]
 # facebook_app_id   = "000000000000000"
+
+# Google Maps in the customer site (F1-10): a browser key limited to this environment's site
+# address, with only the Maps JavaScript API and Places API (New) on, and a vector map id.
+# google_maps_browser_key = "AIza..."
+# google_map_id           = "0000000000000000"

@@ -217,11 +217,22 @@ Location discovery and search, Contact, UAE specifics.
 
 ## Web app (customer PWA)
 
-- [ ] **F1-10 Location and map** (depends on F1-08)
+- [x] **F1-10 Location and map** (depends on F1-08)
       `MapProvider` adapter in `apps/web/src/lib/maps` with a Google Maps JS implementation (`@vis.gl/react-google-maps`)
       and a no-key fallback (static list only) when `NEXT_PUBLIC_GOOGLE_MAPS_KEY` is empty. Location: ask
       for GPS permission only on user action; fall back to a chosen emirate + area (Places autocomplete
       restricted to AE), then IP-based city. Remember the chosen location in a cookie so SSR can use it.
+
+  > Note: decision T-37. Places is the new Places API (autocomplete plus `fetchFields`); the
+  > legacy Autocomplete widget is closed to new projects. Advanced Markers need a map id, so
+  > `NEXT_PUBLIC_GOOGLE_MAP_ID` is required with the key (`DEMO_MAP_ID` locally).
+  > Note: the IP guess reads CloudFront's viewer headers; nothing in front of the site adds them
+  > yet (the ALB serves it directly), so in AWS it stays off until CloudFront arrives with the
+  > domain. No geo-IP service or database was added: it would send or keep visitors' IPs.
+  > Note: the cookie holds the point to about 110 m, only after the visitor chooses; the privacy
+  > draft and the cookie notice (version 2) say so, and the privacy draft now lists Google Maps.
+  > Note: the map itself appears with the search screens (F1-11); this task ships the adapter, the
+  > place search and the location choice on the home page. The web app now has Jest unit tests.
 
 - [ ] **F1-11 Search experience** (depends on F1-10)
       Home with search bar, "near me" results, emirate and category chips. Results page with list/map

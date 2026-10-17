@@ -7,12 +7,12 @@ import { Link } from '@/i18n/navigation';
 
 /**
  * Says once what the app stores in the browser. Only what the service needs is stored (sign-in
- * cookies, language, these notes), so there is nothing to accept or refuse; if analytics or
+ * cookies, language, the area searched from, these notes), so there is nothing to accept or refuse; if analytics or
  * advertising ever arrive, this becomes a choice asked before they load. Bump the version when
  * the wording changes, so everyone sees it again.
  */
 const NOTICE_KEY = 'am.cookie-notice';
-const NOTICE_VERSION = '1';
+const NOTICE_VERSION = '2';
 
 export function CookieNotice() {
   const t = useTranslations('cookies');
@@ -40,7 +40,7 @@ export function CookieNotice() {
   return (
     <section
       aria-label={t('label')}
-      className="fixed start-3 end-3 bottom-4 z-50 mx-auto flex max-w-[560px] flex-col gap-3 rounded-lg border border-line bg-surface-raised p-4 shadow-lg sm:flex-row sm:items-center"
+      className="fixed start-3 end-3 bottom-4 z-[var(--z-sticky)] mx-auto flex max-w-[560px] flex-col gap-3 rounded-lg border border-line bg-surface-raised p-4 shadow-lg sm:flex-row sm:items-center"
     >
       <p className="flex-1 text-[15px] leading-6">
         {t('body')}{' '}

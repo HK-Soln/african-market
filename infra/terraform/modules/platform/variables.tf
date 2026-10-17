@@ -171,3 +171,20 @@ variable "facebook_app_id" {
   type        = string
   default     = ""
 }
+
+variable "google_maps_browser_key" {
+  description = "Google Maps browser key compiled into the customer site (map and place search). Empty: lists and an emirate choice only."
+  type        = string
+  default     = ""
+}
+
+variable "google_map_id" {
+  description = "Google Maps map id (Map Management), required with google_maps_browser_key."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.google_maps_browser_key == "" || var.google_map_id != ""
+    error_message = "google_map_id must be set with google_maps_browser_key."
+  }
+}

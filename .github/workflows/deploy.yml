@@ -116,6 +116,8 @@ jobs:
             echo "NEXT_PUBLIC_WEB_URL=$(jq -r .NEXT_PUBLIC_WEB_URL <<<"$args")"
             echo "NEXT_PUBLIC_SENTRY_DSN=$(jq -r .NEXT_PUBLIC_SENTRY_DSN <<<"$args")"
             echo "NEXT_PUBLIC_SENTRY_ENVIRONMENT=$(jq -r .NEXT_PUBLIC_SENTRY_ENVIRONMENT <<<"$args")"
+            echo "NEXT_PUBLIC_GOOGLE_MAPS_KEY=$(jq -r .NEXT_PUBLIC_GOOGLE_MAPS_KEY <<<"$args")"
+            echo "NEXT_PUBLIC_GOOGLE_MAP_ID=$(jq -r .NEXT_PUBLIC_GOOGLE_MAP_ID <<<"$args")"
             echo "CLUSTER=$(out cluster_name | jq -r .)"
             echo "DB_INSTANCE=$(out database_identifier | jq -r .)"
           } >> "$GITHUB_ENV"

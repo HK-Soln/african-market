@@ -37,6 +37,15 @@ variable "NEXT_PUBLIC_SENTRY_ENVIRONMENT" {
   default = ""
 }
 
+# Google Maps in the customer site; empty means lists only. The map id is required with a key.
+variable "NEXT_PUBLIC_GOOGLE_MAPS_KEY" {
+  default = ""
+}
+
+variable "NEXT_PUBLIC_GOOGLE_MAP_ID" {
+  default = ""
+}
+
 variable "BUILD_ID" {
   default = ""
 }
@@ -59,6 +68,8 @@ target "_next" {
     NEXT_PUBLIC_WEB_URL            = NEXT_PUBLIC_WEB_URL
     NEXT_PUBLIC_SENTRY_DSN         = NEXT_PUBLIC_SENTRY_DSN
     NEXT_PUBLIC_SENTRY_ENVIRONMENT = NEXT_PUBLIC_SENTRY_ENVIRONMENT
+    NEXT_PUBLIC_GOOGLE_MAPS_KEY    = NEXT_PUBLIC_GOOGLE_MAPS_KEY
+    NEXT_PUBLIC_GOOGLE_MAP_ID      = NEXT_PUBLIC_GOOGLE_MAP_ID
     BUILD_ID                       = BUILD_ID
   }
 }

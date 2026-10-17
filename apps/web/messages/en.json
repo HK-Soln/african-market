@@ -6,12 +6,31 @@
   "home": {
     "tagline": "African shops, food and services near you, across all seven emirates.",
     "searchPlaceholder": "Search egusi, shea butter, tailor, hair salon…",
-    "useMyLocation": "Use my location",
     "browseByEmirate": "Browse by emirate",
     "forSellers": "List your shop for free",
     "whatsapp": "WhatsApp",
     "call": "Call",
     "email": "Email"
+  },
+  "location": {
+    "sheetTitle": "Search near",
+    "close": "Close",
+    "useMyLocation": "Use my current location",
+    "locating": "Finding you…",
+    "denied": "Location is blocked for this site. Allow it in your browser settings, or choose an area below.",
+    "unavailable": "We could not find your location. Choose an area below.",
+    "searchArea": "Area or building",
+    "searchAreaPlaceholder": "For example Deira, Al Nahda, Mussafah",
+    "noPlaces": "No places found in the UAE. Try another spelling.",
+    "placesUnavailable": "Searching for places is not working right now. Use your location or choose an emirate.",
+    "orEmirate": "Or choose an emirate",
+    "near": "Near",
+    "noneYet": "Choose where to search from",
+    "change": "Change",
+    "set": "Set location",
+    "yourLocation": "your location",
+    "guessed": "{place} (from your connection)",
+    "pinnedPoint": "a point on the map"
   },
   "emirates": {
     "DXB": "Dubai",
@@ -166,7 +185,7 @@
   },
   "cookies": {
     "label": "Cookies",
-    "body": "We only store what the app needs to work: keeping you signed in and remembering your language. No advertising or tracking.",
+    "body": "We only store what the app needs to work: keeping you signed in, remembering your language and the area you search from. No advertising or tracking.",
     "more": "Privacy policy",
     "ok": "OK"
   },

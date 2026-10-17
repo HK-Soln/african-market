@@ -4,6 +4,7 @@ import { test as base, expect, type APIRequestContext } from '@playwright/test';
 /* eslint-disable no-restricted-imports */
 import ar from '../apps/web/messages/ar.json';
 import en from '../apps/web/messages/en.json';
+import { COOKIE_NOTICE_KEY, COOKIE_NOTICE_VERSION } from '../apps/web/src/lib/cookie-notice';
 /* eslint-enable no-restricted-imports */
 import { GATEWAY_URL } from './urls';
 
@@ -72,7 +73,10 @@ export const test = base.extend<Fixtures>({
 
   context: async ({ context, cookieNoticeSeen }, use) => {
     if (cookieNoticeSeen) {
-      await context.addInitScript(() => window.localStorage.setItem('am.cookie-notice', '1'));
+      await context.addInitScript(([key, version]) => window.localStorage.setItem(key, version), [
+        COOKIE_NOTICE_KEY,
+        COOKIE_NOTICE_VERSION,
+      ] as const);
     }
     await use(context);
   },

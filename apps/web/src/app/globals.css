@@ -8,3 +8,89 @@
  * Tailwind utilities (bg-surface, text-ink-muted, border-line) and logical spacing (ms-, me-,
  * ps-, pe-, start-, end-) so layouts mirror in Arabic.
  */
+
+/* Map (lib/maps): markers are our own HTML, drawn with the design tokens. */
+.am-map {
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+.am-map > div {
+  position: absolute;
+  inset: 0;
+}
+.am-map-pin {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--color-surface-raised);
+  border-radius: var(--radius-full) var(--radius-full) var(--radius-full) 0;
+  rotate: -45deg;
+  background: var(--color-clay);
+  color: var(--color-on-clay);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+.am-map-pin > * {
+  rotate: 45deg;
+}
+.am-map-pin-closed {
+  background: var(--color-ink-muted);
+}
+.am-map-pin-on {
+  scale: 1.2;
+  background: var(--color-clay-hover);
+}
+.am-map-cluster {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  padding-inline: 8px;
+  border: 3px solid var(--color-clay-soft);
+  border-radius: var(--radius-full);
+  background: var(--color-clay);
+  color: var(--color-on-clay);
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+.am-map-you {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--color-surface-raised);
+  border-radius: var(--radius-full);
+  background: var(--color-info);
+  box-shadow: 0 0 0 6px var(--color-info-soft);
+}
+
+/* Place search suggestions (lib/maps/google.tsx). */
+.am-place-list {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  z-index: 10;
+  margin-top: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-lg);
+}
+.am-place-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.am-place-option-on,
+.am-place-option:hover {
+  background: var(--color-surface-sunken);
+}

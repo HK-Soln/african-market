@@ -88,6 +88,18 @@ variable "sentry_dsn_backend" {
   default     = ""
 }
 
+variable "google_maps_browser_key" {
+  description = "Google Maps browser key for the customer site; empty: no map."
+  type        = string
+  default     = ""
+}
+
+variable "google_map_id" {
+  description = "Google Maps map id, required with the key."
+  type        = string
+  default     = ""
+}
+
 variable "sentry_dsn_frontend" {
   description = "Sentry DSN compiled into the Next apps; empty: no error reports."
   type        = string
@@ -111,6 +123,9 @@ module "platform" {
   google_client_ids   = var.google_client_ids
   facebook_app_id     = var.facebook_app_id
   sentry_dsn_frontend = var.sentry_dsn_frontend
+
+  google_maps_browser_key = var.google_maps_browser_key
+  google_map_id           = var.google_map_id
   # No test numbers and no working hours in production.
 
   single_nat_gateway = false

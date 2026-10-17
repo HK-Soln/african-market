@@ -88,5 +88,11 @@
   "showShops": "Afficher 18 boutiques",
   "modalTitle": "Supprimer cette boutique ?",
   "modalBody": "Les clients ne la trouveront plus dans la recherche. Cette action est irréversible.",
-  "keepBranch": "Conserver la boutique"
+  "keepBranch": "Conserver la boutique",
+  "searchAndResults": "Recherche et résultats",
+  "searchLabel": "Rechercher des boutiques et des produits",
+  "searchPlaceholder": "Cherchez egusi, beurre de karité, tailleur…",
+  "deira": "Deira",
+  "searchNear": "Recherche près de Deira. Modifier",
+  "fromNigeriaGhana": "Du Nigeria et du Ghana"
 }

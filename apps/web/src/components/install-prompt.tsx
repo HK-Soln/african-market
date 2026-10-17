@@ -63,7 +63,7 @@ export function InstallPrompt() {
   return (
     <section
       aria-labelledby={titleId}
-      className="fixed start-3 end-3 bottom-4 z-40 mx-auto flex max-w-[420px] flex-col gap-3 rounded-lg border border-line bg-surface-raised p-3.5 shadow-lg"
+      className="fixed start-3 end-3 bottom-4 z-[var(--z-sticky)] mx-auto flex max-w-[420px] flex-col gap-3 rounded-lg border border-line bg-surface-raised p-3.5 shadow-lg"
     >
       <div className="flex items-start gap-3">
         <Logo variant="mark" size={44} />

@@ -22,6 +22,9 @@ import {
   OtpInput,
   PhoneInput,
   Price,
+  SearchBar,
+  ShopCard,
+  shopInitials,
   Select,
   Tabs,
   Toast,
@@ -329,5 +332,54 @@ describe('searching the country picker', () => {
     ['eg', ivoryCoast, false],
   ])('"%s" in %o -> %s', (query, country, expected) => {
     expect(matchesCountry(country, query)).toBe(expected);
+  });
+});
+
+describe('ShopCard', () => {
+  it('links the name to the shop and keeps the actions outside the link', () => {
+    const out = html(
+      <ShopCard
+        name="Lagos Kitchen"
+        href="/en/s/lagos-kitchen"
+        meta={['1.2 km', 'Al Nahda']}
+        origins={['NG', 'GH']}
+        originLabel="From Nigeria and Ghana"
+        actions={<button type="button">WhatsApp</button>}
+      />,
+    );
+    expect(out).toContain('<a href="/en/s/lagos-kitchen">Lagos Kitchen</a>');
+    expect(out).toContain('<span>1.2 km</span><span>Al Nahda</span>');
+    expect(out).toContain('am-visually-hidden">From Nigeria and Ghana');
+    expect(out).toContain('src="/flags/GH.svg"');
+    expect(out).toMatch(/am-shop-actions"><button[^>]*>WhatsApp<\/button>/);
+    expect(out).not.toMatch(/<a [^>]*>[^<]*<button/);
+  });
+
+  it('shows the initials when there is no logo, and the logo when there is', () => {
+    expect(html(<ShopCard name="Mama Africa Store" href="/s/m" />)).toContain('>MA</span>');
+    expect(html(<ShopCard name="M" href="/s/m" logoUrl="https://cdn/l.webp" />)).toContain(
+      'src="https://cdn/l.webp"',
+    );
+    expect(shopInitials('  عطور  الشرق ')).toBe('عا');
+  });
+});
+
+describe('SearchBar', () => {
+  it('is a labelled search form, with the place button only when there is a place', () => {
+    const plain = html(<SearchBar label="Search shops" placeholder="Egusi…" defaultValue="hair" />);
+    expect(plain).toContain('role="search"');
+    expect(plain).toContain('am-visually-hidden">Search shops');
+    expect(plain).toContain('value="hair"');
+    expect(plain).not.toContain('am-search-loc');
+
+    const near = html(
+      <SearchBar
+        label="Search"
+        locationText="Deira"
+        locationLabel="Searching near Deira. Change"
+      />,
+    );
+    expect(near).toContain('aria-label="Searching near Deira. Change"');
+    expect(near).toContain('am-search-loc-text">Deira');
   });
 });

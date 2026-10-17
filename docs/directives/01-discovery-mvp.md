@@ -234,12 +234,22 @@ Location discovery and search, Contact, UAE specifics.
   > Note: the map itself appears with the search screens (F1-11); this task ships the adapter, the
   > place search and the location choice on the home page. The web app now has Jest unit tests.
 
-- [ ] **F1-11 Search experience** (depends on F1-10)
+- [x] **F1-11 Search experience** (depends on F1-10)
       Home with search bar, "near me" results, emirate and category chips. Results page with list/map
       toggle synced to URL params, filters (category, origin country flag picker, open now, delivers to
       me, pickup/delivery), infinite scroll by cursor, empty states that suggest widening the radius.
       Every result card: logo, name, verified badge, distance, open-now, category, origin flags, and
       WhatsApp/Call buttons that log contact events.
+
+  > Note: decision T-38. Search state lives in the address, the place in the location cookie; the
+  > server renders the first page for every change, the browser fetches the rest by cursor.
+  > Note: the cards needed phone numbers that search did not return: discovery's read model and
+  > `GET /search/nearby` now carry `contactWhatsapp`/`contactPhone` (migration SearchContacts). After
+  > deploying, run the admin search rebuild so shops indexed earlier get them.
+  > Note: modes are "Pick up" (within 2 to 50 km, default 10) and "Delivery"; "Delivers to me" narrows
+  > pickup. Categories show only top-level names on cards; the filter offers every level.
+  > Note: the visitor id for contact taps is kept in `sessionStorage`; the privacy draft now says so.
+  > The install prompt moved below sheets, as the cookie notice did in F1-10.
 
 - [ ] **F1-12 Shop and product pages** (depends on F1-08)
       SSR `/[locale]/s/[slug]` and `/[locale]/p/[id]-[slug]`: gallery, description, branches with map,

@@ -998,6 +998,16 @@ bdi[dir='ltr'] {
 .am-shop-sponsored {
   z-index: 1;
 }
+/* Above the name link's full-card hit area, so they stay their own buttons. */
+.am-shop-actions {
+  position: relative;
+  z-index: 1;
+}
+.am-shop-origins {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
 .am-product-origin {
   position: absolute;
   bottom: var(--spacing-2);

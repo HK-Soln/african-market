@@ -443,6 +443,11 @@ describe('shops and branches (PostGIS)', () => {
         branchId: branch.id,
         hours: [{ weekday: 1, opensAt: '09:00', closesAt: '21:00' }],
       });
+      await shops.update({
+        actor: withRole(shop.id, 'owner'),
+        shopId: shop.id,
+        contactWhatsapp: '050 123 4567',
+      });
       const snap = await snapshots.snapshot({ shopId: shop.id });
       expect(snap).toMatchObject({
         shopId: shop.id,
@@ -454,6 +459,9 @@ describe('shops and branches (PostGIS)', () => {
             emirate: 'DXB',
             location: NAHDA,
             openingHours: [{ weekday: 1, opensAt: '09:00', closesAt: '21:00' }],
+            // The branch has no numbers of its own, so the shop's.
+            contactWhatsapp: '+971501234567',
+            contactPhone: null,
           },
         ],
       });

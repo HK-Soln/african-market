@@ -51,6 +51,8 @@ export class SearchSnapshotService {
           delivery: b.delivery,
           openingHours: b.openingHours,
           specialHours: b.specialHours,
+          contactWhatsapp: b.contactWhatsapp ?? shop.contactWhatsapp,
+          contactPhone: b.contactPhone ?? shop.contactPhone,
         })),
         observedAt: new Date(now).toISOString(),
       };

@@ -5,6 +5,7 @@ import { Init1791504000000 } from '../../src/migrations/1791504000000-init';
 import { SearchReadModel1792252800000 } from '../../src/migrations/1792252800000-SearchReadModel';
 import { NearbySearch1792339200000 } from '../../src/migrations/1792339200000-NearbySearch';
 import { EmirateSearch1792425600000 } from '../../src/migrations/1792425600000-EmirateSearch';
+import { SearchContacts1792512000000 } from '../../src/migrations/1792512000000-SearchContacts';
 
 export type { TestDatabase };
 
@@ -17,5 +18,6 @@ export const createTestDatabase = (): Promise<TestDatabase> =>
       SearchReadModel1792252800000,
       NearbySearch1792339200000,
       EmirateSearch1792425600000,
+      SearchContacts1792512000000,
     ],
   });

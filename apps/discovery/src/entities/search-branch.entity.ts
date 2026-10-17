@@ -83,6 +83,13 @@ export class SearchBranch {
   @Column({ type: 'boolean', default: true })
   verified!: boolean;
 
+  /** E.164: the branch's own contact, else the shop's (the result card's buttons). */
+  @Column({ type: 'text', nullable: true })
+  contactWhatsapp!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  contactPhone!: string | null;
+
   /** Reviews come in Phase 2; 0 until then. */
   @Column({ type: 'real', default: 0 })
   ratingAvg!: number;

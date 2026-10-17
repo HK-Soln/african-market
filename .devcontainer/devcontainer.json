@@ -4,7 +4,9 @@
   "name": "African Market",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    // `gh codespace ssh` runs the stack and the seed from a terminal.
+    "ghcr.io/devcontainers/features/sshd:1": {}
   },
   // The stack's images build on 4 cores with 16 GB; fewer runs out of memory.
   "hostRequirements": { "cpus": 4, "memory": "16gb", "storage": "32gb" },

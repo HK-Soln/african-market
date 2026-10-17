@@ -8,8 +8,15 @@ cd "$(dirname "$0")/../.."
 # Only what Phase 1 uses: later phases' services are left out to save build time and memory.
 APPS=(gateway identity shops catalog discovery media web seller admin)
 
-echo "Building and starting: ${APPS[*]}"
-docker compose --profile apps up -d --build --wait "${APPS[@]}"
+# One image at a time: built together, the installs and Next.js builds use more than the
+# codespace's 16 GB and it stops answering. They share the dependency layer, so later ones are quick.
+for app in "${APPS[@]}"; do
+  echo "Building $app"
+  docker compose --profile apps build "$app"
+done
+
+echo "Starting: ${APPS[*]}"
+docker compose --profile apps up -d --wait "${APPS[@]}"
 
 if [[ "${1:-}" != "--no-seed" ]]; then
   node tools/test-env/seed.mjs

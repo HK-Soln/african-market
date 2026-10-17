@@ -149,6 +149,18 @@ export class NearbyBranchDto {
   @ApiProperty() ratingCount!: number;
   @ApiProperty({ type: [String] }) categoryIds!: string[];
   @ApiProperty({ type: [String] }) originCountries!: string[];
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: 'E.164; the branch’s, else the shop’s',
+  })
+  contactWhatsapp!: string | null;
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: 'E.164; the branch’s, else the shop’s',
+  })
+  contactPhone!: string | null;
   @ApiProperty({ type: [MatchedProductDto] }) matchedProducts!: MatchedProductDto[];
 }
 

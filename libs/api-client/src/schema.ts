@@ -1763,6 +1763,10 @@ export interface components {
             ratingCount: number;
             categoryIds: string[];
             originCountries: string[];
+            /** @description E.164; the branch’s, else the shop’s */
+            contactWhatsapp: string | null;
+            /** @description E.164; the branch’s, else the shop’s */
+            contactPhone: string | null;
             matchedProducts: components["schemas"]["MatchedProductDto"][];
         };
         SearchNearbyResponseDto: {

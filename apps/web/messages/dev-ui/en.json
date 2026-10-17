@@ -88,5 +88,11 @@
   "showShops": "Show 18 shops",
   "modalTitle": "Delete this branch?",
   "modalBody": "Customers will no longer find it in search. This can’t be undone.",
-  "keepBranch": "Keep branch"
+  "keepBranch": "Keep branch",
+  "searchAndResults": "Search and results",
+  "searchLabel": "Search shops and products",
+  "searchPlaceholder": "Search egusi, shea butter, tailor…",
+  "deira": "Deira",
+  "searchNear": "Searching near Deira. Change",
+  "fromNigeriaGhana": "From Nigeria and Ghana"
 }

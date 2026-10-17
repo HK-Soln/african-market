@@ -21,7 +21,9 @@ import {
   PhoneInput,
   Price,
   Radio,
+  SearchBar,
   Select,
+  ShopCard,
   Skeleton,
   Stepper,
   Tabs,
@@ -203,6 +205,41 @@ export function UiShowcase({ locale, t }: { locale: Locale; t: ShowcaseStrings }
           doneLabel={t.done}
           steps={[t.stepShop, t.stepBranch, t.stepVerify]}
           current={1}
+        />
+      </Group>
+
+      <Group title={t.searchAndResults}>
+        <SearchBar
+          label={t.searchLabel}
+          placeholder={t.searchPlaceholder}
+          locationText={t.deira}
+          locationLabel={t.searchNear}
+        />
+        <ShopCard
+          name="Mama Nkechi African Foods"
+          href="#"
+          meta={[
+            <bdi key="d" dir="ltr">
+              {t.distance}
+            </bdi>,
+            t.deira,
+          ]}
+          badges={
+            <>
+              <Badge tone="verified">{t.verified}</Badge>
+              <Badge tone="open">{t.openNow}</Badge>
+            </>
+          }
+          origins={['NG', 'GH']}
+          originLabel={t.fromNigeriaGhana}
+          actions={
+            <div className="flex gap-2">
+              <Button variant="whatsapp" iconStart="brand-whatsapp">
+                {t.whatsapp}
+              </Button>
+              <Button iconStart="phone">{t.call}</Button>
+            </div>
+          }
         />
       </Group>
 

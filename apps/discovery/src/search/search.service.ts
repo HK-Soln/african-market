@@ -364,6 +364,8 @@ function toNearby(
     ratingCount: Number(r.rating_count),
     categoryIds: r.category_ids as string[],
     originCountries: r.origin_countries as string[],
+    contactWhatsapp: (r.contact_whatsapp as string | null) ?? null,
+    contactPhone: (r.contact_phone as string | null) ?? null,
     matchedProducts,
   };
 }

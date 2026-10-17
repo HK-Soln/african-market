@@ -20,6 +20,9 @@ export interface BranchSearchSnapshot {
   delivery: boolean;
   openingHours: OpeningHoursDto[];
   specialHours: SpecialHoursDto[];
+  /** E.164; the branch's own, else the shop's. Public, as on the shop page. */
+  contactWhatsapp: string | null;
+  contactPhone: string | null;
 }
 
 /** A shop and its live branches. `verified` false means it must not be searchable. */
@@ -175,6 +178,9 @@ export interface NearbyBranchDto {
   ratingCount: number;
   categoryIds: string[];
   originCountries: string[];
+  /** E.164, the branch's own or else the shop's: the result card's WhatsApp and call buttons. */
+  contactWhatsapp: string | null;
+  contactPhone: string | null;
   /** Up to three, only when `q` is given and products match it. */
   matchedProducts: MatchedProductDto[];
 }

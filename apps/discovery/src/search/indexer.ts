@@ -71,14 +71,14 @@ export class SearchIndexer {
            (branch_id, shop_id, shop_slug, shop_name, shop_description, branch_name, logo_media_id,
             logo_url, shop_category_ids, origin_countries, emirate, area, location, service_area,
             service_radius_m, pickup, delivery, verified, completeness_score, hours,
-            updated_from_event_at)
+            contact_whatsapp, contact_phone, updated_from_event_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7,
             (SELECT ${pickUrl('m.urls')} FROM discovery.search_media m WHERE m.media_id = $7),
             $8, $9, $10, $11,
             ST_SetSRID(ST_MakePoint($12, $13), 4326)::geography,
             CASE WHEN $14::text IS NULL THEN NULL
                  ELSE ST_SetSRID(ST_GeomFromGeoJSON($14::text), 4326)::geography END,
-            $15, $16, $17, true, $18, $19, $20)
+            $15, $16, $17, true, $18, $19, $20, $21, $22)
          ON CONFLICT (branch_id) DO UPDATE SET
             shop_id = EXCLUDED.shop_id, shop_slug = EXCLUDED.shop_slug,
             shop_name = EXCLUDED.shop_name, shop_description = EXCLUDED.shop_description,
@@ -89,6 +89,7 @@ export class SearchIndexer {
             service_area = EXCLUDED.service_area, service_radius_m = EXCLUDED.service_radius_m,
             pickup = EXCLUDED.pickup, delivery = EXCLUDED.delivery,
             completeness_score = EXCLUDED.completeness_score, hours = EXCLUDED.hours,
+            contact_whatsapp = EXCLUDED.contact_whatsapp, contact_phone = EXCLUDED.contact_phone,
             updated_from_event_at = EXCLUDED.updated_from_event_at
          WHERE t.updated_from_event_at <= EXCLUDED.updated_from_event_at`,
         [
@@ -111,6 +112,8 @@ export class SearchIndexer {
           b.delivery,
           score,
           JSON.stringify({ weekly: b.openingHours, special: b.specialHours }),
+          b.contactWhatsapp,
+          b.contactPhone,
           at,
         ],
       );

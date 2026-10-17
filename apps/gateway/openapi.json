@@ -5527,6 +5527,16 @@
               "type": "string"
             }
           },
+          "contactWhatsapp": {
+            "type": "string",
+            "nullable": true,
+            "description": "E.164; the branch’s, else the shop’s"
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true,
+            "description": "E.164; the branch’s, else the shop’s"
+          },
           "matchedProducts": {
             "type": "array",
             "items": {
@@ -5553,6 +5563,8 @@
           "ratingCount",
           "categoryIds",
           "originCountries",
+          "contactWhatsapp",
+          "contactPhone",
           "matchedProducts"
         ]
       },

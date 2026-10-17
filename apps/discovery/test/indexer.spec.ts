@@ -113,6 +113,8 @@ function shopSnapshot(overrides: Partial<ShopSearchSnapshot> = {}): ShopSearchSn
         delivery: true,
         openingHours: [{ weekday: 1, opensAt: '09:00', closesAt: '21:00' }],
         specialHours: [],
+        contactWhatsapp: '+971501234567',
+        contactPhone: null,
       },
     ],
     observedAt: tick(),
@@ -187,6 +189,8 @@ describe('search read model (PostGIS)', () => {
       emirate: 'DXB',
       service_radius_m: 5000,
       verified: true,
+      contact_whatsapp: '+971501234567',
+      contact_phone: null,
     });
     expect(Number(row.lat)).toBeCloseTo(25.2897, 4);
     expect([...row.category_ids].sort()).toEqual([BEAUTY, FOOD, GRAINS].sort());

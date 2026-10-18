@@ -16,6 +16,9 @@
     "OTP_TEST_NUMBERS": "+971500000001:135790,+971500000002:246801,+971500000010:314159,+971500000011:271828"
   },
   "postCreateCommand": "corepack enable",
+  // After a stop (30 idle minutes), bring the stack back as it was; nothing to do before the first
+  // `tools/test-env/up.sh`, when there are no images yet.
+  "postStartCommand": "docker compose --profile apps up -d --no-build >/dev/null 2>&1 || true",
   // Forwarded privately: open them on your machine with `gh codespace ports forward` (README).
   "forwardPorts": [3000, 3001, 3002, 4000, 9000, 8025, 15672],
   "portsAttributes": {

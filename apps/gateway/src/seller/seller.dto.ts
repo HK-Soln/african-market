@@ -30,7 +30,6 @@ import {
   ImageUrlsDto,
   LatLngDto,
   LocalizedTextDto,
-  MultiPolygonDto,
   OpeningHoursDto,
   PublicBranchDto,
   SpecialHoursDto,
@@ -175,7 +174,14 @@ export class SellerShopPageDto {
 
 export class MultiPolygonInput {
   @ApiProperty({ enum: ['MultiPolygon'] }) @IsIn(['MultiPolygon']) type!: 'MultiPolygon';
-  @ApiProperty({ type: MultiPolygonDto, description: 'GeoJSON coordinates, longitude first' })
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'array',
+      items: { type: 'array', items: { type: 'array', items: { type: 'number' } } },
+    },
+    description: 'GeoJSON coordinates, longitude first',
+  })
   @IsArray()
   coordinates!: number[][][][];
 }

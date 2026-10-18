@@ -84,7 +84,15 @@ export function ShopOverview({ shopId }: { shopId: string }) {
 
       {shop.branches.length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">{t('branches')}</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">{t('branches')}</h2>
+            <Link
+              href={`/shops/${shop.id}/branches`}
+              className="text-sm font-semibold text-clay-ink"
+            >
+              {t('manageBranches')}
+            </Link>
+          </div>
           <ul className="flex flex-col gap-2">
             {shop.branches.map((b) => (
               <li key={b.id} className="flex items-center gap-2 text-sm">

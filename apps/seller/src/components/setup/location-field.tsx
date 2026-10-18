@@ -18,6 +18,7 @@ export function LocationField({
   onChange,
   emirate,
   radiusM,
+  area,
   error,
 }: {
   value: LatLng | null;
@@ -26,6 +27,8 @@ export function LocationField({
   emirate: string;
   /** Drawn as a circle when the branch delivers. */
   radiusM?: number | null;
+  /** A delivery area being drawn, shaped on the same map. */
+  area?: { path: LatLng[]; onChange: (path: LatLng[]) => void };
   error?: string;
 }) {
   const t = useTranslations('setup');
@@ -75,7 +78,7 @@ export function LocationField({
       {MapView && (
         <MapView
           center={centre}
-          zoom={value ? 17 : 11}
+          zoom={area ? 12 : value ? 17 : 11}
           label={t('pin')}
           clusterLabel={(count) => String(count)}
           markers={
@@ -84,6 +87,7 @@ export function LocationField({
               : []
           }
           circles={value && radiusM ? [{ id: 'delivery', center: value, radiusM }] : []}
+          editableArea={area}
           onMarkerDragEnd={(_, position) => onChange(position)}
           onMapClick={onChange}
           className="h-72 overflow-hidden rounded-lg border border-line"

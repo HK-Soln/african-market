@@ -1,3 +1,4 @@
+import { circleOutline, fromMultiPolygon, isUsableOutline, toMultiPolygon } from './area';
 import { copyToAll, dayProblem, weekFromApi, weekProblem, weekToApi } from './hours';
 import { aedText, filsFromAed } from './money';
 import { checkPhone, checkWhatsapp, splitPhone } from './phone';
@@ -107,5 +108,36 @@ describe('where onboarding resumes', () => {
     expect(nextStep(ready as unknown as Shop)).toBe('verify');
     expect(setupProgress(ready as unknown as Shop).photos).toBe(false);
     expect(nextStep({ ...ready, verificationStatus: 'pending' } as unknown as Shop)).toBeNull();
+  });
+});
+
+describe('delivery areas', () => {
+  const pin = { lat: 25.2897, lng: 55.3712 };
+
+  it('starts from a ring of corners about the radius away', () => {
+    const outline = circleOutline(pin, 5000);
+    expect(outline).toHaveLength(12);
+    // North corner: 5 km is about 0.045 degrees of latitude.
+    expect(outline[0].lat - pin.lat).toBeCloseTo(0.045, 3);
+    expect(outline[0].lng).toBeCloseTo(pin.lng, 6);
+    expect(isUsableOutline(outline)).toBe(true);
+  });
+
+  it('writes GeoJSON with longitude first and the ring closed, and reads it back', () => {
+    const path = [
+      { lat: 25.3, lng: 55.3 },
+      { lat: 25.3, lng: 55.4 },
+      { lat: 25.2, lng: 55.4 },
+    ];
+    const area = toMultiPolygon(path);
+    expect(area.coordinates[0][0]).toEqual([
+      [55.3, 25.3],
+      [55.4, 25.3],
+      [55.4, 25.2],
+      [55.3, 25.3],
+    ]);
+    expect(fromMultiPolygon(area)).toEqual(path);
+    expect(fromMultiPolygon(null)).toBeNull();
+    expect(isUsableOutline([path[0], path[0], path[1]])).toBe(false);
   });
 });

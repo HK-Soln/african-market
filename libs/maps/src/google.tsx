@@ -82,6 +82,7 @@ function GoogleMapView({
   onMarkerDragEnd,
   onMapClick,
   circles = [],
+  editableArea,
   onViewChange,
   className,
 }: MapViewProps) {
@@ -126,6 +127,7 @@ function GoogleMapView({
         {circles.map((circle) => (
           <Circle key={circle.id} {...circle} />
         ))}
+        {editableArea && <EditableArea {...editableArea} />}
         {you && (
           <AdvancedMarker position={you} zIndex={1} anchorLeft="-50%" anchorTop="-50%">
             <span className="am-map-you" aria-hidden />
@@ -384,6 +386,58 @@ function Circle({ center, radiusM }: MapCircle) {
     circle.current?.setCenter(center);
     circle.current?.setRadius(radiusM);
   }, [map, center.lat, center.lng, radiusM]);
+  return null;
+}
+
+/**
+ * A polygon with draggable corners. Google adds a corner when a midpoint is dragged; every change
+ * to the path is reported. A new `path` from the caller (e.g. "start again") replaces it.
+ */
+function EditableArea({ path, onChange }: { path: LatLng[]; onChange: (path: LatLng[]) => void }) {
+  const map = useMap();
+  const polygon = useRef<google.maps.Polygon | null>(null);
+  const report = useRef(onChange);
+  report.current = onChange;
+  /** The last path we reported, so our own change does not reset the shape. */
+  const last = useRef<string>('');
+
+  useEffect(() => {
+    if (!map) return;
+    const shape = new google.maps.Polygon({
+      map,
+      editable: true,
+      strokeColor: '#a9500e',
+      strokeOpacity: 0.9,
+      strokeWeight: 2,
+      fillColor: '#a9500e',
+      fillOpacity: 0.12,
+    });
+    polygon.current = shape;
+    return () => {
+      shape.setMap(null);
+      polygon.current = null;
+    };
+  }, [map]);
+
+  useEffect(() => {
+    const shape = polygon.current;
+    if (!shape) return;
+    const key = JSON.stringify(path);
+    if (key === last.current) return;
+    last.current = key;
+    shape.setPath(path);
+    const ring = shape.getPath();
+    const emit = () => {
+      const next = ring.getArray().map((p) => ({ lat: p.lat(), lng: p.lng() }));
+      last.current = JSON.stringify(next);
+      report.current(next);
+    };
+    const listeners = ['set_at', 'insert_at', 'remove_at'].map((event) =>
+      google.maps.event.addListener(ring, event, emit),
+    );
+    return () => listeners.forEach((l) => l.remove());
+  }, [map, path]);
+
   return null;
 }
 

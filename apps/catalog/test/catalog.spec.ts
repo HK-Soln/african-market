@@ -357,6 +357,16 @@ describe('catalogue (Postgres)', () => {
         status: 'active',
         foodDeclaration: null,
       });
+      // The seller's view is for the shop's members only, and only under its own shop.
+      expect(
+        await codeOf(products.get({ actor: person(['customer']), shopId, productId: created.id })),
+      ).toBe(CatalogErrors.productNotFound);
+      expect(
+        await codeOf(products.get({ actor: owner, shopId: randomUUID(), productId: created.id })),
+      ).toBe(CatalogErrors.productNotFound);
+      expect(await products.get({ actor: owner, shopId, productId: created.id })).toMatchObject({
+        id: created.id,
+      });
       expect((await products.listByShop({ shopId, query: page() })).items.map((p) => p.id)).toEqual(
         [created.id],
       );

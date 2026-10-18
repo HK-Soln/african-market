@@ -83,6 +83,12 @@ class FakeServices {
     return { product: product((data.imageMediaIds as string[]) ?? []), releasedMediaIds: [] };
   }
 
+  @MessagePattern(CatalogPatterns.getProduct)
+  getProduct(@Payload() data: Record<string, unknown>) {
+    record(CatalogPatterns.getProduct, data);
+    return product(['ready', 'processing']);
+  }
+
   @MessagePattern(MediaPatterns.attach)
   attach(@Payload() data: Record<string, unknown>) {
     record(MediaPatterns.attach, data);
@@ -98,7 +104,12 @@ class FakeServices {
   @MessagePattern(MediaPatterns.publicUrls)
   urls(@Payload() data: { mediaIds: string[] }) {
     return {
-      urls: Object.fromEntries(data.mediaIds.map((id) => [id, { card: `https://cdn.test/${id}` }])),
+      // An image still being processed has no link yet.
+      urls: Object.fromEntries(
+        data.mediaIds
+          .filter((id) => id !== 'processing')
+          .map((id) => [id, { card: `https://cdn.test/${id}` }]),
+      ),
     };
   }
 
@@ -247,6 +258,17 @@ describe('gateway seller routes (HTTP -> gateway -> TCP -> service stand-ins)', 
       target: { type: 'product', id: productId },
     });
     expect(res.body.images).toEqual([{ card: `https://cdn.test/${image}` }]);
+  });
+
+  it('gives a product to its shop, with image links by id', async () => {
+    const token = await tokenFor(ownerId, [{ shopId, role: 'owner', branchIds: [] }]);
+    const res = await http()
+      .get(`/api/v1/seller/shops/${shopId}/products/${productId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Cache-Control', 'no-store');
+    expect(calls.at(-1)!.data).toMatchObject({ shopId, productId, actor: { userId: ownerId } });
+    expect(res.body.imageUrls).toEqual({ ready: { card: 'https://cdn.test/ready' } });
   });
 
   it('passes on special hours and contact periods, refusing other periods', async () => {

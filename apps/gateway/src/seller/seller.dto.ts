@@ -31,6 +31,7 @@ import {
   LatLngDto,
   LocalizedTextDto,
   OpeningHoursDto,
+  ProductDto,
   PublicBranchDto,
   SpecialHoursDto,
 } from '../public/public.dto';
@@ -465,6 +466,25 @@ export class CreateProductBody {
 }
 
 export class UpdateProductBody extends PartialType(CreateProductBody) {}
+
+/** A product as its shop's members see it. */
+@ApiExtraModels(ImageUrlsDto)
+export class SellerProductDto extends ProductDto {
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { $ref: getSchemaPath(ImageUrlsDto) },
+    description:
+      'Links of the images by media id; an image still being processed has no entry yet ' +
+      '(`images` leaves it out, so its order cannot be matched to `imageMediaIds`).',
+  })
+  imageUrls!: Record<string, ImageUrlsDto>;
+}
+
+export class SellerProductPageDto {
+  @ApiProperty({ type: [SellerProductDto] }) items!: SellerProductDto[];
+  @ApiProperty({ type: String, nullable: true }) nextCursor!: string | null;
+  @ApiProperty({ type: String, nullable: true }) prevCursor!: string | null;
+}
 
 export class SetProductStatusBody {
   @ApiProperty({

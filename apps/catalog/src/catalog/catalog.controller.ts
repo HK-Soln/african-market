@@ -146,7 +146,7 @@ const stockSchema = z.object({
     .max(500),
 });
 const productRefSchema = z.object({ ...shopRef, productId: uuid });
-const getSchema = z.object({ actor: actor.optional(), productId: uuid });
+const getSchema = z.object({ actor: actor.optional(), productId: uuid, shopId: uuid.optional() });
 const decideSchema = z.object({
   actor,
   productId: uuid,

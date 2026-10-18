@@ -221,6 +221,8 @@ export interface RemoveProductResponse {
 export interface GetProductRequest {
   actor?: ActorClaims;
   productId: string;
+  /** The seller's view: only a member of this shop gets it, in any status, and nobody else. */
+  shopId?: string;
 }
 
 /** A shop's products: all of them for its members and admins, the public ones for others. */

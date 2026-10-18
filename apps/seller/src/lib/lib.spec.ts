@@ -2,6 +2,18 @@ import { circleOutline, fromMultiPolygon, isUsableOutline, toMultiPolygon } from
 import { copyToAll, dayProblem, weekFromApi, weekProblem, weekToApi } from './hours';
 import { aedText, filsFromAed } from './money';
 import { checkPhone, checkWhatsapp, splitPhone } from './phone';
+import {
+  cellOf,
+  draftFromProduct,
+  listingGrid,
+  listingsBody,
+  newVariant,
+  productBody,
+  productCategories,
+  statusActions,
+  type ProductCategory,
+  type SellerProduct,
+} from './product-form';
 import { nextStep, setupProgress } from './setup';
 
 describe('opening hours editor', () => {
@@ -139,5 +151,172 @@ describe('delivery areas', () => {
     expect(fromMultiPolygon(area)).toEqual(path);
     expect(fromMultiPolygon(null)).toBeNull();
     expect(isUsableOutline([path[0], path[0], path[1]])).toBe(false);
+  });
+});
+
+describe('product form', () => {
+  const goods = { kind: 'product' as const, requiresDeclaration: false };
+  const food = { kind: 'product' as const, requiresDeclaration: true };
+  const filledIn = () => {
+    const draft = draftFromProduct();
+    draft.categoryId = 'cat';
+    draft.title.en = ' Egusi ';
+    draft.variants[0].price = '25';
+    return draft;
+  };
+
+  it('needs a category, a title in English or Arabic, and a price for goods', () => {
+    expect(productBody(draftFromProduct(), goods)).toMatchObject({ problem: 'category' });
+    const draft = filledIn();
+    draft.title.en = '';
+    expect(productBody(draft, goods)).toMatchObject({ problem: 'title' });
+    draft.title.ar = 'إيغوسي';
+    draft.variants[0].price = '';
+    expect(productBody(draft, goods)).toMatchObject({ problem: 'price', variant: 0 });
+    // A service may be priced on request.
+    expect(productBody(draft, { kind: 'service', requiresDeclaration: false })).toMatchObject({
+      ok: true,
+      body: { title: { ar: 'إيغوسي' }, variants: [{ priceFils: null, options: {} }] },
+    });
+  });
+
+  it('names each variant by the option, once, with the old price above the price', () => {
+    const draft = filledIn();
+    draft.variants.push({ ...newVariant(), price: '40', value: '2 kg' });
+    expect(productBody(draft, goods)).toMatchObject({ problem: 'optionName' });
+    draft.optionName = 'Size';
+    expect(productBody(draft, goods)).toMatchObject({ problem: 'optionValue', variant: 0 });
+    draft.variants[0].value = '2 KG';
+    expect(productBody(draft, goods)).toMatchObject({ problem: 'optionTwice', variant: 1 });
+    draft.variants[0].value = '1 kg';
+    draft.variants[1].compareAt = '40';
+    expect(productBody(draft, goods)).toMatchObject({ problem: 'compareAt', variant: 1 });
+    draft.variants[1].compareAt = '45.5';
+    expect(productBody(draft, goods)).toMatchObject({
+      ok: true,
+      body: {
+        title: { en: 'Egusi' },
+        variants: [
+          { options: { Size: '1 kg' }, priceFils: 2500, compareAtFils: null },
+          { options: { Size: '2 kg' }, priceFils: 4000, compareAtFils: 4550 },
+        ],
+      },
+    });
+  });
+
+  it('asks food for both confirmations and how it is kept', () => {
+    const draft = filledIn();
+    draft.food.packagedAndLabelled = true;
+    draft.food.storage = 'frozen';
+    expect(productBody(draft, food)).toMatchObject({ problem: 'declaration' });
+    draft.food.noRestrictedItems = true;
+    expect(productBody(draft, food)).toMatchObject({
+      ok: true,
+      body: { foodDeclaration: { storage: 'frozen', manufacturer: null } },
+    });
+    expect(productBody(draft, goods)).toMatchObject({ ok: true, body: { foodDeclaration: null } });
+  });
+
+  it('reads a saved product back, keeping options it does not edit', () => {
+    const saved = {
+      categoryId: 'cat',
+      title: { en: 'Wig' },
+      description: {},
+      originCountry: 'NG',
+      imageMediaIds: ['img'],
+      foodDeclaration: null,
+      variants: [
+        {
+          id: 'b',
+          sku: null,
+          options: { Length: '26', Colour: 'Black' },
+          priceFils: 65000,
+          compareAtFils: null,
+          sort: 1,
+        },
+        {
+          id: 'a',
+          sku: 'W-22',
+          options: { Length: '22', Colour: 'Black' },
+          priceFils: 45000,
+          compareAtFils: 50000,
+          sort: 0,
+        },
+      ],
+      listings: [
+        { branchId: 'dxb', variantId: 'a', inStock: true, quantity: 3, priceOverrideFils: 44000 },
+      ],
+    } as unknown as SellerProduct;
+    const draft = draftFromProduct(saved);
+    expect(draft.optionName).toBe('Length');
+    expect(draft.variants.map((v) => [v.id, v.value, v.price, v.compareAt])).toEqual([
+      ['a', '22', '450', '500'],
+      ['b', '26', '650', ''],
+    ]);
+    const body = productBody(draft, goods);
+    expect(body.ok && body.body.variants[0]).toMatchObject({
+      id: 'a',
+      options: { Length: '22', Colour: 'Black' },
+    });
+
+    const grid = listingGrid(saved, ['dxb', 'shj'], draft.variants);
+    expect(grid.dxb.a).toEqual({ listed: true, inStock: true, quantity: '3', price: '440' });
+    expect(grid.dxb.b.listed).toBe(false);
+    expect(grid.shj.a.listed).toBe(false);
+    // A new variant goes where the product is already sold.
+    expect(cellOf(grid, 'dxb', 'new').listed).toBe(true);
+    expect(cellOf(grid, 'shj', 'new').listed).toBe(false);
+  });
+
+  it('lists a new product everywhere, and writes the listings once variants have ids', () => {
+    const draft = draftFromProduct();
+    const key = draft.variants[0].key;
+    const grid = listingGrid(undefined, ['dxb', 'shj'], draft.variants);
+    expect(grid.dxb[key].listed && grid.shj[key].listed).toBe(true);
+    grid.shj[key] = { listed: true, inStock: true, quantity: '0', price: '' };
+    expect(listingsBody(grid, ['dxb', 'shj'], [{ key, id: 'v1' }])).toEqual({
+      ok: true,
+      listings: [
+        {
+          branchId: 'dxb',
+          variantId: 'v1',
+          inStock: true,
+          quantity: null,
+          priceOverrideFils: null,
+        },
+        { branchId: 'shj', variantId: 'v1', inStock: false, quantity: 0, priceOverrideFils: null },
+      ],
+    });
+    grid.dxb[key].quantity = '2.5';
+    expect(listingsBody(grid, ['dxb'], [{ key, id: 'v1' }])).toMatchObject({ problem: 'quantity' });
+  });
+
+  it('offers the actions each status allows', () => {
+    expect(statusActions('draft')).toEqual(['publish']);
+    expect(statusActions('pending_review')).toEqual(['hide']);
+    expect(statusActions('hidden')).toEqual(['publish', 'draft']);
+  });
+
+  it('offers the categories under the shop’s own, and the current one', () => {
+    const cat = (id: string, parentId: string | null = null) =>
+      ({ id, parentId, name: { en: id } }) as unknown as ProductCategory;
+    const all = [
+      cat('food'),
+      cat('grains', 'food'),
+      cat('spices', 'food'),
+      cat('hair'),
+      cat('beauty'),
+    ];
+    expect(productCategories(all, ['food', 'hair']).map((o) => o.category.id)).toEqual([
+      'grains',
+      'spices',
+      'hair',
+    ]);
+    expect(
+      productCategories(all, ['hair'], 'spices').map((o) => [o.category.id, o.parent?.id]),
+    ).toEqual([
+      ['hair', undefined],
+      ['spices', 'food'],
+    ]);
   });
 });

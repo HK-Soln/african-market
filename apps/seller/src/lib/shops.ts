@@ -19,7 +19,7 @@ export type Result<T> =
   { ok: true; data: T } | { ok: false; code: string; details?: Record<string, unknown> };
 
 /** Turns a gateway call into data or an error code the screens can put into words. */
-async function run<T>(
+export async function run<T>(
   request: Promise<{ data?: T; error?: unknown; response: Response }>,
 ): Promise<Result<T>> {
   try {

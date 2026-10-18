@@ -63,15 +63,15 @@ async function signIn(phone) {
 }
 
 /**
- * Catalog learns of a new shop from an event, a moment after the shops service made it: retry a
- * catalog call until it knows the shop (up to 30 s).
+ * Catalog learns of a new shop or branch from an event, a moment after the shops service made
+ * it: retry a catalog call until it knows them (up to 30 s).
  */
 async function untilKnown(fn) {
   for (let attempt = 0; ; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      if (!error.message.includes('SHOP_NOT_FOUND') || attempt >= 30) throw error;
+      if (!/CATALOG_(SHOP|BRANCH)_NOT_FOUND/.test(error.message) || attempt >= 30) throw error;
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
@@ -267,9 +267,11 @@ async function main() {
               : {}),
           }),
         ));
-      await call('PUT', `${base}/products/${product.id}/listings`, seller, {
-        listings: [{ branchId: branch.id, variantId: product.variants[0].id, inStock: true }],
-      });
+      await untilKnown(() =>
+        call('PUT', `${base}/products/${product.id}/listings`, seller, {
+          listings: [{ branchId: branch.id, variantId: product.variants[0].id, inStock: true }],
+        }),
+      );
       if (product.status !== 'active' && product.status !== 'pending_review') {
         await call('PUT', `${base}/products/${product.id}/status`, seller, { status: 'active' });
       }

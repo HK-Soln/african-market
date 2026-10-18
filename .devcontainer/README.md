@@ -28,6 +28,10 @@ for p in 3000 3001 3002 4000 9000 8025; do gh codespace ports forward -c <name> 
 gh codespace delete -c <name> --force
 ```
 
+A codespace stops after 30 idle minutes. When it starts again it brings the stack back by
+itself (the data is kept); if something is still down, run
+`docker compose --profile apps up -d` in its terminal.
+
 `gh codespace list` shows the names. Creating and managing codespaces needs the `codespace`
 scope: `gh auth refresh -h github.com -s codespace`.
 

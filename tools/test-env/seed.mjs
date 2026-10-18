@@ -208,6 +208,22 @@ async function main() {
     return found;
   };
 
+  // Each code a number asks for doubles its wait for the next one, so reruns would soon wait for
+  // an hour: clear the sign-in limits first (test environment only, like everything here).
+  execFileSync(
+    'docker',
+    [
+      'compose',
+      'exec',
+      '-T',
+      'redis',
+      'sh',
+      '-c',
+      "redis-cli --scan --pattern 'identity:otp:*' | xargs -r redis-cli del > /dev/null",
+    ],
+    { stdio: 'inherit' },
+  );
+
   // The admin: signs up, gets the role from the identity container, signs in again for it.
   let admin = await signIn(ADMIN);
   if (!admin.user.roles.includes('admin')) {

@@ -304,7 +304,11 @@
     "manageBranches": "Manage branches",
     "products": "Products",
     "productsHint": "What you sell, its prices and where it is in stock.",
-    "manageProducts": "Manage products"
+    "manageProducts": "Manage products",
+    "insights": "Contacts",
+    "insightsHint": "How often customers tapped WhatsApp, call or email.",
+    "settings": "Settings",
+    "settingsHint": "Your shop page, branches, language and account."
   },
   "photos": {
     "logo": "Logo",
@@ -533,5 +537,44 @@
     "removeConfirm": "Remove the product",
     "removing": "Removing…",
     "keep": "Keep it"
+  },
+  "insights": {
+    "title": "Customer contacts",
+    "intro": "Each time a customer taps WhatsApp, call or email on your page or a product.",
+    "period": "Period",
+    "lastDays": "{days} days",
+    "total": "All contacts",
+    "whatsapp": "WhatsApp",
+    "call": "Calls",
+    "email": "Email",
+    "shareOf": "{percent}% of all",
+    "byDay": "By day",
+    "byWeek": "By week",
+    "topProducts": "Products customers asked about",
+    "taps": "{n, plural, one {# contact} other {# contacts}}",
+    "untitled": "Untitled product",
+    "otherProduct": "A product no longer in your shop",
+    "noneTitle": "No contacts in this period",
+    "noneBody": "Customers reach you from your shop page and product pages. Complete photos and prices help them decide.",
+    "footnote": "Counts are taps on the buttons, by Dubai day. We cannot see whether a call or message followed."
+  },
+  "settings": {
+    "title": "Settings",
+    "shop": "Your shop",
+    "details": "Name, description and categories",
+    "detailsHint": "What customers read first.",
+    "contacts": "Contact numbers and email",
+    "contactsHint": "Where customers reach you.",
+    "photos": "Logo and photos",
+    "photosHint": "How your shop looks.",
+    "branches": "Branches, hours and delivery",
+    "branchesHint": "Where you are and when you are open.",
+    "verification": "Verification",
+    "verificationHint": "Identity check, trade licence and review.",
+    "viewPublic": "See your shop as customers do",
+    "account": "Your account",
+    "language": "Language",
+    "languageHint": "For this app and the messages we send you.",
+    "dataHint": "Download or delete your personal data."
   }
 }

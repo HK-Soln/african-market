@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { textDirection, type Locale } from '@am/i18n';
 import {
   Badge,
+  BarChart,
   BottomSheet,
   Button,
   Card,
@@ -26,6 +27,7 @@ import {
   Select,
   ShopCard,
   Skeleton,
+  StatCard,
   Stepper,
   Tabs,
   Textarea,
@@ -314,6 +316,30 @@ export function UiShowcase({ locale, t }: { locale: Locale; t: ShowcaseStrings }
         >
           {t.modalBody}
         </Modal>
+      </Group>
+
+      <Group title={t.statsAndCharts}>
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label={t.contactTaps} value="128" icon="trending-up" delta="+12%" trend="up" />
+          <StatCard label={t.whatsapp} value="94" icon="brand-whatsapp" />
+        </div>
+        <BarChart
+          title={t.tapsByDay}
+          series={[
+            { key: 'whatsapp', label: t.whatsapp, color: 'var(--color-chart-1)' },
+            { key: 'call', label: t.calls, color: 'var(--color-chart-2)' },
+            { key: 'email', label: t.email, color: 'var(--color-chart-3)' },
+          ]}
+          columns={[5, 9, 3, 12, 7, 0, 4].map((n, i) => {
+            const day = new Date(Date.UTC(2026, 9, 12 + i));
+            const short = day.toLocaleDateString(locale, { weekday: 'short', timeZone: 'UTC' });
+            return {
+              label: day.toLocaleDateString(locale, { dateStyle: 'medium', timeZone: 'UTC' }),
+              axisLabel: short,
+              values: { whatsapp: n, call: Math.round(n / 3), email: i % 3 === 0 ? 1 : 0 },
+            };
+          })}
+        />
       </Group>
     </div>
   );

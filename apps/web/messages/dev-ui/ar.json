@@ -99,5 +99,10 @@
   "productGarri": "غاري أصفر 2 كغ",
   "outOfStock": "غير متوفر",
   "description": "الوصف",
-  "descriptionHint": "ما تبيعه، وما يميزه."
+  "descriptionHint": "ما تبيعه، وما يميزه.",
+  "statsAndCharts": "الإحصاءات والرسوم البيانية",
+  "contactTaps": "نقرات التواصل",
+  "calls": "المكالمات",
+  "email": "البريد الإلكتروني",
+  "tapsByDay": "النقرات حسب اليوم"
 }

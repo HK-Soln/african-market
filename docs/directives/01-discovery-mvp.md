@@ -270,7 +270,7 @@ Location discovery and search, Contact, UAE specifics.
 
 ## Seller and admin apps
 
-- [ ] **F1-13 Seller onboarding and dashboard** (depends on F1-08)
+- [x] **F1-13 Seller onboarding and dashboard** (depends on F1-08)
       Guided onboarding: shop details → first branch with map pin (drag to adjust), address, Makani
       optional, hours editor (copy to all days, split shifts, special hours), service area as radius slider
       or drawn polygon → contact numbers (validate WhatsApp numbers) → logo/gallery uploads → KYC upload →
@@ -306,6 +306,12 @@ Location discovery and search, Contact, UAE specifics.
   > `GET /seller/shops/{shopId}/products/{productId}` (catalog's get with `shopId`: members of
   > that shop only), and seller product responses carry `imageUrls` by media id, since `images`
   > leaves out pictures still being processed.
+  > Note: part 4: contact analytics at `/shops/{id}/insights` (7, 30 or 90 days: totals and
+  > share per channel, stacked columns by Dubai day, by week over 90 days, and the products asked
+  > about most), and settings at `/shops/{id}/settings` (each part of the shop links to its form;
+  > language, personal data and sign out). `StatCard` and `BarChart` join `@am/ui` (the design's
+  > `am-stat`/`am-chart` styles; a screen-reader table carries the numbers). The staff
+  > photo-upload switch is not shown yet: shops have no staff until invites (Phase 2).
 
 - [ ] **F1-14 Admin console** (depends on F1-08)
       Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).

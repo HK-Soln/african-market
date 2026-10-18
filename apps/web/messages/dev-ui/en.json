@@ -99,5 +99,10 @@
   "productGarri": "Yellow garri 2 kg",
   "outOfStock": "Out of stock",
   "description": "Description",
-  "descriptionHint": "What you sell, and what makes it special."
+  "descriptionHint": "What you sell, and what makes it special.",
+  "statsAndCharts": "Stats and charts",
+  "contactTaps": "Contact taps",
+  "calls": "Calls",
+  "email": "Email",
+  "tapsByDay": "Taps by day"
 }

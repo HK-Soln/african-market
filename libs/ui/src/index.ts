@@ -20,3 +20,4 @@ export * from './product-card';
 export * from './search-bar';
 export * from './shop-card';
 export * from './tabs';
+export * from './stat';

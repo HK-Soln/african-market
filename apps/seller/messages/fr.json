@@ -304,7 +304,11 @@
     "manageBranches": "Gérer les points de vente",
     "products": "Produits",
     "productsHint": "Ce que vous vendez, ses prix et où il est en stock.",
-    "manageProducts": "Gérer les produits"
+    "manageProducts": "Gérer les produits",
+    "insights": "Contacts",
+    "insightsHint": "Combien de fois les clients ont touché WhatsApp, appel ou e-mail.",
+    "settings": "Paramètres",
+    "settingsHint": "Votre page boutique, points de vente, langue et compte."
   },
   "photos": {
     "logo": "Logo",
@@ -533,5 +537,44 @@
     "removeConfirm": "Supprimer le produit",
     "removing": "Suppression…",
     "keep": "Le garder"
+  },
+  "insights": {
+    "title": "Contacts clients",
+    "intro": "Chaque fois qu’un client touche WhatsApp, appel ou e-mail sur votre page ou un produit.",
+    "period": "Période",
+    "lastDays": "{days} jours",
+    "total": "Tous les contacts",
+    "whatsapp": "WhatsApp",
+    "call": "Appels",
+    "email": "E-mail",
+    "shareOf": "{percent} % du total",
+    "byDay": "Par jour",
+    "byWeek": "Par semaine",
+    "topProducts": "Produits demandés par les clients",
+    "taps": "{n, plural, one {# contact} other {# contacts}}",
+    "untitled": "Produit sans nom",
+    "otherProduct": "Un produit qui n’est plus dans votre boutique",
+    "noneTitle": "Aucun contact sur cette période",
+    "noneBody": "Les clients vous joignent depuis votre page boutique et vos pages produits. Des photos et des prix complets les aident à choisir.",
+    "footnote": "Ce sont des touches sur les boutons, par jour de Dubaï. Nous ne savons pas si un appel ou un message a suivi."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "shop": "Votre boutique",
+    "details": "Nom, description et catégories",
+    "detailsHint": "Ce que les clients lisent d’abord.",
+    "contacts": "Numéros et e-mail de contact",
+    "contactsHint": "Où les clients vous joignent.",
+    "photos": "Logo et photos",
+    "photosHint": "L’apparence de votre boutique.",
+    "branches": "Points de vente, horaires et livraison",
+    "branchesHint": "Où vous êtes et quand vous êtes ouvert.",
+    "verification": "Vérification",
+    "verificationHint": "Contrôle d’identité, licence commerciale et vérification.",
+    "viewPublic": "Voir votre boutique comme les clients",
+    "account": "Votre compte",
+    "language": "Langue",
+    "languageHint": "Pour cette application et les messages que nous vous envoyons.",
+    "dataHint": "Téléchargez ou supprimez vos données personnelles."
   }
 }

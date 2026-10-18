@@ -99,5 +99,10 @@
   "productGarri": "Garri jaune 2 kg",
   "outOfStock": "En rupture",
   "description": "Description",
-  "descriptionHint": "Ce que vous vendez, et ce qui vous distingue."
+  "descriptionHint": "Ce que vous vendez, et ce qui vous distingue.",
+  "statsAndCharts": "Statistiques et graphiques",
+  "contactTaps": "Contacts",
+  "calls": "Appels",
+  "email": "E-mail",
+  "tapsByDay": "Contacts par jour"
 }

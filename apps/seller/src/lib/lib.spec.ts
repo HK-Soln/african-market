@@ -1,5 +1,6 @@
 import { circleOutline, fromMultiPolygon, isUsableOutline, toMultiPolygon } from './area';
 import { copyToAll, dayProblem, weekFromApi, weekProblem, weekToApi } from './hours';
+import { contactColumns, share } from './insights';
 import { aedText, filsFromAed } from './money';
 import { checkPhone, checkWhatsapp, splitPhone } from './phone';
 import {
@@ -318,5 +319,40 @@ describe('product form', () => {
       ['hair', undefined],
       ['spices', 'food'],
     ]);
+  });
+});
+
+describe('contact insights', () => {
+  const days = (n: number) =>
+    Array.from({ length: n }, (_, i) => {
+      const d = new Date(Date.UTC(2026, 9, 18 - (n - 1) + i));
+      return { date: d.toISOString().slice(0, 10), whatsapp: 1, call: i % 2, email: 0 };
+    });
+
+  it('shows a week day by day, named by weekday', () => {
+    const cols = contactColumns(days(7), 7, 'en');
+    expect(cols).toHaveLength(7);
+    expect(cols.at(-1)).toMatchObject({ axisLabel: 'Sun', values: { whatsapp: 1 } });
+    expect(cols.at(-1)!.label).toContain('18');
+  });
+
+  it('labels a month every seventh day back from today', () => {
+    const cols = contactColumns(days(30), 30, 'en');
+    const labelled = cols.flatMap((c, i) => (c.axisLabel ? [i] : []));
+    expect(labelled).toEqual([1, 8, 15, 22, 29]);
+  });
+
+  it('adds 90 days up by week, the oldest week the short one', () => {
+    const cols = contactColumns(days(90), 90, 'en');
+    expect(cols).toHaveLength(13);
+    expect(cols[0].values.whatsapp).toBe(6);
+    expect(cols.at(-1)!.values.whatsapp).toBe(7);
+    expect(cols.reduce((n, c) => n + c.values.whatsapp, 0)).toBe(90);
+    expect(cols.at(-1)!.label).toMatch(/12 Oct.*18 Oct|Oct 12.*Oct 18/);
+  });
+
+  it('gives shares as whole percents, none of nothing', () => {
+    expect(share(1, 3)).toBe(33);
+    expect(share(0, 0)).toBe(0);
   });
 });

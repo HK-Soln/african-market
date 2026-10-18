@@ -250,21 +250,23 @@ async function main() {
       const c = category(p.category);
       const product =
         products.find((x) => x.title?.en === p.en) ??
-        (await call('POST', `${base}/products`, seller, {
-          categoryId: c.id,
-          title: { en: p.en, ar: p.ar },
-          originCountry: spec.originCountries[0],
-          variants: [{ priceFils: p.fils }],
-          ...(c.requiresDeclaration
-            ? {
-                foodDeclaration: {
-                  packagedAndLabelled: true,
-                  noRestrictedItems: true,
-                  storage: 'ambient',
-                },
-              }
-            : {}),
-        }));
+        (await untilKnown(() =>
+          call('POST', `${base}/products`, seller, {
+            categoryId: c.id,
+            title: { en: p.en, ar: p.ar },
+            originCountry: spec.originCountries[0],
+            variants: [{ priceFils: p.fils }],
+            ...(c.requiresDeclaration
+              ? {
+                  foodDeclaration: {
+                    packagedAndLabelled: true,
+                    noRestrictedItems: true,
+                    storage: 'ambient',
+                  },
+                }
+              : {}),
+          }),
+        ));
       await call('PUT', `${base}/products/${product.id}/listings`, seller, {
         listings: [{ branchId: branch.id, variantId: product.variants[0].id, inStock: true }],
       });

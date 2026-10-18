@@ -190,6 +190,19 @@ export class PublicShopsController {
     return publicShop(this.links, shop);
   }
 
+  @ApiOperation({ summary: 'A verified shop by its id, with its branches (for a product’s page)' })
+  @ApiOkResponse({ type: PublicShopDto })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @Public()
+  @Header('Cache-Control', 'public, max-age=60')
+  @Get('by-id/:id')
+  async shopById(@Param('id', ParseUUIDPipe) id: string): Promise<PublicShopDto> {
+    const shop = await this.caller.call<PublicShopSourceDto>('shops', ShopsPatterns.getBySlug, {
+      shopId: id,
+    });
+    return publicShop(this.links, shop);
+  }
+
   @ApiOperation({ summary: 'A verified shop’s active products, a page at a time' })
   @ApiOkResponse({ type: ProductPageDto })
   @ApiParam({ name: 'slug', example: 'lagos-kitchen' })

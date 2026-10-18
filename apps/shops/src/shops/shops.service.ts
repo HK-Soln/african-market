@@ -151,7 +151,7 @@ export class ShopsService {
   async getBySlug(input: GetShopBySlugRequest): Promise<PublicShopSourceDto> {
     const manager = this.dataSource.manager;
     const shop = await manager.findOneBy(Shop, {
-      slug: input.slug,
+      ...('slug' in input ? { slug: input.slug } : { id: input.shopId }),
       verificationStatus: 'verified',
     });
     if (!shop) throw shopError(ShopErrors.notFound);

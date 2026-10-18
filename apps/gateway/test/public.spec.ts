@@ -106,8 +106,8 @@ class FakeServices {
   }
 
   @MessagePattern(ShopsPatterns.getBySlug)
-  bySlug(@Payload() data: { slug: string }) {
-    if (data.slug !== shop.slug)
+  bySlug(@Payload() data: { slug?: string; shopId?: string }) {
+    if (data.slug !== shop.slug && data.shopId !== shop.id)
       throw new RpcException({ status: 404, code: 'SHOP_NOT_FOUND', message: 'No such shop' });
     return shop;
   }
@@ -188,6 +188,13 @@ describe('gateway public routes (HTTP -> gateway -> TCP -> service stand-ins)', 
       .get('/api/v1/search/nearby')
       .query({ lat: 'x', lng: '55.37', mode: 'pickup' })
       .expect(400);
+  });
+
+  it('finds a shop by its id for a product’s page', async () => {
+    const res = await http().get(`/api/v1/shops/by-id/${shopId}`).expect(200);
+    expect(res.body).toMatchObject({ slug: 'lagos-kitchen', seller: { licenseNumber: '123' } });
+    await http().get(`/api/v1/shops/by-id/${randomUUID()}`).expect(404);
+    await http().get('/api/v1/shops/by-id/nope').expect(400);
   });
 
   it('pages the sitemap from discovery and refuses an unknown kind', async () => {

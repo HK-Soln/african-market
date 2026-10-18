@@ -2053,6 +2053,38 @@
         ]
       }
     },
+    "/api/v1/shops/by-id/{id}": {
+      "get": {
+        "operationId": "PublicShopsController_shopById_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicShopDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A verified shop by its id, with its branches (for a product’s page)",
+        "tags": [
+          "shops"
+        ]
+      }
+    },
     "/api/v1/shops/{slug}/products": {
       "get": {
         "operationId": "PublicShopsController_products_v1",

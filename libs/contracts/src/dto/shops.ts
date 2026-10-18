@@ -139,9 +139,8 @@ export interface GetShopRequest {
 }
 
 /** Public: a verified shop by its slug. */
-export interface GetShopBySlugRequest {
-  slug: string;
-}
+/** One of the two. */
+export type GetShopBySlugRequest = { slug: string } | { shopId: string };
 
 /**
  * Who sells, as the shop page must say (Federal Decree-Law 14 of 2023): set only when an admin

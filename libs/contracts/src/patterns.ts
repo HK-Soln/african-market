@@ -47,7 +47,7 @@ export const ShopsPatterns = {
   update: 'shops.shop.update',
   /** A shop with its branches, for its members and admins. */
   get: 'shops.shop.get',
-  /** Public: a verified shop by slug. */
+  /** Public: a verified shop by slug, or by id (a product's page). */
   getBySlug: 'shops.shop.get_by_slug',
   listMine: 'shops.shop.list_mine',
   submitForVerification: 'shops.shop.submit_verification',

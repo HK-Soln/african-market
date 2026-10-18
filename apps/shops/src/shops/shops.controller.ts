@@ -59,7 +59,10 @@ const shopFields = {
 const createShopSchema = z.object({ ...shopFields, name: text(120), actor, correlationId });
 const updateShopSchema = z.object({ ...shopFields, actor, shopId: uuid, correlationId });
 const getShopSchema = z.object({ actor, shopId: uuid });
-const bySlugSchema = z.object({ slug: z.string().regex(/^[a-z0-9-]{1,80}$/) });
+const bySlugSchema = z.union([
+  z.object({ slug: z.string().regex(/^[a-z0-9-]{1,80}$/) }),
+  z.object({ shopId: z.uuid() }),
+]);
 
 const latLng = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
 const multiPolygon = z.object({

@@ -388,6 +388,10 @@ describe('seller verification (PostGIS)', () => {
         decision: 'approve',
       });
       expect((await seller())?.licenseNumber).toBe('CN-7654321');
+      // The same by id, as a product's page asks.
+      expect((await shops.getBySlug({ shopId: shop.id })).licensedSeller?.licenseNumber).toBe(
+        'CN-7654321',
+      );
 
       await db.getRepository(Shop).update({ id: shop.id }, { licenseExpiry: '2020-01-01' });
       expect(await seller()).toBeNull();

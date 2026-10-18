@@ -12,15 +12,15 @@ Phase introduced: **1** (see `docs/directives/`).
 
 ## Shops and branches (F1-02)
 
-| Pattern (`ShopsPatterns`)       | What it does                                                                |
-| ------------------------------- | --------------------------------------------------------------------------- |
-| `create`                        | A draft shop owned by the caller (5 per person); publishes `shop.created`.  |
-| `update`                        | Name, description, contacts, media, origins, the staff upload setting.      |
-| `get` / `listMine`              | A shop with its branches, for its members and admins; the caller's shops.   |
-| `getBySlug`                     | Public: verified shops only.                                                |
-| `upsertBranch` / `deleteBranch` | Pin (inside the UAE), address, Makani, delivery area or radius, fees.       |
-| `setOpeningHours`               | Replaces the weekly schedule; several periods a day, past midnight allowed. |
-| `setSpecialHours` / `delete...` | A date that differs: closed for Eid, open late in Ramadan.                  |
+| Pattern (`ShopsPatterns`)       | What it does                                                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `create`                        | A draft shop owned by the caller (5 per person); publishes `shop.created`.                                                            |
+| `update`                        | Name, description, contacts, media, origins, the staff upload setting.                                                                |
+| `get` / `listMine`              | A shop with its branches, for its members and admins; the caller's shops.                                                             |
+| `getBySlug`                     | Public: verified shops only, by slug or id, with the seller named once an admin approved the latest trade licence (until it expires). |
+| `upsertBranch` / `deleteBranch` | Pin (inside the UAE), address, Makani, delivery area or radius, fees.                                                                 |
+| `setOpeningHours`               | Replaces the weekly schedule; several periods a day, past midnight allowed.                                                           |
+| `setSpecialHours` / `delete...` | A date that differs: closed for Eid, open late in Ramadan.                                                                            |
 
 - Who may do what: the owner (known from `shop.owner_id`, so a new shop works before the token
   catches up) and managers change everything; staff and admins only read. Someone with no role

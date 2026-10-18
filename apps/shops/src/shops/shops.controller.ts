@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   BranchDto,
   MY_SHOPS_LIST_SPEC,
+  PublicShopSourceDto,
   ShopDto,
   ShopErrors,
   ShopPage,
@@ -58,7 +59,10 @@ const shopFields = {
 const createShopSchema = z.object({ ...shopFields, name: text(120), actor, correlationId });
 const updateShopSchema = z.object({ ...shopFields, actor, shopId: uuid, correlationId });
 const getShopSchema = z.object({ actor, shopId: uuid });
-const bySlugSchema = z.object({ slug: z.string().regex(/^[a-z0-9-]{1,80}$/) });
+const bySlugSchema = z.union([
+  z.object({ slug: z.string().regex(/^[a-z0-9-]{1,80}$/) }),
+  z.object({ shopId: z.uuid() }),
+]);
 
 const latLng = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
 const multiPolygon = z.object({
@@ -137,7 +141,7 @@ export class ShopsController {
   }
 
   @MessagePattern(ShopsPatterns.getBySlug)
-  getBySlug(@Payload() payload: unknown): Promise<ShopDto> {
+  getBySlug(@Payload() payload: unknown): Promise<PublicShopSourceDto> {
     return this.shops.getBySlug(parse(bySlugSchema, payload));
   }
 

@@ -52,6 +52,8 @@ const shop = {
     issuingAuthority: 'DET',
     expiry: null,
   },
+  // The shops service names the seller only from an approved licence.
+  licensedSeller: { legalName: 'Lagos Kitchen LLC', licenseNumber: '123', issuingAuthority: 'DET' },
   checkoutEnabled: false,
   codEnabled: false,
   staffCanUploadProductImages: false,
@@ -89,14 +91,23 @@ class FakeServices {
     return { items: [], nextCursor: null };
   }
 
+  @MessagePattern(DiscoveryPatterns.sitemap)
+  sitemap(@Payload() data: Record<string, unknown>) {
+    calls.push({ pattern: DiscoveryPatterns.sitemap, data });
+    return {
+      items: [{ shopSlug: 'lagos-kitchen', updatedAt: '2026-10-01T00:00:00.000Z' }],
+      nextCursor: null,
+    };
+  }
+
   @MessagePattern(DiscoveryPatterns.listEmirates)
   emirates() {
     return { items: [{ code: 'DXB', searchOpen: true }] };
   }
 
   @MessagePattern(ShopsPatterns.getBySlug)
-  bySlug(@Payload() data: { slug: string }) {
-    if (data.slug !== shop.slug)
+  bySlug(@Payload() data: { slug?: string; shopId?: string }) {
+    if (data.slug !== shop.slug && data.shopId !== shop.id)
       throw new RpcException({ status: 404, code: 'SHOP_NOT_FOUND', message: 'No such shop' });
     return shop;
   }
@@ -179,13 +190,33 @@ describe('gateway public routes (HTTP -> gateway -> TCP -> service stand-ins)', 
       .expect(400);
   });
 
-  it('shows a shop without its verification, owner or licence, with image links', async () => {
+  it('finds a shop by its id for a product’s page', async () => {
+    const res = await http().get(`/api/v1/shops/by-id/${shopId}`).expect(200);
+    expect(res.body).toMatchObject({ slug: 'lagos-kitchen', seller: { licenseNumber: '123' } });
+    await http().get(`/api/v1/shops/by-id/${randomUUID()}`).expect(404);
+    await http().get('/api/v1/shops/by-id/nope').expect(400);
+  });
+
+  it('pages the sitemap from discovery and refuses an unknown kind', async () => {
+    const res = await http().get('/api/v1/sitemap?kind=shops').expect(200);
+    expect(res.body.items).toEqual([
+      { shopSlug: 'lagos-kitchen', updatedAt: '2026-10-01T00:00:00.000Z' },
+    ]);
+    expect(calls.find((c) => c.pattern === DiscoveryPatterns.sitemap)?.data).toEqual({
+      kind: 'shops',
+    });
+    await http().get('/api/v1/sitemap?kind=users').expect(400);
+    await http().get('/api/v1/sitemap?kind=shops&cursor=nope').expect(400);
+  });
+
+  it('shows a shop without its verification or owner, with the approved seller and image links', async () => {
     const res = await http().get('/api/v1/shops/lagos-kitchen').expect(200);
     expect(res.body).toMatchObject({
       id: shopId,
       name: 'Lagos Kitchen',
       logo: { card: `https://cdn.test/${logoId}/card.webp` },
       gallery: [],
+      seller: { legalName: 'Lagos Kitchen LLC', licenseNumber: '123', issuingAuthority: 'DET' },
     });
     for (const hidden of [
       'ownerId',

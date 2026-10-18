@@ -22,6 +22,7 @@ import {
   OtpInput,
   PhoneInput,
   Price,
+  ProductCard,
   SearchBar,
   ShopCard,
   shopInitials,
@@ -381,5 +382,25 @@ describe('SearchBar', () => {
     );
     expect(near).toContain('aria-label="Searching near Deira. Change"');
     expect(near).toContain('am-search-loc-text">Deira');
+  });
+});
+
+describe('ProductCard', () => {
+  it('links the title, shows the price, and greys an item out of stock', () => {
+    const out = html(
+      <ProductCard
+        title="Egusi 500 g"
+        href="/en/p/1-egusi-500-g"
+        imageUrl="https://cdn/e.webp"
+        price={<Price amount={18} />}
+        subtitle="Mama Nkechi"
+        outOfStock
+      />,
+    );
+    expect(out).toContain('<a href="/en/p/1-egusi-500-g">Egusi 500 g</a>');
+    expect(out).toContain('AED 18.00');
+    expect(out).toContain('am-product-out');
+    expect(out).toContain('src="https://cdn/e.webp"');
+    expect(html(<ProductCard title="Fufu" href="/p" />)).toContain('am-media-empty');
   });
 });

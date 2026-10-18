@@ -16,6 +16,7 @@ export * from './logo';
 export * from './otp-input';
 export * from './overlays';
 export * from './phone-input';
+export * from './product-card';
 export * from './search-bar';
 export * from './shop-card';
 export * from './tabs';

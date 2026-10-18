@@ -247,6 +247,32 @@ export interface EmirateList {
   items: EmirateDto[];
 }
 
+/** At most this many sitemap entries a page. */
+export const SITEMAP_PAGE_MAX = 1000;
+
+/** Verified shops or their live products, by id, for the web sitemap (F1-12). */
+export interface SitemapRequest {
+  kind: 'shops' | 'products';
+  /** `nextCursor` of the previous page. */
+  cursor?: string;
+  /** At most SITEMAP_PAGE_MAX (the default). */
+  limit?: number;
+}
+
+export interface SitemapEntryDto {
+  shopSlug: string;
+  /** Products only. */
+  productId?: string;
+  title?: LocalizedString;
+  /** ISO-8601: when the read model last changed it. */
+  updatedAt: string;
+}
+
+export interface SitemapPage {
+  items: SitemapEntryDto[];
+  nextCursor: string | null;
+}
+
 /** Admins: open or close customer search in an emirate. */
 export interface SetEmirateSearchRequest {
   actor: ActorClaims;

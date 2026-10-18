@@ -682,6 +682,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sitemap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sitemap entries
+         * @description Verified shops or their live products, 1,000 a page, for the web sitemap. Pass `nextCursor` back as `cursor` for the next page.
+         */
+        get: operations["SearchController_sitemap_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emirates": {
         parameters: {
             query?: never;
@@ -745,6 +765,23 @@ export interface paths {
         };
         /** A verified shop by its slug, with its branches */
         get: operations["PublicShopsController_shop_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shops/by-id/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A verified shop by its id, with its branches (for a product’s page) */
+        get: operations["PublicShopsController_shopById_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1796,6 +1833,22 @@ export interface components {
             /** @description More pins than returned: zoom in */
             truncated: boolean;
         };
+        SitemapEntryDto: {
+            shopSlug: string;
+            /**
+             * Format: uuid
+             * @description Products
+             */
+            productId?: string;
+            /** @description Products */
+            title?: components["schemas"]["LocalizedTextDto"];
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SitemapPageDto: {
+            items: components["schemas"]["SitemapEntryDto"][];
+            nextCursor: string | null;
+        };
         PublicBranchDto: {
             /** Format: uuid */
             id: string;
@@ -1819,6 +1872,11 @@ export interface components {
             openingHours: components["schemas"]["OpeningHoursDto"][];
             specialHours: components["schemas"]["SpecialHoursDto"][];
         };
+        LicensedSellerDto: {
+            legalName: string;
+            licenseNumber: string;
+            issuingAuthority: string | null;
+        };
         PublicShopDto: {
             /** Format: uuid */
             id: string;
@@ -1835,6 +1893,8 @@ export interface components {
             checkoutEnabled: boolean;
             codEnabled: boolean;
             branches: components["schemas"]["PublicBranchDto"][];
+            /** @description Set once an admin approved the trade licence, until it expires */
+            seller: components["schemas"]["LicensedSellerDto"] | null;
         };
         LocalizedInput: {
             en?: string;
@@ -3110,6 +3170,29 @@ export interface operations {
             };
         };
     };
+    SearchController_sitemap_v1: {
+        parameters: {
+            query: {
+                kind: "shops" | "products";
+                /** @description `nextCursor` of the previous page */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapPageDto"];
+                };
+            };
+        };
+    };
     SearchController_emirates_v1: {
         parameters: {
             query?: never;
@@ -3175,6 +3258,27 @@ export interface operations {
             header?: never;
             path: {
                 slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicShopDto"];
+                };
+            };
+        };
+    };
+    PublicShopsController_shopById_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
             cookie?: never;
         };

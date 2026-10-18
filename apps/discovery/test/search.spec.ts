@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { DiscoveryErrors, SearchNearbyRequest } from '@am/contracts';
 import { EmiratesService } from '../src/search/emirates.service';
 import { prefixQuery, SearchService } from '../src/search/search.service';
+import { SitemapService } from '../src/search/sitemap.service';
 import { insertBranch, insertProduct, PLACES, seedMany, square } from './support/fixtures';
 import { createTestDatabase, TestDatabase } from './support/test-database';
 
@@ -377,4 +378,41 @@ describe('nearby search (PostGIS)', () => {
     },
     120_000,
   );
+
+  describe('the sitemap', () => {
+    it('lists each verified shop once and its products with the shop slug, page by page', async () => {
+      const sitemap = new SitemapService(db);
+      const a = await insertBranch(db, { name: 'Two Branches', at: PLACES.alNahda });
+      await insertBranch(db, { name: 'Two Branches', at: PLACES.deira, shopId: a.shopId });
+      const b = await insertBranch(db, { name: 'One Branch', at: PLACES.sharjah, emirate: 'SHJ' });
+      const productId = await insertProduct(db, {
+        shopId: a.shopId,
+        branchIds: [a.branchId],
+        title: 'Egusi 500 g',
+      });
+      // A product whose shop is not held here (not verified) never appears.
+      await insertProduct(db, { shopId: randomUUID(), branchIds: [], title: 'Hidden' });
+
+      const first = await sitemap.page({ kind: 'shops', limit: 1 });
+      const second = await sitemap.page({ kind: 'shops', limit: 1, cursor: first.nextCursor! });
+      // One entry per shop, however many branches it has.
+      const slugs = [...first.items, ...second.items].map((e) => e.shopSlug.replace(/-[^-]+$/, ''));
+      expect(slugs.sort()).toEqual(['one-branch', 'two-branches']);
+      expect(second.nextCursor).toBeNull();
+      expect(b.shopId).not.toBe(a.shopId);
+
+      const products = await sitemap.page({ kind: 'products' });
+      expect(products.items).toEqual([
+        {
+          shopSlug: expect.stringMatching(/^two-branches-/),
+          productId,
+          title: { en: 'Egusi 500 g' },
+          updatedAt: expect.any(String),
+        },
+      ]);
+      expect(await codeOf(sitemap.page({ kind: 'shops', cursor: 'nope' }))).toBe(
+        DiscoveryErrors.cursorInvalid,
+      );
+    });
+  });
 });

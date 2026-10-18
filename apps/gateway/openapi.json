@@ -1898,6 +1898,52 @@
         ]
       }
     },
+    "/api/v1/sitemap": {
+      "get": {
+        "description": "Verified shops or their live products, 1,000 a page, for the web sitemap. Pass `nextCursor` back as `cursor` for the next page.",
+        "operationId": "SearchController_sitemap_v1",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "shops",
+                "products"
+              ]
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "`nextCursor` of the previous page",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SitemapPageDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Sitemap entries",
+        "tags": [
+          "search"
+        ]
+      }
+    },
     "/api/v1/emirates": {
       "get": {
         "operationId": "SearchController_emirates_v1",
@@ -2002,6 +2048,38 @@
           }
         },
         "summary": "A verified shop by its slug, with its branches",
+        "tags": [
+          "shops"
+        ]
+      }
+    },
+    "/api/v1/shops/by-id/{id}": {
+      "get": {
+        "operationId": "PublicShopsController_shopById_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicShopDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A verified shop by its id, with its branches (for a product’s page)",
         "tags": [
           "shops"
         ]
@@ -5646,6 +5724,54 @@
           "truncated"
         ]
       },
+      "SitemapEntryDto": {
+        "type": "object",
+        "properties": {
+          "shopSlug": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Products"
+          },
+          "title": {
+            "description": "Products",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LocalizedTextDto"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "shopSlug",
+          "updatedAt"
+        ]
+      },
+      "SitemapPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SitemapEntryDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
       "PublicBranchDto": {
         "type": "object",
         "properties": {
@@ -5758,6 +5884,26 @@
           "specialHours"
         ]
       },
+      "LicensedSellerDto": {
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string"
+          },
+          "licenseNumber": {
+            "type": "string"
+          },
+          "issuingAuthority": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "legalName",
+          "licenseNumber",
+          "issuingAuthority"
+        ]
+      },
       "PublicShopDto": {
         "type": "object",
         "properties": {
@@ -5824,6 +5970,16 @@
             "items": {
               "$ref": "#/components/schemas/PublicBranchDto"
             }
+          },
+          "seller": {
+            "nullable": true,
+            "description": "Set once an admin approved the trade licence, until it expires",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicensedSellerDto"
+              }
+            ]
           }
         },
         "required": [
@@ -5840,7 +5996,8 @@
           "contactEmail",
           "checkoutEnabled",
           "codEnabled",
-          "branches"
+          "branches",
+          "seller"
         ]
       },
       "LocalizedInput": {

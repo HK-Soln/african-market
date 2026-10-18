@@ -251,13 +251,22 @@ Location discovery and search, Contact, UAE specifics.
   > Note: the visitor id for contact taps is kept in `sessionStorage`; the privacy draft now says so.
   > The install prompt moved below sheets, as the cookie notice did in F1-10.
 
-- [ ] **F1-12 Shop and product pages** (depends on F1-08)
+- [x] **F1-12 Shop and product pages** (depends on F1-08)
       SSR `/[locale]/s/[slug]` and `/[locale]/p/[id]-[slug]`: gallery, description, branches with map,
       hours (today highlighted, special hours), service area summary, products grid by category, contact
       buttons per branch, report-listing link. Show the seller's legal name and licence number when
       provided (Federal Decree-Law 14 of 2023). Open Graph image and description, JSON-LD
       (LocalBusiness/Product), `hreflang`, canonical URLs, sitemap generated from discovery.
       WhatsApp prefilled message names the product and links back to the page.
+
+  > Note: decision T-40. The legal name and licence show only from a licence an admin approved
+  > (the latest one, not expired); otherwise the page says it is not checked yet. Shown "when
+  > provided" but unchecked would name a seller from details nobody verified.
+  > Note: the product page needs its shop, so the public shop lookup also takes an id
+  > (`GET /shops/by-id/{id}`). The sitemap comes from discovery (`GET /sitemap`), one file up to
+  > 45,000 addresses; splitting it waits for F1-17 if the catalogue grows past that.
+  > Note: the report link goes to `/report?shop=` or `?product=`, which F1-15 builds; it is a
+  > 404 until then. Open Graph images are in English (no Arabic font in the renderer).
 
 ## Seller and admin apps
 

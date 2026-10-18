@@ -13,8 +13,10 @@ import {
   SearchMapResponse,
   SearchNearbyResponse,
   SHOP_PRODUCTS_LIST_SPEC,
+  PublicShopSourceDto,
   ShopDto,
   ShopsPatterns,
+  SitemapPage,
 } from '@am/contracts';
 import { optionalActor } from '../common/actor';
 import { ApiListQuery, ListQueryParams } from '../common/list-query';
@@ -30,6 +32,8 @@ import {
   SearchMapResponseDto,
   SearchNearbyQuery,
   SearchNearbyResponseDto,
+  SitemapPageDto,
+  SitemapQuery,
 } from './public.dto';
 
 const MINUTE = 60_000;
@@ -43,8 +47,8 @@ async function withImages(links: MediaLinks, products: Product[]): Promise<Produ
   }));
 }
 
-/** A verified shop as anyone may see it: no verification details, owner or licence. */
-async function publicShop(links: MediaLinks, shop: ShopDto): Promise<PublicShopDto> {
+/** A verified shop as anyone may see it: no verification details or owner. */
+async function publicShop(links: MediaLinks, shop: PublicShopSourceDto): Promise<PublicShopDto> {
   const urls = await links.of([shop.logoMediaId, ...shop.galleryMediaIds]);
   return {
     id: shop.id,
@@ -61,6 +65,7 @@ async function publicShop(links: MediaLinks, shop: ShopDto): Promise<PublicShopD
     checkoutEnabled: shop.checkoutEnabled,
     codEnabled: shop.codEnabled,
     branches: shop.branches.map(({ shopId: _shopId, ...branch }) => branch),
+    seller: shop.licensedSeller ?? null,
   };
 }
 
@@ -100,6 +105,20 @@ export class SearchController {
     return this.caller.call<SearchMapResponse>('discovery', DiscoveryPatterns.searchMap, {
       ...query,
     });
+  }
+
+  @ApiOperation({
+    summary: 'Sitemap entries',
+    description:
+      'Verified shops or their live products, 1,000 a page, for the web sitemap. Pass ' +
+      '`nextCursor` back as `cursor` for the next page.',
+  })
+  @ApiOkResponse({ type: SitemapPageDto })
+  @Public()
+  @Header('Cache-Control', 'public, max-age=300')
+  @Get('sitemap')
+  sitemap(@Query() query: SitemapQuery): Promise<SitemapPage> {
+    return this.caller.call<SitemapPage>('discovery', DiscoveryPatterns.sitemap, { ...query });
   }
 
   @ApiOperation({ summary: 'The seven emirates, with whether search is open in each' })
@@ -165,7 +184,22 @@ export class PublicShopsController {
   @Header('Cache-Control', 'public, max-age=60')
   @Get(':slug')
   async shop(@Param('slug') slug: string): Promise<PublicShopDto> {
-    const shop = await this.caller.call<ShopDto>('shops', ShopsPatterns.getBySlug, { slug });
+    const shop = await this.caller.call<PublicShopSourceDto>('shops', ShopsPatterns.getBySlug, {
+      slug,
+    });
+    return publicShop(this.links, shop);
+  }
+
+  @ApiOperation({ summary: 'A verified shop by its id, with its branches (for a product’s page)' })
+  @ApiOkResponse({ type: PublicShopDto })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @Public()
+  @Header('Cache-Control', 'public, max-age=60')
+  @Get('by-id/:id')
+  async shopById(@Param('id', ParseUUIDPipe) id: string): Promise<PublicShopDto> {
+    const shop = await this.caller.call<PublicShopSourceDto>('shops', ShopsPatterns.getBySlug, {
+      shopId: id,
+    });
     return publicShop(this.links, shop);
   }
 

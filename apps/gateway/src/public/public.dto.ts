@@ -344,7 +344,17 @@ export class PublicBranchDto {
   @ApiProperty({ type: [SpecialHoursDto] }) specialHours!: SpecialHoursDto[];
 }
 
-/** What anyone may see of a verified shop: no verification details, owner or licence. */
+/** The seller's legal identity, from a trade licence an admin approved (Decree-Law 14 of 2023). */
+export class LicensedSellerDto {
+  @ApiProperty() legalName!: string;
+  @ApiProperty() licenseNumber!: string;
+  @ApiProperty({ type: String, nullable: true }) issuingAuthority!: string | null;
+}
+
+/**
+ * What anyone may see of a verified shop: no verification details or owner. The legal name and
+ * licence only once an admin approved the licence.
+ */
 export class PublicShopDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty() name!: string;
@@ -360,4 +370,36 @@ export class PublicShopDto {
   @ApiProperty() checkoutEnabled!: boolean;
   @ApiProperty() codEnabled!: boolean;
   @ApiProperty({ type: [PublicBranchDto] }) branches!: PublicBranchDto[];
+  @ApiProperty({
+    type: LicensedSellerDto,
+    nullable: true,
+    description: 'Set once an admin approved the trade licence, until it expires',
+  })
+  seller!: LicensedSellerDto | null;
+}
+
+// ---- Sitemap -----------------------------------------------------------------------------
+
+export class SitemapQuery {
+  @ApiProperty({ enum: ['shops', 'products'] })
+  @IsIn(['shops', 'products'])
+  kind!: 'shops' | 'products';
+
+  @ApiPropertyOptional({ format: 'uuid', description: '`nextCursor` of the previous page' })
+  @IsOptional()
+  @IsUUID()
+  cursor?: string;
+}
+
+export class SitemapEntryDto {
+  @ApiProperty() shopSlug!: string;
+  @ApiPropertyOptional({ format: 'uuid', description: 'Products' }) productId?: string;
+  @ApiPropertyOptional({ type: LocalizedTextDto, description: 'Products' })
+  title?: LocalizedTextDto;
+  @ApiProperty({ format: 'date-time' }) updatedAt!: string;
+}
+
+export class SitemapPageDto {
+  @ApiProperty({ type: [SitemapEntryDto] }) items!: SitemapEntryDto[];
+  @ApiProperty({ type: String, nullable: true }) nextCursor!: string | null;
 }

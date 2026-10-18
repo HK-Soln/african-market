@@ -20,6 +20,7 @@ import {
   OtpInput,
   PhoneInput,
   Price,
+  ProductCard,
   Radio,
   SearchBar,
   Select,
@@ -241,6 +242,21 @@ export function UiShowcase({ locale, t }: { locale: Locale; t: ShowcaseStrings }
             </div>
           }
         />
+        <div className="grid grid-cols-2 gap-3">
+          <ProductCard
+            title={t.productEgusi}
+            href="#"
+            price={<Price amount={18} />}
+            subtitle="Mama Nkechi African Foods"
+          />
+          <ProductCard
+            title={t.productGarri}
+            href="#"
+            outOfStock
+            subtitle={t.outOfStock}
+            price={<Price amount={25} from={t.from} />}
+          />
+        </div>
       </Group>
 
       <Group title={t.feedback}>

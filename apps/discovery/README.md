@@ -16,6 +16,8 @@ overwrite a newer row. `discovery.search.rebuild` (admins) reads every verified 
 Text search uses the `discovery.am_simple` configuration (accents and case ignored).
 `discovery.search.nearby` ranks branches near a point (delivery or pickup) and
 `discovery.search.map` returns pins or clusters for a map box (ranking and speed: decision T-32).
+`discovery.sitemap.page` lists verified shops or their live products by id for the web sitemap
+(F1-12): only what the read model holds, so nothing unverified can appear.
 
 Rules: never read another service's schema; publish events through `OutboxService.enqueue` inside
 the same transaction as the change; wrap every consumer in `IdempotentConsumer.handle`; add new

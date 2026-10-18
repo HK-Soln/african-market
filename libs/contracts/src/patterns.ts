@@ -47,7 +47,7 @@ export const ShopsPatterns = {
   update: 'shops.shop.update',
   /** A shop with its branches, for its members and admins. */
   get: 'shops.shop.get',
-  /** Public: a verified shop by slug. */
+  /** Public: a verified shop by slug, or by id (a product's page). */
   getBySlug: 'shops.shop.get_by_slug',
   listMine: 'shops.shop.list_mine',
   submitForVerification: 'shops.shop.submit_verification',
@@ -110,6 +110,8 @@ export const DiscoveryPatterns = {
   listEmirates: 'discovery.emirate.list',
   /** Admins: open or close search in an emirate. */
   setEmirateSearch: 'discovery.emirate.set_search',
+  /** Public: verified shops or live products a page at a time, for the sitemap. */
+  sitemap: 'discovery.sitemap.page',
 } as const;
 
 export const MediaPatterns = {

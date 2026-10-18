@@ -49,7 +49,10 @@ describe('opening hours in Dubai', () => {
       monday('10:00'),
     );
     expect(week.map((d) => d.weekday)).toEqual([1, 2, 3, 4, 5, 6, 0]);
-    expect(week[0]).toMatchObject({ isToday: true, periods: [{ opensAt: '09:00' }, { opensAt: '16:00' }] });
+    expect(week[0]).toMatchObject({
+      isToday: true,
+      periods: [{ opensAt: '09:00' }, { opensAt: '16:00' }],
+    });
     expect(week[2]).toMatchObject({ date: '2026-10-14', periods: [], special: { closed: true } });
     expect(week[1].periods).toEqual([]);
   });

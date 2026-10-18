@@ -91,9 +91,7 @@ export function isOpenAt(hours: BranchHours, at: Date): boolean {
   const inToday = today.periods.some((p) => {
     const opens = toMinutes(p.opensAt);
     const closes = toMinutes(p.closesAt);
-    return closes > opens
-      ? now.minutes >= opens && now.minutes < closes
-      : now.minutes >= opens; // runs past midnight
+    return closes > opens ? now.minutes >= opens && now.minutes < closes : now.minutes >= opens; // runs past midnight
   });
   if (inToday) return true;
   const yesterday = addDays(now.date, -1);

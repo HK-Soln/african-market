@@ -11,6 +11,7 @@ import { LanguageSwitcher } from '@/components/language-switcher';
 import { SessionProvider } from '@/components/session-provider';
 import { SiteFooter } from '@/components/site-footer';
 import { routing } from '@/i18n/routing';
+import { config } from '@/lib/config';
 import { Logo } from '@am/ui';
 import { fontVariables } from '../fonts';
 import '../globals.css';
@@ -27,6 +28,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'meta' });
   return {
+    metadataBase: new URL(config.webUrl),
     title: { default: t('title'), template: `%s · ${t('title')}` },
     description: t('description'),
     manifest: '/manifest.webmanifest',

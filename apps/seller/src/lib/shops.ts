@@ -116,6 +116,13 @@ export const shopsApi = {
         params: { path: { shopId, branchId, date } },
       }),
     ),
+  /** WhatsApp, call and email taps over the last 7, 30 or 90 days. */
+  contactStats: (shopId: string, days: 7 | 30 | 90) =>
+    run(
+      browserApi.GET('/api/v1/seller/shops/{shopId}/contacts', {
+        params: { path: { shopId }, query: { days } },
+      }),
+    ),
   setHours: (shopId: string, branchId: string, hours: WeeklyHours) =>
     run(
       browserApi.PUT('/api/v1/seller/shops/{shopId}/branches/{branchId}/hours', {

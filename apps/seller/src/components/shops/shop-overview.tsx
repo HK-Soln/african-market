@@ -9,7 +9,7 @@ import { STATUS_TONE } from './my-shops';
 
 /**
  * A shop's dashboard: where it stands, what onboarding still needs (each step links to its
- * form), its catalogue and its branches. Analytics join in the next part.
+ * form), its catalogue, how customers contact it, settings, and its branches.
  */
 export function ShopOverview({ shopId }: { shopId: string }) {
   const t = useTranslations('overview');
@@ -82,18 +82,27 @@ export function ShopOverview({ shopId }: { shopId: string }) {
         </ol>
       </Card>
 
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <span className="flex items-center gap-3">
-          <Icon name="package" className="text-clay" />
-          <span className="flex flex-col">
-            <span className="font-semibold">{t('products')}</span>
-            <span className="text-sm text-ink-muted">{t('productsHint')}</span>
-          </span>
-        </span>
-        <Link href={`/shops/${shop.id}/products`} className="am-btn am-btn-secondary">
-          {t('manageProducts')}
-        </Link>
-      </Card>
+      <ul className="grid gap-3 sm:grid-cols-3">
+        {(
+          [
+            ['products', 'package'],
+            ['insights', 'trending-up'],
+            ['settings', 'adjustments-horizontal'],
+          ] as const
+        ).map(([area, icon]) => (
+          <li key={area}>
+            <Link href={`/shops/${shop.id}/${area}`} className="block h-full">
+              <Card className="flex h-full items-start gap-3 p-4">
+                <Icon name={icon} className="shrink-0 text-clay" />
+                <span className="flex flex-col">
+                  <span className="font-semibold">{t(area)}</span>
+                  <span className="text-sm text-ink-muted">{t(`${area}Hint`)}</span>
+                </span>
+              </Card>
+            </Link>
+          </li>
+        ))}
+      </ul>
 
       {shop.branches.length > 0 && (
         <section className="flex flex-col gap-2">

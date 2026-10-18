@@ -45,7 +45,7 @@ import {
 import { actorOf } from '../common/actor';
 import { ApiListQuery, ListQueryParams } from '../common/list-query';
 import { MediaBinder } from '../common/media-binder';
-import { MediaLinks } from '../common/media-links';
+import { MediaLinks, type ImageUrls } from '../common/media-links';
 import { correlationId } from '../common/request-context';
 import { ServiceCaller } from '../common/service-caller';
 import { ProductDto, ProductPageDto } from '../public/public.dto';
@@ -101,8 +101,17 @@ export class SellerShopsController extends SellerBase {
   constructor(
     caller: ServiceCaller,
     private readonly media: MediaBinder,
+    private readonly links: MediaLinks,
   ) {
     super(caller);
+  }
+
+  /** The shop with links of its logo and gallery, for the seller's screens. */
+  private async withImages(
+    shop: ShopDto,
+  ): Promise<ShopDto & { imageUrls: Record<string, ImageUrls> }> {
+    const urls = await this.links.of([shop.logoMediaId, ...shop.galleryMediaIds]);
+    return { ...shop, imageUrls: Object.fromEntries(urls) };
   }
 
   @ApiOperation({ summary: 'The shops I own or work in' })
@@ -139,11 +148,15 @@ export class SellerShopsController extends SellerBase {
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @Header('Cache-Control', 'no-store')
   @Get(':shopId')
-  get(
+  async get(
     @CurrentUser() user: AuthenticatedUser,
     @Param('shopId', ParseUUIDPipe) shopId: string,
   ): Promise<ShopDto> {
-    return this.caller.call('shops', ShopsPatterns.get, { actor: actorOf(user), shopId });
+    const shop = await this.caller.call<ShopDto>('shops', ShopsPatterns.get, {
+      actor: actorOf(user),
+      shopId,
+    });
+    return this.withImages(shop);
   }
 
   @ApiOperation({
@@ -180,7 +193,7 @@ export class SellerShopsController extends SellerBase {
       ...this.ctx(user, req, shopId),
     });
     await this.media.release(target, result.releasedMediaIds);
-    return result.shop;
+    return this.withImages(result.shop);
   }
 
   @ApiOperation({ summary: 'Add a branch', description: 'Owners and managers; at most 50 a shop.' })

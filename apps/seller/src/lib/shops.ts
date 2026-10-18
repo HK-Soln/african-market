@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { uploadMedia, type MediaPurpose } from '@am/api-client';
 import type { components } from '@am/api-client';
 import { browserApi } from './browser-api';
 
@@ -9,6 +10,9 @@ export type SellerBranch = components['schemas']['SellerBranchDto'];
 export type ShopBody = components['schemas']['UpdateShopBody'];
 export type BranchBody = components['schemas']['CreateBranchBody'];
 export type WeeklyHours = components['schemas']['OpeningHoursInput'][];
+export type VerificationOverview = components['schemas']['VerificationOverviewDto'];
+export type VerificationRequest = components['schemas']['VerificationRequestDto'];
+export type TradeLicenseBody = components['schemas']['SubmitTradeLicenseBody'];
 
 export type Result<T> =
   { ok: true; data: T } | { ok: false; code: string; details?: Record<string, unknown> };
@@ -54,6 +58,44 @@ export const shopsApi = {
         body,
       }),
     ),
+  verification: (shopId: string) =>
+    run(
+      browserApi.GET('/api/v1/seller/shops/{shopId}/verification', {
+        params: { path: { shopId } },
+      }),
+    ),
+  /** Starts the identity check; the answer's `url` is the provider's page to send the owner to. */
+  startKyc: (shopId: string, locale: 'en' | 'ar' | 'fr') =>
+    run(
+      browserApi.POST('/api/v1/seller/shops/{shopId}/verification/kyc', {
+        params: { path: { shopId } },
+        body: { locale },
+      }),
+    ),
+  refreshKyc: (shopId: string) =>
+    run(
+      browserApi.POST('/api/v1/seller/shops/{shopId}/verification/kyc/refresh', {
+        params: { path: { shopId } },
+      }),
+    ),
+  submit: (shopId: string) =>
+    run(
+      browserApi.POST('/api/v1/seller/shops/{shopId}/verification/submit', {
+        params: { path: { shopId } },
+      }),
+    ),
+  submitTradeLicense: (shopId: string, body: TradeLicenseBody) =>
+    run(
+      browserApi.POST('/api/v1/seller/shops/{shopId}/verification/trade-license', {
+        params: { path: { shopId } },
+        body,
+      }),
+    ),
+  /** Uploads a file straight to storage and confirms it (decision T-27); the media id to attach. */
+  upload: async (shopId: string, file: File, purpose: MediaPurpose): Promise<Result<string>> => {
+    const result = await uploadMedia(browserApi, file, { purpose, shopId });
+    return result.ok ? { ok: true, data: result.data.id } : { ok: false, code: result.code };
+  },
   setHours: (shopId: string, branchId: string, hours: WeeklyHours) =>
     run(
       browserApi.PUT('/api/v1/seller/shops/{shopId}/branches/{branchId}/hours', {
@@ -86,24 +128,4 @@ export function useSellerShop(shopId: string) {
   return { state, reload, setShop: (shop: SellerShop) => setState({ status: 'ready', shop }) };
 }
 
-/** The primary branch, else the oldest: the one onboarding sets up. */
-export const firstBranch = (shop: SellerShop): SellerBranch | undefined =>
-  shop.branches.find((b) => b.isPrimary) ?? shop.branches[0];
-
-export type SetupStep = 'details' | 'branch' | 'hours' | 'contacts';
-export const SETUP_STEPS: SetupStep[] = ['details', 'branch', 'hours', 'contacts'];
-
-/** What onboarding still needs, worked out from the shop itself (so it resumes anywhere). */
-export function setupProgress(shop: SellerShop): Record<SetupStep, boolean> {
-  const branch = firstBranch(shop);
-  return {
-    details: Boolean(shop.name),
-    branch: Boolean(branch),
-    hours: Boolean(branch && branch.openingHours.length > 0),
-    contacts: Boolean(shop.contactWhatsapp || shop.contactPhone || shop.contactEmail),
-  };
-}
-
-/** The first step not done yet, or null when this part of onboarding is complete. */
-export const nextStep = (shop: SellerShop): SetupStep | null =>
-  SETUP_STEPS.find((step) => !setupProgress(shop)[step]) ?? null;
+export { firstBranch, nextStep, setupProgress, SETUP_STEPS, type SetupStep } from './setup';

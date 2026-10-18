@@ -18,7 +18,9 @@ import { useErrorText } from '../error-text';
 import { BranchForm } from './branch-form';
 import { ContactsForm } from './contacts-form';
 import { DetailsForm, type CategoryOption } from './details-form';
+import { VerificationPanel } from '../verify/verification-panel';
 import { HoursEditor } from './hours-editor';
+import { PhotosForm } from './photos-form';
 import { SetupFrame } from './setup-frame';
 
 /**
@@ -117,10 +119,28 @@ export function ShopSetup({
     );
   }
 
+  if (step === 'contacts') {
+    return (
+      <SetupFrame step="contacts" title={t('contactsTitle')} intro={t('contactsIntro')}>
+        {back}
+        <ContactsForm shop={shop} countries={phoneCountries} onSaved={next} />
+      </SetupFrame>
+    );
+  }
+
+  if (step === 'photos') {
+    return (
+      <SetupFrame step="photos" title={t('photosTitle')} intro={t('photosIntro')}>
+        {back}
+        <PhotosForm shop={shop} onChange={setShop} onDone={() => go('verify')} />
+      </SetupFrame>
+    );
+  }
+
   return (
-    <SetupFrame step="contacts" title={t('contactsTitle')} intro={t('contactsIntro')}>
+    <SetupFrame step="verify" title={t('verifyTitle')} intro={t('verifyIntro')}>
       {back}
-      <ContactsForm shop={shop} countries={phoneCountries} onSaved={next} />
+      <VerificationPanel shop={shop} onChange={setShop} />
     </SetupFrame>
   );
 }

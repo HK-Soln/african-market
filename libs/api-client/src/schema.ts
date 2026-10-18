@@ -1308,6 +1308,11 @@ export interface components {
              */
             erasedAfter: string;
         };
+        ImageUrlsDto: {
+            thumb?: string;
+            card?: string;
+            full?: string;
+        };
         LocalizedTextDto: {
             en?: string;
             ar?: string;
@@ -1406,6 +1411,10 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             branches: components["schemas"]["SellerBranchDto"][];
+            /** @description One shop only: links of the logo and gallery images by media id. An image still being processed has no entry yet. */
+            imageUrls?: {
+                [key: string]: components["schemas"]["ImageUrlsDto"];
+            };
         };
         SellerShopPageDto: {
             items: components["schemas"]["SellerShopDto"][];
@@ -1466,11 +1475,6 @@ export interface components {
             decision: "approve" | "reject";
             /** @description Required to reject; shown to the seller */
             reason?: string;
-        };
-        ImageUrlsDto: {
-            thumb?: string;
-            card?: string;
-            full?: string;
         };
         FoodDeclarationDto: {
             /** @enum {boolean} */

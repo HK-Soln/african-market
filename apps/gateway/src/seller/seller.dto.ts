@@ -1,4 +1,10 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import {
+  ApiExtraModels,
+  ApiProperty,
+  ApiPropertyOptional,
+  getSchemaPath,
+  PartialType,
+} from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -21,6 +27,7 @@ import {
 import { EMIRATE_CODES } from '@am/geo';
 import {
   BranchListingDto,
+  ImageUrlsDto,
   LatLngDto,
   LocalizedTextDto,
   MultiPolygonDto,
@@ -121,6 +128,7 @@ export class TradeLicenseDto {
 }
 
 /** A shop as its members see it. */
+@ApiExtraModels(ImageUrlsDto)
 export class SellerShopDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty() name!: string;
@@ -147,6 +155,14 @@ export class SellerShopDto {
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
   @ApiProperty({ format: 'date-time' }) updatedAt!: string;
   @ApiProperty({ type: [SellerBranchDto] }) branches!: SellerBranchDto[];
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: { $ref: getSchemaPath(ImageUrlsDto) },
+    description:
+      'One shop only: links of the logo and gallery images by media id. An image still being ' +
+      'processed has no entry yet.',
+  })
+  imageUrls?: Record<string, ImageUrlsDto>;
 }
 
 export class SellerShopPageDto {

@@ -285,6 +285,11 @@ Location discovery and search, Contact, UAE specifics.
   > (WhatsApp must be a mobile number). Part 2: photos, KYC, submit, verification status with
   > reasons, branch management, special hours, drawn delivery areas. Part 3: catalogue. Part 4:
   > contact analytics and settings.
+  > Note: part 2a: photos (logo and up to 12, checked against the media rules before upload,
+  > reordered and removed), the identity check (sent to the provider, result asked for on return
+  > at `/shops/{id}/verification`), the trade licence (optional: needed for checkout and for the
+  > shop page to name the seller, T-40), sending for review, and the listing status with the
+  > admin's reason. Photos are optional for sending. Seller shop responses carry `imageUrls`.
 
 - [ ] **F1-14 Admin console** (depends on F1-08)
       Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).

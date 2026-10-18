@@ -41,7 +41,18 @@ async function call(method, path, token, body) {
 async function signIn(phone) {
   const code = codes.get(phone);
   if (!code) throw new Error(`${phone} is not in OTP_TEST_NUMBERS`);
-  await call('POST', '/auth/otp/request', undefined, { phone });
+  // A number may ask for a code once every 30 seconds: wait it out when signing in again.
+  for (;;) {
+    try {
+      await call('POST', '/auth/otp/request', undefined, { phone });
+      break;
+    } catch (error) {
+      const wait = /"retryAfterSeconds":(\d+)/.exec(error.message)?.[1];
+      if (!wait) throw error;
+      console.log(`  waiting ${wait} s to ask for another code`);
+      await new Promise((resolve) => setTimeout(resolve, (Number(wait) + 1) * 1000));
+    }
+  }
   const session = await call('POST', '/auth/otp/verify', undefined, {
     phone,
     code,

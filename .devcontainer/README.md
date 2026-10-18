@@ -16,11 +16,13 @@ machine, so the apps work exactly as they do locally.
 gh codespace create -R HK-Soln/african-market -b <branch> -m standardLinux32gb \
   --idle-timeout 30m --retention-period 24h
 
-# 2. Build, start and seed it (the first build takes a while).
-gh codespace ssh -c <name> -- bash tools/test-env/up.sh
+# 2. Build, start and seed it (the first build takes a while), in the codespace's terminal
+#    (github.com/codespaces), or with `gh codespace ssh -c <name>` where that connects.
+bash tools/test-env/up.sh
 
-# 3. Open the apps on localhost (leave this running).
-gh codespace ports forward -c <name> 3000:3000 3001:3001 3002:3002 4000:4000 9000:9000 8025:8025
+# 3. Open the apps on localhost: one command per port, left running (several ports in one
+#    command fails with "400: Bad Request").
+for p in 3000 3001 3002 4000 9000 8025; do gh codespace ports forward -c <name> $p:$p & done
 
 # 4. Delete it when done.
 gh codespace delete -c <name> --force

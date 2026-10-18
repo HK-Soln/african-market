@@ -15,8 +15,8 @@ for app in "${APPS[@]}"; do
   docker compose --profile apps build "$app"
 done
 
-echo "Starting: ${APPS[*]}"
-docker compose --profile apps up -d --wait "${APPS[@]}"
+echo "Starting: ${APPS[*]} and mailpit"
+docker compose --profile apps up -d --wait "${APPS[@]}" mailpit
 
 if [[ "${1:-}" != "--no-seed" ]]; then
   node tools/test-env/seed.mjs
@@ -24,7 +24,9 @@ fi
 
 cat <<'EOF'
 
-Ready. On your own machine, open the apps on localhost with:
-  gh codespace ports forward 3000:3000 3001:3001 3002:3002 4000:4000 9000:9000 8025:8025
+Ready. On your own machine, forward each port with its own command (several in one command
+fails with "400: Bad Request"), e.g. in separate terminals:
+  gh codespace ports forward -c <name> 3000:3000
+  ... and the same for 3001, 3002, 4000, 9000 and 8025
 then http://localhost:3000 (web), :3001 (seller), :3002 (admin), :8025 (Mailpit).
 EOF

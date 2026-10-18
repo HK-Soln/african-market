@@ -59,7 +59,22 @@ async function signIn(phone) {
     termsAccepted: true,
     preferredLanguage: 'en',
   });
-  return session.accessToken;
+  return session;
+}
+
+/**
+ * Catalog learns of a new shop from an event, a moment after the shops service made it: retry a
+ * catalog call until it knows the shop (up to 30 s).
+ */
+async function untilKnown(fn) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (!error.message.includes('SHOP_NOT_FOUND') || attempt >= 30) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
 }
 
 const EVERY_DAY = (opensAt, closesAt, closedOn = []) =>
@@ -194,23 +209,27 @@ async function main() {
   };
 
   // The admin: signs up, gets the role from the identity container, signs in again for it.
-  await signIn(ADMIN);
-  execFileSync(
-    'docker',
-    ['compose', 'exec', '-T', 'identity', 'node', 'dist/scripts/grant-role.js', ADMIN, 'admin'],
-    { stdio: 'inherit' },
-  );
-  const admin = await signIn(ADMIN);
+  let admin = await signIn(ADMIN);
+  if (!admin.user.roles.includes('admin')) {
+    execFileSync(
+      'docker',
+      ['compose', 'exec', '-T', 'identity', 'node', 'dist/scripts/grant-role.js', ADMIN, 'admin'],
+      { stdio: 'inherit' },
+    );
+    admin = await signIn(ADMIN);
+  }
+  const adminToken = admin.accessToken;
+  const seller = (await signIn(SELLER)).accessToken;
+  const mine = (await call('GET', '/seller/shops?limit=100', seller)).items;
 
-  const seller = await signIn(SELLER);
-  const existing = new Set((await call('GET', '/seller/shops', seller)).items.map((s) => s.name));
-
+  // Each step is skipped when already done, so a run that stopped half way can be run again.
   for (const spec of SHOPS) {
-    if (existing.has(spec.name)) {
-      console.log(`- ${spec.name}: already there`);
+    let shop = mine.find((s) => s.name === spec.name);
+    if (shop?.verificationStatus === 'verified') {
+      console.log(`- ${spec.name}: already verified`);
       continue;
     }
-    const shop = await call('POST', '/seller/shops', seller, {
+    shop ??= await call('POST', '/seller/shops', seller, {
       name: spec.name,
       description: spec.description,
       categoryIds: [category(spec.category).id],
@@ -219,51 +238,65 @@ async function main() {
       contactPhone: spec.contactPhone,
     });
     const base = `/seller/shops/${shop.id}`;
-    const branch = await call('POST', `${base}/branches`, seller, {
-      ...spec.branch,
-      isPrimary: true,
-    });
+    shop = await call('GET', base, seller);
+    const branch =
+      shop.branches?.find((b) => b.name === spec.branch.name) ??
+      (await call('POST', `${base}/branches`, seller, { ...spec.branch, isPrimary: true }));
     await call('PUT', `${base}/branches/${branch.id}/hours`, seller, { hours: spec.hours });
 
+    const products = (await untilKnown(() => call('GET', `${base}/products?limit=100`, seller)))
+      .items;
     for (const p of spec.products) {
       const c = category(p.category);
-      const product = await call('POST', `${base}/products`, seller, {
-        categoryId: c.id,
-        title: { en: p.en, ar: p.ar },
-        originCountry: spec.originCountries[0],
-        variants: [{ priceFils: p.fils }],
-        ...(c.requiresDeclaration
-          ? {
-              foodDeclaration: {
-                packagedAndLabelled: true,
-                noRestrictedItems: true,
-                storage: 'ambient',
-              },
-            }
-          : {}),
-      });
+      const product =
+        products.find((x) => x.title?.en === p.en) ??
+        (await call('POST', `${base}/products`, seller, {
+          categoryId: c.id,
+          title: { en: p.en, ar: p.ar },
+          originCountry: spec.originCountries[0],
+          variants: [{ priceFils: p.fils }],
+          ...(c.requiresDeclaration
+            ? {
+                foodDeclaration: {
+                  packagedAndLabelled: true,
+                  noRestrictedItems: true,
+                  storage: 'ambient',
+                },
+              }
+            : {}),
+        }));
       await call('PUT', `${base}/products/${product.id}/listings`, seller, {
         listings: [{ branchId: branch.id, variantId: product.variants[0].id, inStock: true }],
       });
-      await call('PUT', `${base}/products/${product.id}/status`, seller, { status: 'active' });
+      if (product.status !== 'active' && product.status !== 'pending_review') {
+        await call('PUT', `${base}/products/${product.id}/status`, seller, { status: 'active' });
+      }
     }
 
     // The stand-in identity check passes as soon as its result is asked for.
-    await call('POST', `${base}/verification/kyc`, seller, { locale: 'en' });
-    await call('POST', `${base}/verification/kyc/refresh`, seller);
-    await call('POST', `${base}/verification/submit`, seller);
-    await call('POST', `/admin/shops/${shop.id}/listing`, admin, { decision: 'approve' });
+    if (shop.kycStatus !== 'passed') {
+      if (shop.kycStatus === 'none') {
+        await call('POST', `${base}/verification/kyc`, seller, { locale: 'en' });
+      }
+      await call('POST', `${base}/verification/kyc/refresh`, seller);
+    }
+    if (shop.verificationStatus !== 'pending') {
+      await call('POST', `${base}/verification/submit`, seller);
+    }
+    await call('POST', `/admin/shops/${shop.id}/listing`, adminToken, { decision: 'approve' });
     console.log(`+ ${spec.name} (${spec.branch.emirate})`);
   }
 
   // Products in categories that are reviewed first.
-  const review = await call('GET', '/admin/products/review?limit=100', admin);
+  const review = await call('GET', '/admin/products/review?limit=100', adminToken);
   for (const product of review.items) {
-    await call('POST', `/admin/products/${product.id}/decision`, admin, { decision: 'approve' });
+    await call('POST', `/admin/products/${product.id}/decision`, adminToken, {
+      decision: 'approve',
+    });
   }
 
   for (const code of OPEN_EMIRATES) {
-    await call('PUT', `/admin/emirates/${code}/search`, admin, { open: true });
+    await call('PUT', `/admin/emirates/${code}/search`, adminToken, { open: true });
   }
   console.log(`Search open in ${OPEN_EMIRATES.join(', ')}. Seller ${SELLER}, admin ${ADMIN}.`);
 }

@@ -3,8 +3,15 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { EMIRATES } from '@am/geo';
-import { Button, Checkbox, Input, Select } from '@am/ui';
-import type { LatLng } from '@/lib/maps';
+import { Button, Checkbox, Input, Radio, Select } from '@am/ui';
+import {
+  circleOutline,
+  fromMultiPolygon,
+  isUsableOutline,
+  toMultiPolygon,
+  type MultiPolygon,
+} from '@/lib/area';
+import { useMaps, type LatLng } from '@/lib/maps';
 import { aedText, filsFromAed } from '@/lib/money';
 import { shopsApi, type BranchBody, type SellerBranch, type SellerShop } from '@/lib/shops';
 import { useErrorText } from '../error-text';
@@ -16,8 +23,9 @@ const RADIUS_MAX_KM = 50;
 const RADIUS_DEFAULT_KM = 5;
 
 /**
- * The first branch: its name and address, the pin on its door, and how it serves customers
- * (pickup, delivery within a radius, fee and minimum order). Creates it, then updates it.
+ * A branch: its name and address, the pin on its door, and how it serves customers (pickup,
+ * delivery within a radius or a drawn area, fee and minimum order). Creates it, then updates it.
+ * A shop's first branch is its main one; with several, the seller chooses.
  */
 export function BranchForm({
   shop,
@@ -42,6 +50,12 @@ export function BranchForm({
   const [radiusKm, setRadiusKm] = useState(
     branch?.serviceRadiusM ? Math.round(branch.serviceRadiusM / 1000) : RADIUS_DEFAULT_KM,
   );
+  const existingArea = fromMultiPolygon(branch?.serviceArea as MultiPolygon | null | undefined);
+  const { MapView } = useMaps();
+  const [areaMode, setAreaMode] = useState<'radius' | 'area'>(existingArea ? 'area' : 'radius');
+  const [outline, setOutline] = useState<LatLng[] | null>(existingArea);
+  const firstOfShop = shop.branches.length === 0 || (shop.branches.length === 1 && Boolean(branch));
+  const [primary, setPrimary] = useState(branch?.isPrimary ?? firstOfShop);
   const [fee, setFee] = useState(aedText(branch?.deliveryFeeFils));
   const [minOrder, setMinOrder] = useState(aedText(branch?.minOrderFils));
   const [tried, setTried] = useState(false);
@@ -58,7 +72,13 @@ export function BranchForm({
     serve: pickup || delivery ? undefined : t('serveRequired'),
     fee: delivery && feeFils === null ? t('moneyInvalid') : undefined,
     minOrder: delivery && minFils === null ? t('moneyInvalid') : undefined,
+    area:
+      delivery && areaMode === 'area' && !(outline && isUsableOutline(outline))
+        ? t('areaRequired')
+        : undefined,
   };
+  const drawing = delivery && areaMode === 'area';
+  const startOutline = () => location && setOutline(circleOutline(location, radiusKm * 1000));
   const show = (problem?: string) => (tried ? problem : undefined);
 
   const submit = async (event: FormEvent) => {
@@ -76,11 +96,12 @@ export function BranchForm({
       location,
       pickup,
       delivery,
-      // A radius only for delivery; a drawn area comes with branch management (part 2).
-      serviceRadiusM: delivery ? radiusKm * 1000 : null,
+      // One way to say where it delivers: a drawn area, or a radius from the pin.
+      serviceArea: drawing && outline ? toMultiPolygon(outline) : null,
+      serviceRadiusM: delivery && !drawing ? radiusKm * 1000 : null,
       deliveryFeeFils: delivery ? (feeFils ?? 0) : 0,
       minOrderFils: delivery ? (minFils ?? 0) : 0,
-      isPrimary: true,
+      ...(primary ? { isPrimary: true } : {}),
     };
     const result = branch
       ? await shopsApi.updateBranch(shop.id, branch.id, body)
@@ -142,7 +163,8 @@ export function BranchForm({
         value={location}
         onChange={setLocation}
         emirate={emirate}
-        radiusM={delivery ? radiusKm * 1000 : null}
+        radiusM={delivery && !drawing ? radiusKm * 1000 : null}
+        area={drawing && outline ? { path: outline, onChange: setOutline } : undefined}
         error={show(problems.location)}
       />
 
@@ -167,25 +189,66 @@ export function BranchForm({
 
       {delivery && (
         <fieldset className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="radius" className="font-semibold">
-              {t('radius', { km: radiusKm })}
-            </label>
-            <input
-              id="radius"
-              type="range"
-              min={RADIUS_MIN_KM}
-              max={RADIUS_MAX_KM}
-              step={1}
-              value={radiusKm}
-              onChange={(ev) => setRadiusKm(Number(ev.target.value))}
-              className="accent-clay"
-              aria-describedby="radius-hint"
-            />
-            <p id="radius-hint" className="text-sm text-ink-muted">
-              {t('radiusHint')}
-            </p>
-          </div>
+          {MapView && (
+            <div role="radiogroup" aria-label={t('whereDeliver')} className="flex flex-col gap-2">
+              <p className="font-semibold">{t('whereDeliver')}</p>
+              <Radio
+                name="area-mode"
+                label={t('byRadius')}
+                checked={areaMode === 'radius'}
+                onChange={() => setAreaMode('radius')}
+              />
+              <Radio
+                name="area-mode"
+                label={t('byArea')}
+                description={t('byAreaHint')}
+                checked={areaMode === 'area'}
+                onChange={() => {
+                  setAreaMode('area');
+                  if (!outline) startOutline();
+                }}
+              />
+            </div>
+          )}
+          {drawing ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-ink-muted">{t('areaHint')}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                className="self-start"
+                disabled={!location}
+                onClick={startOutline}
+              >
+                {t('areaRestart')}
+              </Button>
+              {show(problems.area) && (
+                <p role="alert" className="text-sm text-danger">
+                  {problems.area}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <label htmlFor="radius" className="font-semibold">
+                {t('radius', { km: radiusKm })}
+              </label>
+              <input
+                id="radius"
+                type="range"
+                min={RADIUS_MIN_KM}
+                max={RADIUS_MAX_KM}
+                step={1}
+                value={radiusKm}
+                onChange={(ev) => setRadiusKm(Number(ev.target.value))}
+                className="accent-clay"
+                aria-describedby="radius-hint"
+              />
+              <p id="radius-hint" className="text-sm text-ink-muted">
+                {t('radiusHint')}
+              </p>
+            </div>
+          )}
           <Input
             label={t('deliveryFee')}
             hint={t('moneyHint')}
@@ -205,6 +268,16 @@ export function BranchForm({
             error={show(problems.minOrder)}
           />
         </fieldset>
+      )}
+
+      {!firstOfShop && (
+        <Checkbox
+          label={t('mainBranch')}
+          description={t('mainBranchHint')}
+          checked={primary}
+          disabled={branch?.isPrimary}
+          onChange={(ev) => setPrimary(ev.target.checked)}
+        />
       )}
 
       {error && (

@@ -258,7 +258,16 @@
     "photosTitle": "Show your shop",
     "photosIntro": "A logo and a few clear photos of the shop front and what you sell get more customers to contact you.",
     "verifyTitle": "Get verified",
-    "verifyIntro": "We check who you are before your shop appears to customers. It takes a few minutes with your Emirates ID or passport."
+    "verifyIntro": "We check who you are before your shop appears to customers. It takes a few minutes with your Emirates ID or passport.",
+    "whereDeliver": "Where do you deliver?",
+    "byRadius": "Within a distance of the shop",
+    "byArea": "In an area I draw on the map",
+    "byAreaHint": "For areas that are not a circle: along a road, or a few neighbourhoods.",
+    "areaHint": "Drag the corners to fit your delivery area. Drag a midpoint to add a corner.",
+    "areaRestart": "Start the shape again",
+    "areaRequired": "Shape the area you deliver to on the map.",
+    "mainBranch": "Main branch",
+    "mainBranchHint": "Shown first on your page, and where your shop's own contacts point."
   },
   "hours": {
     "closed": "Closed",
@@ -279,7 +288,8 @@
     "edit": "Edit",
     "todo": "To do",
     "branches": "Branches",
-    "viewPublic": "See your page"
+    "viewPublic": "See your page",
+    "manageBranches": "Manage branches"
   },
   "photos": {
     "logo": "Logo",
@@ -353,5 +363,39 @@
     "missingcontact": "Add a way for customers to reach you.",
     "missingkyc": "Start the identity check first.",
     "fix": "Fix"
+  },
+  "branches": {
+    "title": "Branches",
+    "allBranches": "All branches",
+    "main": "Main",
+    "edit": "Edit",
+    "add": "Add a branch",
+    "newTitle": "A new branch",
+    "notFound": "This branch was not found. It may have been removed.",
+    "servesPickup": "Pickup",
+    "servesRadius": "Delivers within {km} km",
+    "servesArea": "Delivers to a drawn area",
+    "noHours": "No opening hours yet",
+    "weeklyHours": "Weekly hours",
+    "saveHours": "Save the hours",
+    "specialDays": "Special days",
+    "specialDaysHint": "Days that differ from your usual week, like Eid, Ramadan evenings or a national holiday. They replace the usual hours on that date.",
+    "addDay": "Add a special day",
+    "date": "Date",
+    "dateRequired": "Choose a date from today on.",
+    "labelEn": "What is it? (English)",
+    "labelEnPlaceholder": "For example Eid Al Fitr",
+    "labelAr": "What is it? (Arabic)",
+    "labelArPlaceholder": "مثلًا عيد الفطر",
+    "removeDay": "Remove this day",
+    "remove": "Remove this branch",
+    "removeHint": "Customers will no longer see it. Products listed only here will not show at any branch.",
+    "removeOnly": "This is your shop's only branch. Add another before removing it.",
+    "removeQuestion": "Remove {name}?",
+    "removeBody": "Customers will no longer see this branch. This cannot be undone.",
+    "removePrimary": "This is your main branch: your oldest other branch becomes the main one. This cannot be undone.",
+    "removeConfirm": "Remove the branch",
+    "removing": "Removing…",
+    "keep": "Keep it"
   }
 }

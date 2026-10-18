@@ -1958,7 +1958,7 @@ export interface components {
             /** @enum {string} */
             type: "MultiPolygon";
             /** @description GeoJSON coordinates, longitude first */
-            coordinates: components["schemas"]["MultiPolygonDto"];
+            coordinates: number[][][][];
         };
         CreateBranchBody: {
             /** @example Al Nahda */

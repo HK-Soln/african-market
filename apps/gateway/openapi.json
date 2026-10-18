@@ -6152,12 +6152,20 @@
             ]
           },
           "coordinates": {
-            "description": "GeoJSON coordinates, longitude first",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MultiPolygonDto"
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
               }
-            ]
+            },
+            "description": "GeoJSON coordinates, longitude first"
           }
         },
         "required": [

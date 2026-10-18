@@ -290,6 +290,12 @@ Location discovery and search, Contact, UAE specifics.
   > at `/shops/{id}/verification`), the trade licence (optional: needed for checkout and for the
   > shop page to name the seller, T-40), sending for review, and the listing status with the
   > admin's reason. Photos are optional for sending. Seller shop responses carry `imageUrls`.
+  > Note: part 2b: branches (list, add, edit, remove with a question; the only branch cannot go),
+  > a main branch to choose, weekly hours per branch, special days (closed or other hours, with
+  > an English/Arabic label), and delivery by radius or by an area shaped on the map: it starts
+  > as a ring around the pin and the seller drags its corners (Google's editable polygon; a
+  > free-hand drawing tool is clumsy on phones). The gateway's OpenAPI for `serviceArea` was
+  > wrong (coordinates typed as an object) and is fixed.
 
 - [ ] **F1-14 Admin console** (depends on F1-08)
       Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).

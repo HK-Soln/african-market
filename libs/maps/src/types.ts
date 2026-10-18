@@ -50,6 +50,11 @@ export interface MapViewProps {
   onMapClick?: (position: LatLng) => void;
   /** Circles drawn under the markers, e.g. a delivery radius. */
   circles?: MapCircle[];
+  /**
+   * An area the visitor shapes by dragging its corners (and the midpoints, which add corners),
+   * e.g. where a branch delivers. Reports the new outline after each change.
+   */
+  editableArea?: { path: LatLng[]; onChange: (path: LatLng[]) => void };
   /** After each pan or zoom has settled, with what is in view (for the map search). */
   onViewChange?: (view: { bounds: MapBounds; zoom: number; center: LatLng }) => void;
   className?: string;

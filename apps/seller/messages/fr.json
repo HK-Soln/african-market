@@ -258,7 +258,16 @@
     "photosTitle": "Montrez votre boutique",
     "photosIntro": "Un logo et quelques photos nettes de la devanture et de vos produits incitent plus de clients à vous contacter.",
     "verifyTitle": "Faites-vous vérifier",
-    "verifyIntro": "Nous vérifions votre identité avant que votre boutique soit visible. Cela prend quelques minutes avec votre carte d’identité émiratie ou votre passeport."
+    "verifyIntro": "Nous vérifions votre identité avant que votre boutique soit visible. Cela prend quelques minutes avec votre carte d’identité émiratie ou votre passeport.",
+    "whereDeliver": "Où livrez-vous ?",
+    "byRadius": "Dans un rayon autour de la boutique",
+    "byArea": "Dans une zone que je dessine sur la carte",
+    "byAreaHint": "Pour une zone qui n’est pas un cercle : le long d’une route, ou quelques quartiers.",
+    "areaHint": "Faites glisser les coins pour ajuster votre zone. Faites glisser un milieu pour ajouter un coin.",
+    "areaRestart": "Recommencer la forme",
+    "areaRequired": "Dessinez sur la carte la zone où vous livrez.",
+    "mainBranch": "Boutique principale",
+    "mainBranchHint": "Affichée en premier sur votre page, et vers laquelle pointent les contacts de la boutique."
   },
   "hours": {
     "closed": "Fermé",
@@ -279,7 +288,8 @@
     "edit": "Modifier",
     "todo": "À faire",
     "branches": "Points de vente",
-    "viewPublic": "Voir votre page"
+    "viewPublic": "Voir votre page",
+    "manageBranches": "Gérer les points de vente"
   },
   "photos": {
     "logo": "Logo",
@@ -353,5 +363,39 @@
     "missingcontact": "Ajoutez un moyen de vous joindre.",
     "missingkyc": "Commencez d’abord la vérification d’identité.",
     "fix": "Corriger"
+  },
+  "branches": {
+    "title": "Points de vente",
+    "allBranches": "Tous les points de vente",
+    "main": "Principal",
+    "edit": "Modifier",
+    "add": "Ajouter un point de vente",
+    "newTitle": "Nouveau point de vente",
+    "notFound": "Point de vente introuvable. Il a peut-être été supprimé.",
+    "servesPickup": "Retrait",
+    "servesRadius": "Livre dans un rayon de {km} km",
+    "servesArea": "Livre dans une zone dessinée",
+    "noHours": "Pas encore d’horaires",
+    "weeklyHours": "Horaires de la semaine",
+    "saveHours": "Enregistrer les horaires",
+    "specialDays": "Jours particuliers",
+    "specialDaysHint": "Les jours qui diffèrent de votre semaine habituelle, comme l’Aïd, les soirées de Ramadan ou un jour férié. Ils remplacent les horaires habituels à cette date.",
+    "addDay": "Ajouter un jour particulier",
+    "date": "Date",
+    "dateRequired": "Choisissez une date à partir d’aujourd’hui.",
+    "labelEn": "De quoi s’agit-il ? (anglais)",
+    "labelEnPlaceholder": "For example Eid Al Fitr",
+    "labelAr": "De quoi s’agit-il ? (arabe)",
+    "labelArPlaceholder": "مثلًا عيد الفطر",
+    "removeDay": "Supprimer ce jour",
+    "remove": "Supprimer ce point de vente",
+    "removeHint": "Les clients ne le verront plus. Les produits proposés uniquement ici ne seront plus visibles.",
+    "removeOnly": "C’est le seul point de vente de votre boutique. Ajoutez-en un autre avant de le supprimer.",
+    "removeQuestion": "Supprimer {name} ?",
+    "removeBody": "Les clients ne verront plus ce point de vente. Action définitive.",
+    "removePrimary": "C’est votre boutique principale : votre plus ancien autre point de vente le devient. Action définitive.",
+    "removeConfirm": "Supprimer le point de vente",
+    "removing": "Suppression…",
+    "keep": "Le garder"
   }
 }

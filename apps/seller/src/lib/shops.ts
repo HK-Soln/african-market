@@ -13,6 +13,7 @@ export type WeeklyHours = components['schemas']['OpeningHoursInput'][];
 export type VerificationOverview = components['schemas']['VerificationOverviewDto'];
 export type VerificationRequest = components['schemas']['VerificationRequestDto'];
 export type TradeLicenseBody = components['schemas']['SubmitTradeLicenseBody'];
+export type SpecialDayBody = components['schemas']['SetSpecialHoursBody'];
 
 export type Result<T> =
   { ok: true; data: T } | { ok: false; code: string; details?: Record<string, unknown> };
@@ -96,6 +97,25 @@ export const shopsApi = {
     const result = await uploadMedia(browserApi, file, { purpose, shopId });
     return result.ok ? { ok: true, data: result.data.id } : { ok: false, code: result.code };
   },
+  deleteBranch: (shopId: string, branchId: string) =>
+    run(
+      browserApi.DELETE('/api/v1/seller/shops/{shopId}/branches/{branchId}', {
+        params: { path: { shopId, branchId } },
+      }),
+    ),
+  setSpecialDay: (shopId: string, branchId: string, date: string, body: SpecialDayBody) =>
+    run(
+      browserApi.PUT('/api/v1/seller/shops/{shopId}/branches/{branchId}/special-hours/{date}', {
+        params: { path: { shopId, branchId, date } },
+        body,
+      }),
+    ),
+  deleteSpecialDay: (shopId: string, branchId: string, date: string) =>
+    run(
+      browserApi.DELETE('/api/v1/seller/shops/{shopId}/branches/{branchId}/special-hours/{date}', {
+        params: { path: { shopId, branchId, date } },
+      }),
+    ),
   setHours: (shopId: string, branchId: string, hours: WeeklyHours) =>
     run(
       browserApi.PUT('/api/v1/seller/shops/{shopId}/branches/{branchId}/hours', {

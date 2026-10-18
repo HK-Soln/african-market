@@ -7,8 +7,22 @@ export interface LatLng {
 
 /** What the map shows: a shop's branch, or a group of them at lower zoom (from the search API). */
 export type MapMarker =
-  | { kind: 'pin'; id: string; position: LatLng; label: string; openNow?: boolean }
+  | {
+      kind: 'pin';
+      id: string;
+      position: LatLng;
+      label: string;
+      openNow?: boolean;
+      /** The seller moves it to where the door is (onMarkerDragEnd). */
+      draggable?: boolean;
+    }
   | { kind: 'cluster'; id: string; position: LatLng; count: number };
+
+export interface MapCircle {
+  id: string;
+  center: LatLng;
+  radiusM: number;
+}
 
 export interface MapBounds {
   minLat: number;
@@ -30,6 +44,12 @@ export interface MapViewProps {
   /** Names a cluster's button, e.g. "12 shops: zoom in". */
   clusterLabel: (count: number) => string;
   onMarkerClick?: (marker: MapMarker) => void;
+  /** A draggable pin was dropped somewhere new. */
+  onMarkerDragEnd?: (marker: MapMarker, position: LatLng) => void;
+  /** A tap on the map itself (not a marker), e.g. to put the pin there. */
+  onMapClick?: (position: LatLng) => void;
+  /** Circles drawn under the markers, e.g. a delivery radius. */
+  circles?: MapCircle[];
   /** After each pan or zoom has settled, with what is in view (for the map search). */
   onViewChange?: (view: { bounds: MapBounds; zoom: number; center: LatLng }) => void;
   className?: string;
@@ -50,6 +70,13 @@ export interface PlaceSearchProps {
   onPick: (place: PickedPlace) => void;
   /** Suggestions near here come first. */
   near?: LatLng;
+}
+
+/** What the Google implementation needs; both values are public (browser key, map id). */
+export interface GoogleMapsConfig {
+  apiKey: string;
+  /** Map Management id: needed for the HTML (Advanced) markers. */
+  mapId: string;
 }
 
 /**

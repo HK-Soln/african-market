@@ -97,5 +97,7 @@
   "fromNigeriaGhana": "From Nigeria and Ghana",
   "productEgusi": "Egusi seeds 500 g",
   "productGarri": "Yellow garri 2 kg",
-  "outOfStock": "Out of stock"
+  "outOfStock": "Out of stock",
+  "description": "Description",
+  "descriptionHint": "What you sell, and what makes it special."
 }

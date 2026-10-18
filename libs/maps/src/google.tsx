@@ -1,7 +1,16 @@
 /// <reference types="google.maps" />
 'use client';
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import {
   AdvancedMarker,
   APIProvider,
@@ -9,21 +18,33 @@ import {
   useMap,
   useMapsLibrary,
 } from '@vis.gl/react-google-maps';
-import { useLocale } from 'next-intl';
 import { cx, Icon } from '@am/ui';
-import { config } from '../config';
-import type { LatLng, MapProvider, MapViewProps, PlaceSearchProps } from './types';
+import { useMapsLanguage } from './context';
+import type {
+  GoogleMapsConfig,
+  LatLng,
+  MapCircle,
+  MapProvider,
+  MapViewProps,
+  PlaceSearchProps,
+} from './types';
 
-const google = config.googleMaps!;
+const ConfigContext = createContext<GoogleMapsConfig | null>(null);
+const useConfig = () => {
+  const config = useContext(ConfigContext);
+  if (!config) throw new Error('Google maps used outside createGoogleMaps');
+  return config;
+};
 
 /**
  * Loads Google's script (once for the page, however many of these there are). Google draws its
  * own labels in this language; region AE gives UAE borders and names.
  */
 function Google({ children }: { children: ReactNode }) {
-  const locale = useLocale();
+  const { apiKey } = useConfig();
+  const language = useMapsLanguage();
   return (
-    <APIProvider apiKey={google.apiKey} language={locale} region="AE">
+    <APIProvider apiKey={apiKey} language={language} region="AE">
       {children}
     </APIProvider>
   );
@@ -58,9 +79,13 @@ function GoogleMapView({
   label,
   clusterLabel,
   onMarkerClick,
+  onMarkerDragEnd,
+  onMapClick,
+  circles = [],
   onViewChange,
   className,
 }: MapViewProps) {
+  const { mapId } = useConfig();
   // The latest handler, so the map's listener never calls a stale one.
   const viewChange = useRef(onViewChange);
   viewChange.current = onViewChange;
@@ -68,7 +93,7 @@ function GoogleMapView({
   return (
     <section aria-label={label} className={cx('am-map', className)}>
       <GoogleMap
-        mapId={google.mapId}
+        mapId={mapId}
         defaultCenter={center}
         defaultZoom={zoom}
         gestureHandling="greedy"
@@ -77,6 +102,10 @@ function GoogleMapView({
         clickableIcons={false}
         colorScheme="FOLLOW_SYSTEM"
         reuseMaps
+        onClick={(event) => {
+          const at = event.detail.latLng;
+          if (at) onMapClick?.(at);
+        }}
         onIdle={(event) => {
           const bounds = event.map.getBounds()?.toJSON();
           const mapCenter = event.map.getCenter();
@@ -94,6 +123,9 @@ function GoogleMapView({
         }}
       >
         <Follow center={center} zoom={zoom} />
+        {circles.map((circle) => (
+          <Circle key={circle.id} {...circle} />
+        ))}
         {you && (
           <AdvancedMarker position={you} zIndex={1} anchorLeft="-50%" anchorTop="-50%">
             <span className="am-map-you" aria-hidden />
@@ -118,6 +150,11 @@ function GoogleMapView({
               position={marker.position}
               title={marker.label}
               onClick={() => onMarkerClick?.(marker)}
+              draggable={marker.draggable}
+              onDragEnd={(event) => {
+                const at = event.latLng;
+                if (at) onMarkerDragEnd?.(marker, { lat: at.lat(), lng: at.lng() });
+              }}
               zIndex={marker.id === selectedId ? 4 : 3}
             >
               <span
@@ -165,7 +202,7 @@ function GooglePlaceSearch({
   near,
 }: PlaceSearchProps) {
   const places = useMapsLibrary('places');
-  const locale = useLocale();
+  const locale = useMapsLanguage();
   const inputId = useId();
   const listId = useId();
   const [query, setQuery] = useState('');
@@ -323,4 +360,48 @@ function GooglePlaceSearch({
   );
 }
 
-export const googleMaps: MapProvider = { name: 'google', MapView, PlaceSearch };
+/** A circle in the clay colour, under the markers (a delivery radius). */
+function Circle({ center, radiusM }: MapCircle) {
+  const map = useMap();
+  const circle = useRef<google.maps.Circle | null>(null);
+  useEffect(() => {
+    if (!map) return;
+    circle.current = new google.maps.Circle({
+      map,
+      clickable: false,
+      strokeColor: '#a9500e',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#a9500e',
+      fillOpacity: 0.12,
+    });
+    return () => {
+      circle.current?.setMap(null);
+      circle.current = null;
+    };
+  }, [map]);
+  useEffect(() => {
+    circle.current?.setCenter(center);
+    circle.current?.setRadius(radiusM);
+  }, [map, center.lat, center.lng, radiusM]);
+  return null;
+}
+
+/**
+ * Google Maps as the app's map provider. Call once per app (the components close over the
+ * config); the apps load this entry point only when they have a key.
+ */
+export function createGoogleMaps(config: GoogleMapsConfig): MapProvider {
+  const withConfig =
+    <P extends object>(Component: (props: P) => ReactNode) =>
+    (props: P) => (
+      <ConfigContext.Provider value={config}>
+        <Component {...props} />
+      </ConfigContext.Provider>
+    );
+  return {
+    name: 'google',
+    MapView: withConfig(MapView),
+    PlaceSearch: withConfig(PlaceSearch),
+  };
+}

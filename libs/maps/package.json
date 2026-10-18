@@ -1,0 +1,44 @@
+{
+  "name": "@am/maps",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The map provider adapter (MapView, PlaceSearch) for the Next.js apps; Google Maps behind it",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit",
+    "lint": "eslint src",
+    "test": "jest --passWithNoTests"
+  },
+  "nx": {
+    "tags": [
+      "lib",
+      "frontend-lib"
+    ]
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./google": {
+      "types": "./dist/google.d.ts",
+      "default": "./dist/google.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "@am/ui": "workspace:*",
+    "@vis.gl/react-google-maps": "1.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "react": "^19.3.0"
+  }
+}

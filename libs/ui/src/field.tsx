@@ -1,6 +1,12 @@
 'use client';
 
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import {
+  useId,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 import { cx } from './cx';
 import { Icon, type IconName } from './icon';
 
@@ -85,6 +91,38 @@ export function Input({
           {...rest}
         />
         {suffix && <span className="am-input-suffix">{suffix}</span>}
+      </div>
+    </Field>
+  );
+}
+
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+  hint?: string;
+  error?: string;
+  optional?: string;
+}
+
+/** A labelled text area for longer text, such as a description. Grows when dragged. */
+export function Textarea({ label, hint, error, optional, className, id, ...rest }: TextareaProps) {
+  const generated = useId();
+  const fieldId = id ?? generated;
+  return (
+    <Field
+      id={fieldId}
+      label={label}
+      hint={hint}
+      error={error}
+      optional={optional}
+      className={className}
+    >
+      <div className="am-input min-w-0">
+        <textarea
+          id={fieldId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error || hint ? `${fieldId}-msg` : undefined}
+          {...rest}
+        />
       </div>
     </Field>
   );

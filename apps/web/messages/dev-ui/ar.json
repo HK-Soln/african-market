@@ -97,5 +97,7 @@
   "fromNigeriaGhana": "من نيجيريا وغانا",
   "productEgusi": "بذور إيغوسي 500 غ",
   "productGarri": "غاري أصفر 2 كغ",
-  "outOfStock": "غير متوفر"
+  "outOfStock": "غير متوفر",
+  "description": "الوصف",
+  "descriptionHint": "ما تبيعه، وما يميزه."
 }

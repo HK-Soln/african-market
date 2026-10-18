@@ -1,6 +1,7 @@
 import { copyToAll, dayProblem, weekFromApi, weekProblem, weekToApi } from './hours';
 import { aedText, filsFromAed } from './money';
 import { checkPhone, checkWhatsapp, splitPhone } from './phone';
+import { nextStep, setupProgress } from './setup';
 
 describe('opening hours editor', () => {
   it('reads and writes the stored hours, sorted per day', () => {
@@ -81,5 +82,30 @@ describe('dirham amounts', () => {
     expect(aedText(1000)).toBe('10');
     expect(aedText(1250)).toBe('12.50');
     expect(aedText(0)).toBe('');
+  });
+});
+
+describe('where onboarding resumes', () => {
+  const base = {
+    name: 'Mama Nkechi',
+    branches: [],
+    contactWhatsapp: null,
+    contactPhone: null,
+    contactEmail: null,
+    logoMediaId: null,
+    verificationStatus: 'draft',
+  };
+  const branch = {
+    isPrimary: true,
+    openingHours: [{ weekday: 1, opensAt: '09:00', closesAt: '21:00' }],
+  };
+  type Shop = Parameters<typeof nextStep>[0];
+
+  it('goes to the first needed step, past the optional photos', () => {
+    expect(nextStep(base as unknown as Shop)).toBe('branch');
+    const ready = { ...base, branches: [branch], contactWhatsapp: '+971501234567' };
+    expect(nextStep(ready as unknown as Shop)).toBe('verify');
+    expect(setupProgress(ready as unknown as Shop).photos).toBe(false);
+    expect(nextStep({ ...ready, verificationStatus: 'pending' } as unknown as Shop)).toBeNull();
   });
 });

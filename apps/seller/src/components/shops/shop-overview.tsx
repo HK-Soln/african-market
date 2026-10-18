@@ -9,7 +9,7 @@ import { STATUS_TONE } from './my-shops';
 
 /**
  * A shop's dashboard: where it stands, what onboarding still needs (each step links to its
- * form), and its branches. Photos, verification, catalogue and analytics join in the next parts.
+ * form), and its branches. Catalogue and analytics join in the next parts.
  */
 export function ShopOverview({ shopId }: { shopId: string }) {
   const t = useTranslations('overview');
@@ -68,20 +68,15 @@ export function ShopOverview({ shopId }: { shopId: string }) {
                 {!progress[step] && <span className="text-sm text-ink-muted">· {t('todo')}</span>}
               </span>
               <Link
-                href={{ pathname: `/shops/${shop.id}/setup`, query: { step } }}
+                href={
+                  step === 'verify'
+                    ? `/shops/${shop.id}/verification`
+                    : { pathname: `/shops/${shop.id}/setup`, query: { step } }
+                }
                 className="text-sm font-semibold text-clay-ink"
               >
                 {t('edit')}
               </Link>
-            </li>
-          ))}
-          {(['photos', 'verify'] as const).map((step) => (
-            <li key={step} className="flex items-center justify-between gap-3 py-2 text-ink-muted">
-              <span className="flex items-center gap-2">
-                <Icon name="clock" />
-                {s(`step${step}`)}
-              </span>
-              <span className="text-sm">{s('comingSoon')}</span>
             </li>
           ))}
         </ol>

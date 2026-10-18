@@ -4007,6 +4007,20 @@
           "erasedAfter"
         ]
       },
+      "ImageUrlsDto": {
+        "type": "object",
+        "properties": {
+          "thumb": {
+            "type": "string"
+          },
+          "card": {
+            "type": "string"
+          },
+          "full": {
+            "type": "string"
+          }
+        }
+      },
       "LocalizedTextDto": {
         "type": "object",
         "properties": {
@@ -4379,6 +4393,13 @@
             "items": {
               "$ref": "#/components/schemas/SellerBranchDto"
             }
+          },
+          "imageUrls": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ImageUrlsDto"
+            },
+            "description": "One shop only: links of the logo and gallery images by media id. An image still being processed has no entry yet."
           }
         },
         "required": [
@@ -4627,20 +4648,6 @@
         "required": [
           "decision"
         ]
-      },
-      "ImageUrlsDto": {
-        "type": "object",
-        "properties": {
-          "thumb": {
-            "type": "string"
-          },
-          "card": {
-            "type": "string"
-          },
-          "full": {
-            "type": "string"
-          }
-        }
       },
       "FoodDeclarationDto": {
         "type": "object",

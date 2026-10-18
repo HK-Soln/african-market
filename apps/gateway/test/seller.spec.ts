@@ -32,6 +32,8 @@ const shop = (extra: Record<string, unknown> = {}) => ({
   id: shopId,
   name: 'Lagos Kitchen',
   staffCanUploadProductImages: staffMayUploadSetting,
+  logoMediaId: null,
+  galleryMediaIds: [],
   branches: [],
   ...extra,
 });
@@ -195,11 +197,13 @@ describe('gateway seller routes (HTTP -> gateway -> TCP -> service stand-ins)', 
   it('attaches a new logo before the change and releases the old one after', async () => {
     const token = await tokenFor(ownerId, [{ shopId, role: 'owner', branchIds: [] }]);
     const before = calls.length;
-    await http()
+    const res = await http()
       .patch(`/api/v1/seller/shops/${shopId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ logoMediaId: newLogo })
       .expect(200);
+    // The answer carries the new logo's links, for the seller's screen.
+    expect(res.body.imageUrls).toEqual({ [newLogo]: { card: `https://cdn.test/${newLogo}` } });
     expect(patternsSince(before)).toEqual([
       MediaPatterns.attach,
       ShopsPatterns.update,

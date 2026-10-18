@@ -3121,7 +3121,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductPageDto"
+                  "$ref": "#/components/schemas/SellerProductPageDto"
                 }
               }
             }
@@ -3170,7 +3170,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/SellerProductDto"
                 }
               }
             }
@@ -3191,6 +3191,53 @@
       }
     },
     "/api/v1/seller/shops/{shopId}/products/{productId}": {
+      "get": {
+        "operationId": "SellerProductsController_getOne_v1",
+        "parameters": [
+          {
+            "name": "shopId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One of the shop’s products, in any status",
+        "tags": [
+          "seller"
+        ]
+      },
       "patch": {
         "description": "Changing what was reviewed (category, texts, images, declaration) reviews it again.",
         "operationId": "SellerProductsController_update_v1",
@@ -3230,7 +3277,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/SellerProductDto"
                 }
               }
             }
@@ -3330,7 +3377,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/SellerProductDto"
                 }
               }
             }
@@ -3389,7 +3436,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/SellerProductDto"
                 }
               }
             }
@@ -6599,6 +6646,154 @@
           "issuingAuthority",
           "expiry",
           "documentMediaId"
+        ]
+      },
+      "SellerProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ]
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "description": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          },
+          "originCountry": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageMediaIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "images": {
+            "description": "Links of the images, in order",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageUrlsDto"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending_review",
+              "active",
+              "hidden",
+              "rejected"
+            ]
+          },
+          "reviewReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Members only"
+          },
+          "foodDeclaration": {
+            "nullable": true,
+            "description": "Members only",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FoodDeclarationDto"
+              }
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantDto"
+            }
+          },
+          "listings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BranchListingDto"
+            }
+          },
+          "submittedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "imageUrls": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ImageUrlsDto"
+            },
+            "description": "Links of the images by media id; an image still being processed has no entry yet (`images` leaves it out, so its order cannot be matched to `imageMediaIds`)."
+          }
+        },
+        "required": [
+          "id",
+          "shopId",
+          "categoryId",
+          "type",
+          "title",
+          "description",
+          "originCountry",
+          "imageMediaIds",
+          "images",
+          "status",
+          "reviewReason",
+          "foodDeclaration",
+          "variants",
+          "listings",
+          "submittedAt",
+          "createdAt",
+          "updatedAt",
+          "imageUrls"
+        ]
+      },
+      "SellerProductPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SellerProductDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "prevCursor"
         ]
       },
       "FoodDeclarationInput": {

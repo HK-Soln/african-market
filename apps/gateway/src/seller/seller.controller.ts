@@ -48,7 +48,6 @@ import { MediaBinder } from '../common/media-binder';
 import { MediaLinks, type ImageUrls } from '../common/media-links';
 import { correlationId } from '../common/request-context';
 import { ServiceCaller } from '../common/service-caller';
-import { ProductDto, ProductPageDto } from '../public/public.dto';
 import {
   ContactStatsDto,
   ContactStatsQuery,
@@ -56,6 +55,8 @@ import {
   CreateProductBody,
   CreateShopBody,
   SellerBranchDto,
+  SellerProductDto,
+  SellerProductPageDto,
   SellerShopDto,
   SellerShopPageDto,
   SetListingsBody,
@@ -463,16 +464,19 @@ export class SellerProductsController extends SellerBase {
     super(caller);
   }
 
-  private async withImages(products: Product[]): Promise<ProductDto[]> {
+  private async withImages(products: Product[]): Promise<SellerProductDto[]> {
     const urls = await this.links.of(products.flatMap((p) => p.imageMediaIds));
     return products.map((p) => ({
       ...p,
       images: p.imageMediaIds.flatMap((id) => (urls.has(id) ? [urls.get(id)!] : [])),
+      imageUrls: Object.fromEntries(
+        p.imageMediaIds.flatMap((id) => (urls.has(id) ? [[id, urls.get(id)!]] : [])),
+      ),
     }));
   }
 
   @ApiOperation({ summary: "The shop's products, in every status" })
-  @ApiOkResponse({ type: ProductPageDto })
+  @ApiOkResponse({ type: SellerProductPageDto })
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @ApiListQuery(SHOP_PRODUCTS_LIST_SPEC)
   @Header('Cache-Control', 'no-store')
@@ -481,7 +485,7 @@ export class SellerProductsController extends SellerBase {
     @CurrentUser() user: AuthenticatedUser,
     @Param('shopId', ParseUUIDPipe) shopId: string,
     @ListQueryParams(SHOP_PRODUCTS_LIST_SPEC) query: ListQuery,
-  ): Promise<ProductPageDto> {
+  ): Promise<SellerProductPageDto> {
     const page = await this.caller.call<ProductPage>('catalog', CatalogPatterns.listShopProducts, {
       actor: actorOf(user),
       shopId,
@@ -490,11 +494,30 @@ export class SellerProductsController extends SellerBase {
     return { ...page, items: await this.withImages(page.items) };
   }
 
+  @ApiOperation({ summary: 'One of the shop’s products, in any status' })
+  @ApiOkResponse({ type: SellerProductDto })
+  @ApiParam({ name: 'shopId', format: 'uuid' })
+  @ApiParam({ name: 'productId', format: 'uuid' })
+  @Header('Cache-Control', 'no-store')
+  @Get('products/:productId')
+  async getOne(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('shopId', ParseUUIDPipe) shopId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
+  ): Promise<SellerProductDto> {
+    const product = await this.caller.call<Product>('catalog', CatalogPatterns.getProduct, {
+      actor: actorOf(user),
+      shopId,
+      productId,
+    });
+    return (await this.withImages([product]))[0];
+  }
+
   @ApiOperation({
     summary: 'Create a product (a draft)',
     description: 'Owners and managers. Images are confirmed product_image uploads for this shop.',
   })
-  @ApiOkResponse({ type: ProductDto })
+  @ApiOkResponse({ type: SellerProductDto })
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @Post('products')
   @HttpCode(201)
@@ -503,7 +526,7 @@ export class SellerProductsController extends SellerBase {
     @Param('shopId', ParseUUIDPipe) shopId: string,
     @Body() body: CreateProductBody,
     @Req() req: Request,
-  ): Promise<ProductDto> {
+  ): Promise<SellerProductDto> {
     const { imageMediaIds = [], ...fields } = body;
     // The images bind to the product, so it is made first and given them once it exists.
     let { product } = await this.caller.call<UpsertProductResponse>(
@@ -540,7 +563,7 @@ export class SellerProductsController extends SellerBase {
     description:
       'Changing what was reviewed (category, texts, images, declaration) reviews it again.',
   })
-  @ApiOkResponse({ type: ProductDto })
+  @ApiOkResponse({ type: SellerProductDto })
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @ApiParam({ name: 'productId', format: 'uuid' })
   @Patch('products/:productId')
@@ -550,7 +573,7 @@ export class SellerProductsController extends SellerBase {
     @Param('productId', ParseUUIDPipe) productId: string,
     @Body() body: UpdateProductBody,
     @Req() req: Request,
-  ): Promise<ProductDto> {
+  ): Promise<SellerProductDto> {
     const target = { type: 'product' as const, id: productId };
     await this.media.attach({
       actorId: user.id,
@@ -576,7 +599,7 @@ export class SellerProductsController extends SellerBase {
     summary: 'Publish, hide, or back to draft',
     description: 'Food, restricted and previously rejected products go to review before they show.',
   })
-  @ApiOkResponse({ type: ProductDto })
+  @ApiOkResponse({ type: SellerProductDto })
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @ApiParam({ name: 'productId', format: 'uuid' })
   @Put('products/:productId/status')
@@ -586,7 +609,7 @@ export class SellerProductsController extends SellerBase {
     @Param('productId', ParseUUIDPipe) productId: string,
     @Body() body: SetProductStatusBody,
     @Req() req: Request,
-  ): Promise<ProductDto> {
+  ): Promise<SellerProductDto> {
     const product = await this.caller.call<Product>('catalog', CatalogPatterns.setProductStatus, {
       ...body,
       ...this.ctx(user, req, shopId),
@@ -596,7 +619,7 @@ export class SellerProductsController extends SellerBase {
   }
 
   @ApiOperation({ summary: 'Where the product is: branches, stock and branch prices' })
-  @ApiOkResponse({ type: ProductDto })
+  @ApiOkResponse({ type: SellerProductDto })
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @ApiParam({ name: 'productId', format: 'uuid' })
   @Put('products/:productId/listings')
@@ -606,7 +629,7 @@ export class SellerProductsController extends SellerBase {
     @Param('productId', ParseUUIDPipe) productId: string,
     @Body() body: SetListingsBody,
     @Req() req: Request,
-  ): Promise<ProductDto> {
+  ): Promise<SellerProductDto> {
     const product = await this.caller.call<Product>('catalog', CatalogPatterns.setProductListings, {
       ...body,
       ...this.ctx(user, req, shopId),

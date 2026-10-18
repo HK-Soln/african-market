@@ -1070,7 +1070,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** One of the shop’s products, in any status */
+        get: operations["SellerProductsController_getOne_v1"];
         put?: never;
         post?: never;
         /** Remove a product */
@@ -2099,6 +2100,45 @@ export interface components {
              * @description A confirmed trade_license upload
              */
             documentMediaId: string;
+        };
+        SellerProductDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** Format: uuid */
+            categoryId: string;
+            /** @enum {string} */
+            type: "product" | "service";
+            title: components["schemas"]["LocalizedTextDto"];
+            description: components["schemas"]["LocalizedTextDto"];
+            originCountry: string | null;
+            imageMediaIds: string[];
+            /** @description Links of the images, in order */
+            images: components["schemas"]["ImageUrlsDto"][];
+            /** @enum {string} */
+            status: "draft" | "pending_review" | "active" | "hidden" | "rejected";
+            /** @description Members only */
+            reviewReason: string | null;
+            /** @description Members only */
+            foodDeclaration: components["schemas"]["FoodDeclarationDto"] | null;
+            variants: components["schemas"]["VariantDto"][];
+            listings: components["schemas"]["BranchListingDto"][];
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Links of the images by media id; an image still being processed has no entry yet (`images` leaves it out, so its order cannot be matched to `imageMediaIds`). */
+            imageUrls: {
+                [key: string]: components["schemas"]["ImageUrlsDto"];
+            };
+        };
+        SellerProductPageDto: {
+            items: components["schemas"]["SellerProductDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
         };
         FoodDeclarationInput: {
             /**
@@ -3755,7 +3795,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductPageDto"];
+                    "application/json": components["schemas"]["SellerProductPageDto"];
                 };
             };
         };
@@ -3780,7 +3820,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductDto"];
+                    "application/json": components["schemas"]["SellerProductDto"];
+                };
+            };
+        };
+    };
+    SellerProductsController_getOne_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shopId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerProductDto"];
                 };
             };
         };
@@ -3826,7 +3888,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductDto"];
+                    "application/json": components["schemas"]["SellerProductDto"];
                 };
             };
         };
@@ -3852,7 +3914,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductDto"];
+                    "application/json": components["schemas"]["SellerProductDto"];
                 };
             };
         };
@@ -3878,7 +3940,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductDto"];
+                    "application/json": components["schemas"]["SellerProductDto"];
                 };
             };
         };

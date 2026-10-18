@@ -314,7 +314,13 @@ export class ProductsService {
     const product = await manager.findOneBy(Product, { id: input.productId });
     if (!product) throw catalogError(CatalogErrors.productNotFound);
     const shop = await manager.findOneBy(KnownShop, { id: product.shopId });
-    if (shop && accessTo(input.actor, shop)) return this.dto(manager, product, 'full');
+    const member = shop ? accessTo(input.actor, shop) !== undefined : false;
+    if (input.shopId) {
+      if (product.shopId !== input.shopId || !member)
+        throw catalogError(CatalogErrors.productNotFound);
+      return this.dto(manager, product, 'full');
+    }
+    if (member) return this.dto(manager, product, 'full');
     if (product.status !== 'active' || !shop?.verified)
       throw catalogError(CatalogErrors.productNotFound);
     return this.dto(manager, product, 'public');

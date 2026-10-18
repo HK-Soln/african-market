@@ -1,9 +1,9 @@
 import type { CountryOption } from '@am/ui';
-import type { CategoryOption } from '@/components/setup/details-form';
 import { api } from './api';
+import type { ProductCategory } from './product-form';
 
 /** Active categories, parents first; empty when they could not be loaded. */
-export async function categories(locale: string): Promise<CategoryOption[]> {
+export async function categories(locale: string): Promise<ProductCategory[]> {
   try {
     const { data } = await api(locale).GET('/api/v1/categories');
     return data?.items ?? [];

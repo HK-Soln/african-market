@@ -296,6 +296,16 @@ Location discovery and search, Contact, UAE specifics.
   > as a ring around the pin and the seller drags its corners (Google's editable polygon; a
   > free-hand drawing tool is clumsy on phones). The gateway's OpenAPI for `serviceArea` was
   > wrong (coordinates typed as an object) and is fixed.
+  > Note: part 3: the catalogue: a list per shop (status tabs, search, a page at a time) and one
+  > form per product: category from under the shop's own, names and descriptions (en/ar/fr),
+  > origin, up to 10 photos, price or versions, the food declaration when the category needs it,
+  > and where it is sold (per branch and version: in stock, quantity, branch price), then publish
+  > (or review), hide, back to draft, remove. The form edits one option (Size, Weight…) that
+  > versions differ by; other option keys already stored are kept as they are. A new product is
+  > offered at every branch, in stock; a quantity of 0 saves as out of stock. Added
+  > `GET /seller/shops/{shopId}/products/{productId}` (catalog's get with `shopId`: members of
+  > that shop only), and seller product responses carry `imageUrls` by media id, since `images`
+  > leaves out pictures still being processed.
 
 - [ ] **F1-14 Admin console** (depends on F1-08)
       Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).

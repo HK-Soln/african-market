@@ -9,7 +9,7 @@ import { STATUS_TONE } from './my-shops';
 
 /**
  * A shop's dashboard: where it stands, what onboarding still needs (each step links to its
- * form), and its branches. Catalogue and analytics join in the next parts.
+ * form), its catalogue and its branches. Analytics join in the next part.
  */
 export function ShopOverview({ shopId }: { shopId: string }) {
   const t = useTranslations('overview');
@@ -80,6 +80,19 @@ export function ShopOverview({ shopId }: { shopId: string }) {
             </li>
           ))}
         </ol>
+      </Card>
+
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <span className="flex items-center gap-3">
+          <Icon name="package" className="text-clay" />
+          <span className="flex flex-col">
+            <span className="font-semibold">{t('products')}</span>
+            <span className="text-sm text-ink-muted">{t('productsHint')}</span>
+          </span>
+        </span>
+        <Link href={`/shops/${shop.id}/products`} className="am-btn am-btn-secondary">
+          {t('manageProducts')}
+        </Link>
       </Card>
 
       {shop.branches.length > 0 && (

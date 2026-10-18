@@ -8,6 +8,7 @@ import { SearchIndexer } from './indexer';
 import { SEARCH_OWNERS, SearchOwners, TcpSearchOwners } from './owners';
 import { SearchController } from './search.controller';
 import { SearchService } from './search.service';
+import { SitemapService } from './sitemap.service';
 
 @Module({
   controllers: [SearchController],
@@ -37,6 +38,11 @@ import { SearchService } from './search.service';
       provide: SearchService,
       inject: [getDataSourceToken()],
       useFactory: (dataSource: DataSource) => new SearchService(dataSource),
+    },
+    {
+      provide: SitemapService,
+      inject: [getDataSourceToken()],
+      useFactory: (dataSource: DataSource) => new SitemapService(dataSource),
     },
   ],
 })

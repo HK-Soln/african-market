@@ -3,8 +3,10 @@ import {
   CreateShopRequest,
   GetShopBySlugRequest,
   GetShopRequest,
+  LicensedSellerDto,
   ListMyShopsRequest,
   normalizePhone,
+  PublicShopSourceDto,
   ShopDto,
   ShopErrors,
   ShopFields,
@@ -13,7 +15,7 @@ import {
   UpdateShopResponse,
 } from '@am/contracts';
 import { findPage, OutboxService } from '@am/database';
-import { Branch, Shop } from '../entities';
+import { Branch, Shop, VerificationRequest } from '../entities';
 import { shopError } from '../errors';
 import { requireEditor, requireReader } from './access';
 import { toShopDto } from './mapper';
@@ -146,14 +148,42 @@ export class ShopsService {
   }
 
   /** Public: only verified shops exist here. */
-  async getBySlug(input: GetShopBySlugRequest): Promise<ShopDto> {
+  async getBySlug(input: GetShopBySlugRequest): Promise<PublicShopSourceDto> {
     const manager = this.dataSource.manager;
     const shop = await manager.findOneBy(Shop, {
       slug: input.slug,
       verificationStatus: 'verified',
     });
     if (!shop) throw shopError(ShopErrors.notFound);
-    return toShopDto(shop, await this.branchesOf(manager, [shop.id]));
+    return {
+      ...toShopDto(shop, await this.branchesOf(manager, [shop.id])),
+      licensedSeller: await this.licensedSeller(manager, shop),
+    };
+  }
+
+  /**
+   * The legal name and licence the shop page shows: only those an admin approved (the latest
+   * licence request) and only until the licence expires (Dubai's date), so a page never names a
+   * seller from details nobody checked.
+   */
+  private async licensedSeller(
+    manager: EntityManager,
+    shop: Shop,
+  ): Promise<LicensedSellerDto | null> {
+    if (!shop.legalName || !shop.tradeLicenseNo) return null;
+    const latest = await manager.findOne(VerificationRequest, {
+      where: { shopId: shop.id, type: 'trade_license' },
+      order: { createdAt: 'DESC' },
+    });
+    if (latest?.status !== 'approved') return null;
+    // Today in Asia/Dubai (UTC+4 all year), as YYYY-MM-DD like the stored expiry.
+    const today = new Date(Date.now() + 4 * 3_600_000).toISOString().slice(0, 10);
+    if (shop.licenseExpiry && shop.licenseExpiry < today) return null;
+    return {
+      legalName: shop.legalName,
+      licenseNumber: shop.tradeLicenseNo,
+      issuingAuthority: shop.licenseIssuingAuthority,
+    };
   }
 
   /** The shops the actor owns, or has a role in according to their token. */

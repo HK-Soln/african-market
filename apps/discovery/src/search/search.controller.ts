@@ -8,12 +8,15 @@ import {
   RebuildSearchResponse,
   SearchMapResponse,
   SearchNearbyResponse,
+  SITEMAP_PAGE_MAX,
+  SitemapPage,
 } from '@am/contracts';
 import { AppRpcException } from '@am/core';
 import { EMIRATE_CODES, isInUae, UAE_BOUNDS } from '@am/geo';
 import { EmiratesService } from './emirates.service';
 import { SearchIndexer } from './indexer';
 import { MAX_LIMIT, SearchService } from './search.service';
+import { SitemapService } from './sitemap.service';
 
 function parse<T>(schema: z.ZodType<T>, payload: unknown): T {
   const result = schema.safeParse(payload);
@@ -90,7 +93,23 @@ export class SearchController {
     private readonly indexer: SearchIndexer,
     private readonly search: SearchService,
     private readonly emirates: EmiratesService,
+    private readonly sitemap: SitemapService,
   ) {}
+
+  /** Public: verified shops or live products a page at a time, for the web sitemap. */
+  @MessagePattern(DiscoveryPatterns.sitemap)
+  sitemapPage(@Payload() payload: unknown): Promise<SitemapPage> {
+    return this.sitemap.page(
+      parse(
+        z.object({
+          kind: z.enum(['shops', 'products']),
+          cursor: z.string().max(64).optional(),
+          limit: z.number().int().min(1).max(SITEMAP_PAGE_MAX).optional(),
+        }),
+        payload,
+      ),
+    );
+  }
 
   /** Public: the emirates and whether search is open there; admins get counts too. */
   @MessagePattern(DiscoveryPatterns.listEmirates)

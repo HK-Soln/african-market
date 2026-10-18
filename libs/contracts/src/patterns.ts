@@ -110,6 +110,8 @@ export const DiscoveryPatterns = {
   listEmirates: 'discovery.emirate.list',
   /** Admins: open or close search in an emirate. */
   setEmirateSearch: 'discovery.emirate.set_search',
+  /** Public: verified shops or live products a page at a time, for the sitemap. */
+  sitemap: 'discovery.sitemap.page',
 } as const;
 
 export const MediaPatterns = {

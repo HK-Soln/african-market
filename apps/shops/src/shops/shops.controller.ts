@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   BranchDto,
   MY_SHOPS_LIST_SPEC,
+  PublicShopSourceDto,
   ShopDto,
   ShopErrors,
   ShopPage,
@@ -137,7 +138,7 @@ export class ShopsController {
   }
 
   @MessagePattern(ShopsPatterns.getBySlug)
-  getBySlug(@Payload() payload: unknown): Promise<ShopDto> {
+  getBySlug(@Payload() payload: unknown): Promise<PublicShopSourceDto> {
     return this.shops.getBySlug(parse(bySlugSchema, payload));
   }
 

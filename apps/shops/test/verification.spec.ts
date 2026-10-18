@@ -8,7 +8,7 @@ import {
   VerificationErrors,
 } from '@am/contracts';
 import { OutboxMessage, OutboxService } from '@am/database';
-import { VerificationAudit, VerificationRequest } from '../src/entities';
+import { Shop, VerificationAudit, VerificationRequest } from '../src/entities';
 import { DiditKycProvider } from '../src/kyc/didit-kyc-provider';
 import { FakeKycProvider } from '../src/kyc/fake-kyc-provider';
 import { VerificationService } from '../src/kyc/verification.service';
@@ -332,6 +332,65 @@ describe('seller verification (PostGIS)', () => {
         status: 'approved',
         documentMediaId: expect.any(String),
       });
+    });
+  });
+
+  describe('the seller named on the shop page', () => {
+    it('comes only from the latest licence an admin approved, until it expires', async () => {
+      const { owner, shop } = await readyShop();
+      await verification.startKyc({ actor: owner, shopId: shop.id });
+      await verification.submit({ actor: owner, shopId: shop.id });
+      await verification.refreshKyc({ actor: owner, shopId: shop.id });
+      await verification.decideListing({ actor: admin(), shopId: shop.id, decision: 'approve' });
+      const seller = async () => (await shops.getBySlug({ slug: shop.slug })).licensedSeller;
+      expect(await seller()).toBeNull();
+
+      const licence = {
+        actor: owner,
+        shopId: shop.id,
+        legalName: 'Mama Africa General Trading LLC',
+        licenseNumber: 'CN-1234567',
+        issuingAuthority: 'Dubai DET',
+        expiry: '2099-12-31',
+      };
+      const first = await verification.submitTradeLicense({
+        ...licence,
+        documentMediaId: randomUUID(),
+      });
+      const pendingLicence = (overview: typeof first) =>
+        overview.requests.find((r) => r.type === 'trade_license' && r.status === 'pending')!;
+      // Entered but not checked: not shown.
+      expect(await seller()).toBeNull();
+      await verification.decideTradeLicense({
+        actor: admin(),
+        shopId: shop.id,
+        requestId: pendingLicence(first).id,
+        decision: 'approve',
+      });
+      expect(await seller()).toEqual({
+        legalName: 'Mama Africa General Trading LLC',
+        licenseNumber: 'CN-1234567',
+        issuingAuthority: 'Dubai DET',
+      });
+
+      // A newer licence waiting for review replaces the details, so nothing is shown meanwhile.
+      const second = await verification.submitTradeLicense({
+        ...licence,
+        licenseNumber: 'CN-7654321',
+        documentMediaId: randomUUID(),
+      });
+      expect(await seller()).toBeNull();
+
+      await verification.decideTradeLicense({
+        actor: admin(),
+        shopId: shop.id,
+        requestId: pendingLicence(second).id,
+        decision: 'approve',
+      });
+      expect((await seller())?.licenseNumber).toBe('CN-7654321');
+
+      await db.getRepository(Shop).update({ id: shop.id }, { licenseExpiry: '2020-01-01' });
+      expect(await seller()).toBeNull();
     });
   });
 

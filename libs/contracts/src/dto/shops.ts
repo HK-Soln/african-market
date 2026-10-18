@@ -143,6 +143,21 @@ export interface GetShopBySlugRequest {
   slug: string;
 }
 
+/**
+ * Who sells, as the shop page must say (Federal Decree-Law 14 of 2023): set only when an admin
+ * approved the shop's latest trade licence and it has not expired.
+ */
+export interface LicensedSellerDto {
+  legalName: string;
+  licenseNumber: string;
+  issuingAuthority: string | null;
+}
+
+/** A verified shop for its public page. */
+export interface PublicShopSourceDto extends ShopDto {
+  licensedSeller: LicensedSellerDto | null;
+}
+
 /** The shops the actor owns or works in. */
 export interface ListMyShopsRequest {
   actor: ActorClaims;

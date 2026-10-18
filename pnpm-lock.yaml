@@ -554,12 +554,18 @@ importers:
       '@am/i18n':
         specifier: workspace:*
         version: link:../../libs/i18n
+      '@am/maps':
+        specifier: workspace:*
+        version: link:../../libs/maps
       '@am/ui':
         specifier: workspace:*
         version: link:../../libs/ui
       '@sentry/nextjs':
         specifier: ^11.8.0
         version: 11.8.0(@babel/core@7.29.7)(next@15.5.27(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(webpack@5.106.2(@swc/core@1.16.13))
+      libphonenumber-js:
+        specifier: ^1.13.15
+        version: 1.13.15
       next:
         specifier: 15.5.27
         version: 15.5.27(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -648,6 +654,9 @@ importers:
       '@am/i18n':
         specifier: workspace:*
         version: link:../../libs/i18n
+      '@am/maps':
+        specifier: workspace:*
+        version: link:../../libs/maps
       '@am/ui':
         specifier: workspace:*
         version: link:../../libs/ui
@@ -657,9 +666,6 @@ importers:
       '@serwist/next':
         specifier: ^9.5.13
         version: 9.5.13(next@15.5.27(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(typescript@5.9.3)(webpack@5.106.2(@swc/core@1.16.13))
-      '@vis.gl/react-google-maps':
-        specifier: 1.10.1
-        version: 1.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next:
         specifier: 15.5.27
         version: 15.5.27(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -863,6 +869,22 @@ importers:
   libs/geo: {}
 
   libs/i18n: {}
+
+  libs/maps:
+    dependencies:
+      '@am/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@vis.gl/react-google-maps':
+        specifier: 1.10.1
+        version: 1.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      react:
+        specifier: ^19.3.0
+        version: 19.3.0
 
   libs/ui:
     dependencies:

@@ -28,6 +28,7 @@ import {
   Skeleton,
   Stepper,
   Tabs,
+  Textarea,
   Toast,
   Toggle,
 } from '@am/ui';
@@ -98,6 +99,7 @@ export function UiShowcase({ locale, t }: { locale: Locale; t: ShowcaseStrings }
             iconStart="map-pin"
           />
           <Input label={t.makani} defaultValue="12345" error={t.makaniError} dir="ltr" />
+          <Textarea label={t.description} optional={t.optional} hint={t.descriptionHint} />
           <Select
             label={t.emirate}
             placeholder={t.choose}

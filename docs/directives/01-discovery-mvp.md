@@ -278,6 +278,14 @@ Location discovery and search, Contact, UAE specifics.
       variants, per-branch stock/price, images, food declaration), contact analytics charts, settings.
       Fully usable on a phone. Arabic RTL checked.
 
+  > Note: delivered in four parts (decision T-41). Part 1: the seller's home (their shops and
+  > where each stands), and onboarding's first four steps: shop details, first branch (pin to drag
+  > or tap, place search, device location, address, Makani, pickup/delivery, radius with fee and
+  > minimum order), weekly hours (split shifts, past midnight, copy to every day) and contacts
+  > (WhatsApp must be a mobile number). Part 2: photos, KYC, submit, verification status with
+  > reasons, branch management, special hours, drawn delivery areas. Part 3: catalogue. Part 4:
+  > contact analytics and settings.
+
 - [ ] **F1-14 Admin console** (depends on F1-08)
       Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).
       Verification queue with document viewer (private presigned URLs) and approve/reject with reason,

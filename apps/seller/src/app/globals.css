@@ -2,6 +2,7 @@
 @import '@am/ui/theme.css';
 @import '@am/ui/components.css';
 @source '../../../../libs/ui/src';
+@source '../../../../libs/maps/src';
 
 /*
  * Colours, type and component styles come from the design system (@am/ui). Use its tokens as

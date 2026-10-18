@@ -12,6 +12,7 @@ function required(value: string | undefined, name: string): string {
 
 const gatewayUrl = required(process.env.NEXT_PUBLIC_GATEWAY_URL, 'NEXT_PUBLIC_GATEWAY_URL');
 const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN || undefined;
+const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || undefined;
 
 export const config = {
   /** The gateway as the browser reaches it. */
@@ -34,6 +35,17 @@ export const config = {
           process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
           'NEXT_PUBLIC_SENTRY_ENVIRONMENT',
         ),
+      }
+    : undefined,
+  /**
+   * Google Maps (the branch pin and its delivery radius): off without a key, and the branch step
+   * then places the pin from the device's location or the emirate. With a key, the map id
+   * (Map Management, for the markers) must be set too.
+   */
+  googleMaps: googleMapsKey
+    ? {
+        apiKey: googleMapsKey,
+        mapId: required(process.env.NEXT_PUBLIC_GOOGLE_MAP_ID, 'NEXT_PUBLIC_GOOGLE_MAP_ID'),
       }
     : undefined,
 } as const;

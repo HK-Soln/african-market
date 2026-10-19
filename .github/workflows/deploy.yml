@@ -90,7 +90,7 @@ jobs:
           if [ -z "$TF_VAR_route53_zone_id" ]; then echo "TF_VAR_route53_zone_id=null" >> "$GITHUB_ENV"; fi
 
       - name: AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ needs.target.outputs.environment == 'production' && vars.AWS_PRODUCTION_ROLE_ARN || vars.AWS_STAGING_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}

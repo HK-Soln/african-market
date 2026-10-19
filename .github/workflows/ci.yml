@@ -220,7 +220,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Expose the GitHub cache to Buildx
-        uses: crazy-max/ghaction-github-runtime@v3
+        uses: crazy-max/ghaction-github-runtime@v4
 
       # Layers come from the GitHub Actions cache, so an unchanged dependency set or app is not
       # rebuilt. One scope per image, so they do not overwrite each other.
@@ -307,7 +307,7 @@ jobs:
 
       - name: Expose the GitHub cache to Buildx
         if: ${{ steps.affected.outputs.apps != '' }}
-        uses: crazy-max/ghaction-github-runtime@v3
+        uses: crazy-max/ghaction-github-runtime@v4
 
       - name: Build the images
         if: ${{ steps.affected.outputs.apps != '' }}

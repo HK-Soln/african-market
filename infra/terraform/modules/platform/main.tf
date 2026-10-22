@@ -40,7 +40,10 @@ locals {
   }
 
   default_size = { cpu = 256, memory = 512, desired_count = 1 }
-  size         = { for app in concat(keys(local.services), ["gateway", "web", "seller", "admin"]) : app => lookup(var.app_sizes, app, local.default_size) }
+  size = {
+    for app in concat(keys(local.services), ["gateway", "web", "seller", "admin"]) :
+    app => merge(lookup(var.app_sizes, app, local.default_size), var.apps_running ? {} : { desired_count = 0 })
+  }
 
   # A repository for every app, so the registry is complete before a phase starts.
   all_apps = concat(["gateway"], keys(local.services), keys(local.next_apps))

@@ -267,6 +267,17 @@ resource "aws_route53_zone" "test" {
   comment = "Throwaway test environments (decision T-43)"
 }
 
+# Only Amazon may issue certificates under the test zone. Without this, certificate authorities
+# are checked against the parent domain's CAA records (amahkudi.dev on Vercel allows Let's
+# Encrypt, Google and Sectigo, not Amazon), and every ACM request fails with CAA_ERROR.
+resource "aws_route53_record" "test_caa" {
+  zone_id = aws_route53_zone.test.zone_id
+  name    = var.test_domain
+  type    = "CAA"
+  ttl     = 300
+  records = ["0 issue \"amazon.com\"", "0 issuewild \"amazon.com\""]
+}
+
 output "test_zone_id" {
   value = aws_route53_zone.test.zone_id
 }

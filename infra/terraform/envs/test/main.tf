@@ -53,6 +53,12 @@ variable "current_phase" {
   default = 1
 }
 
+variable "apps_running" {
+  description = "false: every app at 0 tasks (test-env.sh up builds everything first, migrates, then starts them)."
+  type        = bool
+  default     = true
+}
+
 variable "ttl_hours" {
   description = "How long the environment lives before it deletes itself."
   type        = number
@@ -89,6 +95,7 @@ module "platform" {
   source = "../../modules/platform"
 
   environment     = "test"
+  apps_running    = var.apps_running
   region          = var.region
   domain          = var.domain
   route53_zone_id = data.aws_route53_zone.test.zone_id

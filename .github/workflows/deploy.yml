@@ -76,6 +76,7 @@ jobs:
       TF_VAR_domain: ${{ needs.target.outputs.environment == 'production' && vars.PRODUCTION_DOMAIN || vars.STAGING_DOMAIN }}
       TF_VAR_route53_zone_id: ${{ needs.target.outputs.environment == 'production' && vars.PRODUCTION_ROUTE53_ZONE_ID || vars.STAGING_ROUTE53_ZONE_ID }}
       TF_VAR_image_tag: ${{ github.sha }}
+      TF_VAR_aws_account_id: ${{ needs.target.outputs.environment == 'production' && vars.AWS_PRODUCTION_ACCOUNT_ID || vars.AWS_STAGING_ACCOUNT_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

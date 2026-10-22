@@ -90,13 +90,13 @@ jobs:
           if [ -z "$TF_VAR_route53_zone_id" ]; then echo "TF_VAR_route53_zone_id=null" >> "$GITHUB_ENV"; fi
 
       - name: AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ needs.target.outputs.environment == 'production' && vars.AWS_PRODUCTION_ROLE_ARN || vars.AWS_STAGING_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.13.5
           terraform_wrapper: false
@@ -139,10 +139,10 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Expose the GitHub cache to Buildx
-        uses: crazy-max/ghaction-github-runtime@v3
+        uses: crazy-max/ghaction-github-runtime@v4
 
       # Every app of the current phase, tagged with the commit. The Next apps get this
       # environment's public URLs compiled in; the backend images are the same everywhere.
@@ -219,7 +219,7 @@ jobs:
 
       - name: Upload the Playwright report
         if: ${{ !cancelled() && env.ENVIRONMENT == 'staging' && steps.awake.outputs.up == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-staging
           path: |

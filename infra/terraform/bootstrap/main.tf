@@ -123,15 +123,14 @@ output "state_bucket" {
 # That is why it is fenced by the environment, and why staging and production are separate
 # accounts.
 #
-# Off by default: projects in AWS's new experience may not create identity providers (the
-# managed service control policy denies iam:*Provider*), so GitHub cannot sign in there.
-# Test environments are run from inside AWS instead (decision T-43). Turn it on in an account
-# with advanced features, or a classic account.
+# Projects in AWS's new experience may not create identity providers (the managed service
+# control policy denies iam:*Provider*); this account has advanced features since 2026-10-22, so
+# it can. Set false in an account that cannot.
 
 variable "github_oidc" {
-  description = "Create the GitHub OIDC provider and deploy role (not allowed in new-experience projects)."
+  description = "Create the GitHub OIDC provider and deploy role."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "github_repository" {
@@ -143,6 +142,12 @@ variable "deploy_environment" {
   description = "The GitHub environment that deploys to this account: test, staging or production."
   type        = string
   default     = "test"
+}
+
+variable "extra_github_environments" {
+  description = "Other GitHub environments that may take the role. Test: test-teardown, which runs down and the teardown check without approval, from dev only."
+  type        = list(string)
+  default     = ["test-teardown"]
 }
 
 resource "aws_iam_openid_connect_provider" "github" {
@@ -165,7 +170,10 @@ resource "aws_iam_role" "deploy" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repository}:environment:${var.deploy_environment}"
+          "token.actions.githubusercontent.com:sub" = [
+            for env in concat([var.deploy_environment], var.extra_github_environments) :
+            "repo:${var.github_repository}:environment:${env}"
+          ]
         }
       }
     }]

@@ -54,7 +54,7 @@ variable "current_phase" {
 }
 
 variable "apps_running" {
-  description = "false: every app at 0 tasks (test-env.sh up builds everything first, migrates, then starts them)."
+  description = "false creates every app with 0 tasks; test-env.sh up migrates, then starts them with aws ecs update-service."
   type        = bool
   default     = true
 }
@@ -187,6 +187,10 @@ output "next_public_build_args" {
 
 output "cluster_name" {
   value = module.platform.cluster_name
+}
+
+output "desired_counts" {
+  value = module.platform.desired_counts
 }
 
 output "migration" {

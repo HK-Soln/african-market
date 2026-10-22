@@ -43,6 +43,11 @@ output "cluster_name" {
   value = module.cluster.cluster_name
 }
 
+output "desired_counts" {
+  description = "Tasks per ECS service when running. Terraform sets a count only when it creates a service (ignore_changes), so a script that starts the apps later uses these."
+  value       = { for app in keys(local.size) : app => lookup(var.app_sizes, app, local.default_size).desired_count }
+}
+
 output "migration" {
   description = "How a deploy runs migrations: each service's task definition with the command `migrate` (F0-14)."
   value = {

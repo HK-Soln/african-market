@@ -201,7 +201,7 @@ variable "google_map_id" {
 }
 
 variable "apps_running" {
-  description = "false runs every app with 0 tasks (the infrastructure exists, nothing serves): for a first deploy, before migrations."
+  description = "false creates every app with 0 tasks (the infrastructure exists, nothing serves): for a first deploy, before migrations. Applies when a service is created only; later counts are changed outside Terraform (ignore_changes)."
   type        = bool
   default     = true
 }

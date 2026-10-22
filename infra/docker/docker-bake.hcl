@@ -55,6 +55,11 @@ group "default" {
   targets = ["gateway", "identity", "web", "seller", "admin"]
 }
 
+# Phase 1 adds the shops, catalogue, search and media services (test environments run it).
+group "phase1" {
+  targets = ["gateway", "identity", "shops", "catalog", "discovery", "media", "web", "seller", "admin"]
+}
+
 target "_service" {
   context    = "."
   dockerfile = "infra/docker/service.Dockerfile"

@@ -1,0 +1,5 @@
+bucket       = "african-market-tfstate-726228202446"
+key          = "test/terraform.tfstate"
+region       = "eu-north-1"
+encrypt      = true
+use_lockfile = true

@@ -7,6 +7,7 @@
 
 locals {
   ses       = var.email_provider == "ses"
+  didit     = var.kyc_provider == "didit"
   name      = "am-${var.environment}"
   namespace = "${var.environment}.am.internal"
 
@@ -165,7 +166,7 @@ module "secrets" {
   manual = concat(
     var.manual_secrets,
     local.ses ? [] : ["SMTP_URL"],
-    ["DIDIT_API_KEY", "DIDIT_API_SECRET"],
+    local.didit ? ["DIDIT_API_KEY", "DIDIT_API_SECRET"] : [],
     var.facebook_app_id != "" ? ["FACEBOOK_APP_SECRET"] : [],
   )
   recovery_window_days = var.protect_data ? 7 : 0
@@ -301,19 +302,23 @@ module "service" {
       GOOGLE_CLIENT_IDS = join(",", var.google_client_ids)
       FACEBOOK_APP_ID   = var.facebook_app_id
     } : {},
-    each.key == "shops" ? {
-      KYC_PROVIDER      = "didit"
-      SELLER_APP_URL    = "https://${local.hosts.seller}"
-      DIDIT_API_URL     = "https://verification.didit.me"
-      DIDIT_WORKFLOW_ID = var.didit_workflow_id
-    } : {},
+    each.key == "shops" ? merge(
+      {
+        KYC_PROVIDER   = var.kyc_provider
+        SELLER_APP_URL = "https://${local.hosts.seller}"
+      },
+      local.didit ? {
+        DIDIT_API_URL     = "https://verification.didit.me"
+        DIDIT_WORKFLOW_ID = var.didit_workflow_id
+      } : {},
+    ) : {},
   )
   # Only identity may see the test numbers' codes and Facebook's secret, and only shops Didit's keys.
   secrets = merge(
     local.backend_secrets,
     each.key == "identity" && local.has_test_numbers ? { OTP_TEST_NUMBERS = module.secrets.arns["OTP_TEST_NUMBERS"] } : {},
     each.key == "identity" && var.facebook_app_id != "" ? { FACEBOOK_APP_SECRET = module.secrets.arns["FACEBOOK_APP_SECRET"] } : {},
-    each.key == "shops" ? {
+    each.key == "shops" && local.didit ? {
       DIDIT_API_KEY    = module.secrets.arns["DIDIT_API_KEY"]
       DIDIT_API_SECRET = module.secrets.arns["DIDIT_API_SECRET"]
     } : {},

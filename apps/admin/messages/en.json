@@ -10,7 +10,8 @@
     "countriesHint": "Where people may sign up by phone, and the countries goods come from.",
     "productsHint": "Food and restricted products waiting for review before they show.",
     "categoriesHint": "The category tree in each language, and which categories are reviewed.",
-    "emiratesHint": "Open customer search per emirate, and rebuild the search index."
+    "emiratesHint": "Open customer search per emirate, and rebuild the search index.",
+    "auditHint": "Who did what in this console, and when."
   },
   "emirates": {
     "DXB": "Dubai",
@@ -140,7 +141,8 @@
     "PRODUCT_REASON_REQUIRED": "Write the reason the seller will read.",
     "CATEGORY_NOT_FOUND": "This category was not found. Reload the page.",
     "CATEGORY_INVALID": "This change does not fit the category tree.",
-    "CATALOG_TOO_MANY_CATEGORIES": "The catalogue has as many categories as it can hold."
+    "CATALOG_TOO_MANY_CATEGORIES": "The catalogue has as many categories as it can hold.",
+    "IDENTITY_ADMIN_ONLY": "Only admins can do this."
   },
   "account": {
     "signIn": "Sign in",
@@ -191,7 +193,8 @@
     "countries": "Countries",
     "products": "Products",
     "categories": "Categories",
-    "emirates": "Emirates"
+    "emirates": "Emirates",
+    "audit": "Audit log"
   },
   "shops": {
     "title": "Shops",
@@ -344,7 +347,8 @@
       },
       "started": "Started {when}",
       "decided": "decided {when}"
-    }
+    },
+    "auditLog": "This shop's audit log"
   },
   "decision": {
     "reason": "Reason",
@@ -483,5 +487,78 @@
     "rebuildConfirmBody": "Every verified shop is read again. It can take a few minutes; search keeps working meanwhile.",
     "rebuilt": "Rebuilt: {shops} shops, {products} products, {removed} removed",
     "dismiss": "Dismiss"
+  },
+  "audit": {
+    "title": "Audit log",
+    "intro": "Every decision, document opened and setting changed by an admin, newest first. Entries are never changed or removed.",
+    "action": "Action",
+    "allActions": "All actions",
+    "oneShop": "One shop",
+    "allShops": "Show every shop",
+    "empty": "Nothing recorded yet",
+    "retry": "Try again",
+    "loadMore": "Load more",
+    "loading": "Loading",
+    "by": "By {who}",
+    "anAdmin": "an admin",
+    "server": "a command on the server",
+    "reason": "Reason",
+    "request": "Request",
+    "area": {
+      "shop": "Shops",
+      "product": "Products",
+      "category": "Categories",
+      "emirate": "Emirates",
+      "search": "Search",
+      "document": "Documents",
+      "country": "Countries",
+      "user": "Accounts"
+    },
+    "subject": {
+      "shop": "Shop",
+      "product": "Product's shop",
+      "category": "Categories",
+      "emirate": "Emirate",
+      "search": "Search",
+      "media": "Document's shop",
+      "country": "Country",
+      "user": "Account"
+    },
+    "actions": {
+      "shop": {
+        "listing_approved": "Shop approved",
+        "listing_rejected": "Shop rejected",
+        "listing_suspended": "Shop suspended",
+        "listing_reinstated": "Shop reinstated",
+        "license_approved": "Trade licence approved",
+        "license_rejected": "Trade licence rejected",
+        "kyc_document_viewed": "Identity image viewed"
+      },
+      "product": {
+        "approved": "Product approved",
+        "rejected": "Product rejected"
+      },
+      "category": {
+        "created": "Category added",
+        "updated": "Category changed"
+      },
+      "emirate": {
+        "search_opened": "Search opened",
+        "search_closed": "Search closed"
+      },
+      "search": {
+        "rebuilt": "Search index rebuilt"
+      },
+      "document": {
+        "downloaded": "Private document opened"
+      },
+      "country": {
+        "updated": "Country changed"
+      },
+      "user": {
+        "role_granted": "Role given",
+        "role_revoked": "Role taken away"
+      }
+    }
   }
 }

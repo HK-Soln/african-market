@@ -6,7 +6,7 @@ Phase introduced: **1** (see `docs/directives/`).
 | ------------------------- | ---------------------------------------------------------------------------------- |
 | Owns                      | Categories, products and services, variants, prices, branch availability           |
 | Tables (schema `catalog`) | category, product, variant, branch_listing, known_shop, known_branch               |
-| Publishes                 | `product.upserted`, `product.removed`                                              |
+| Publishes                 | `product.upserted`, `product.removed`, `audit.recorded` (admin actions)            |
 | Consumes                  | `shop.created`, `shop.verified` (only verified shops are public), `branch.updated` |
 | Ports (dev)               | TCP and HTTP from `SERVICES.catalog` in `libs/contracts/src/services.ts`           |
 

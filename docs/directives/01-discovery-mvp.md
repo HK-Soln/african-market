@@ -313,7 +313,7 @@ Location discovery and search, Contact, UAE specifics.
   > `am-stat`/`am-chart` styles; a screen-reader table carries the numbers). The staff
   > photo-upload switch is not shown yet: shops have no staff until invites (Phase 2).
 
-- [ ] **F1-14 Admin console** (depends on F1-08)
+- [x] **F1-14 Admin console** (depends on F1-08)
       Admin sign-in restricted to `admin` role (no self-registration; seed the first admin from env).
       Verification queue with document viewer (private presigned URLs) and approve/reject with reason,
       product moderation queue for food/restricted categories, reports queue, category tree editor
@@ -336,6 +336,10 @@ Location discovery and search, Contact, UAE specifics.
   > three levels and the same kind, review, food-declaration, checkout and on/off rules, order);
   > emirate search switches with verified-shop and branch counts (confirmed, and warned when an
   > emirate has no verified shop yet), and the search index rebuild.
+  > Note: part 3: the audit log (decision T-42): every service publishes `audit.recorded` with
+  > each admin action, identity keeps it (`admin_audit`, rows only added) and the console lists
+  > it newest first, by action or for one shop (linked from the shop's review). Country changes
+  > and `grant-role` runs are recorded too. The reports queue is part of F1-15.
 
 - [ ] **F1-15 Report listing** (depends on F1-12)
       Public "report this shop/product" (reason enum + text, optional sign-in), stored in the owning

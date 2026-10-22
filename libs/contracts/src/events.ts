@@ -8,6 +8,7 @@
  *   they never carry secrets or full personal data.
  * - Consumers are idempotent: they record `envelope.id` before acting.
  */
+import type { AuditRecord } from './dto/audit';
 import type { TraceCarrier } from './telemetry';
 
 export interface EventEnvelope<TName extends EventName = EventName> {
@@ -75,6 +76,7 @@ export interface EventPayloads {
     applicationFeeFils: number;
   };
   'payout.sent': { payoutId: string; shopId: string; amountFils: number };
+  'audit.recorded': AuditRecord;
 }
 
 export type EventName = keyof EventPayloads;
@@ -83,7 +85,7 @@ export type EventName = keyof EventPayloads;
 export interface EventDoc<N extends EventName> {
   /** When it is published, in one sentence. */
   description: string;
-  /** The service that owns the aggregate and publishes the event. */
+  /** The service that owns the aggregate and publishes the event (or the services, listed). */
   publisher: string;
   payload: { [K in keyof EventPayloads[N]]-?: string };
 }
@@ -222,6 +224,20 @@ export const EVENT_CATALOG: { [N in EventName]: EventDoc<N> } = {
       payoutId: 'The payout record.',
       shopId: 'The shop that was paid.',
       amountFils: 'Amount paid out, in fils.',
+    },
+  },
+  'audit.recorded': {
+    description:
+      'An admin did something that must stay on record (a decision, a document opened, a switch); published in the same transaction as the action.',
+    publisher: 'shops, catalog, discovery, media',
+    payload: {
+      actorId: 'The admin; null when no person acted (a command run on the server).',
+      action: 'What was done, from AUDIT_ACTIONS, e.g. shop.listing_suspended.',
+      subjectType:
+        'What it was done to: shop, product, category, emirate, search, media, country or user.',
+      subjectId: "The subject's id, or its code for an emirate or a country.",
+      shopId: 'The shop concerned, or null.',
+      details: 'Small facts about it (a reason, a document kind); never personal data.',
     },
   },
 };

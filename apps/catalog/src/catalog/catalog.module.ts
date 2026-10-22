@@ -14,8 +14,9 @@ import { ShopEvents } from './shop-events';
   providers: [
     {
       provide: CategoriesService,
-      inject: [getDataSourceToken()],
-      useFactory: (dataSource: DataSource) => new CategoriesService(dataSource),
+      inject: [getDataSourceToken(), OutboxService],
+      useFactory: (dataSource: DataSource, outbox: OutboxService) =>
+        new CategoriesService(dataSource, outbox),
     },
     {
       provide: ProductsService,

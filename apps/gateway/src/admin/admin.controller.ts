@@ -28,11 +28,14 @@ import {
 import type { Request, Response } from 'express';
 import { AuthenticatedUser, CurrentUser, Roles } from '@am/auth';
 import {
+  AUDIT_LIST_SPEC,
+  type AuditPage,
   CatalogPatterns,
   CategoryDto as Category,
   CategoryList,
   DiscoveryPatterns,
   EmirateList,
+  IdentityPatterns,
   KYC_DOCUMENT_KINDS,
   KycDocumentAccessResponse,
   type ListQuery,
@@ -60,6 +63,7 @@ import {
 import { SellerShopPageDto, VerificationOverviewDto } from '../seller/seller.dto';
 import {
   AdminCategoriesQuery,
+  AuditPageDto,
   CreateCategoryBody,
   DecideBody,
   DecideListingBody,
@@ -383,5 +387,33 @@ export class AdminSearchController extends AdminBase {
   ): Promise<RebuildSearchResponse> {
     // A rebuild reads every shop; it outlasts an ordinary call.
     return this.caller.call('discovery', DiscoveryPatterns.rebuild, this.ctx(user, req), 600_000);
+  }
+}
+
+@ApiTags('admin')
+@ApiBearerAuth()
+@ApiCookieAuth()
+@Roles('admin')
+@Controller('admin')
+export class AdminAuditController {
+  constructor(private readonly caller: ServiceCaller) {}
+
+  @ApiOperation({
+    summary: 'The audit log of admin actions',
+    description:
+      'Newest first. Decisions, documents opened, category, search and country changes, roles.',
+  })
+  @ApiOkResponse({ type: AuditPageDto })
+  @ApiListQuery(AUDIT_LIST_SPEC)
+  @Header('Cache-Control', 'no-store')
+  @Get('audit')
+  list(
+    @CurrentUser() user: AuthenticatedUser,
+    @ListQueryParams(AUDIT_LIST_SPEC) query: ListQuery,
+  ): Promise<AuditPage> {
+    return this.caller.call('identity', IdentityPatterns.listAudit, {
+      actor: actorOf(user),
+      query,
+    });
   }
 }

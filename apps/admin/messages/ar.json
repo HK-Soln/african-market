@@ -10,7 +10,8 @@
     "countriesHint": "الدول التي يمكن التسجيل منها برقم الهاتف، والدول التي تأتي منها البضائع.",
     "productsHint": "منتجات الطعام والمنتجات المقيّدة التي تنتظر المراجعة قبل ظهورها.",
     "categoriesHint": "شجرة الفئات بكل لغة، والفئات التي تخضع للمراجعة.",
-    "emiratesHint": "افتح بحث العملاء في كل إمارة، وأعد بناء فهرس البحث."
+    "emiratesHint": "افتح بحث العملاء في كل إمارة، وأعد بناء فهرس البحث.",
+    "auditHint": "من فعل ماذا في هذه اللوحة، ومتى."
   },
   "emirates": {
     "DXB": "دبي",
@@ -140,7 +141,8 @@
     "PRODUCT_REASON_REQUIRED": "اكتب السبب الذي سيقرؤه البائع.",
     "CATEGORY_NOT_FOUND": "لم يُعثر على هذه الفئة. أعد تحميل الصفحة.",
     "CATEGORY_INVALID": "هذا التغيير لا يناسب شجرة الفئات.",
-    "CATALOG_TOO_MANY_CATEGORIES": "وصل الكتالوج إلى الحد الأقصى من الفئات."
+    "CATALOG_TOO_MANY_CATEGORIES": "وصل الكتالوج إلى الحد الأقصى من الفئات.",
+    "IDENTITY_ADMIN_ONLY": "هذا للمشرفين فقط."
   },
   "account": {
     "signIn": "تسجيل الدخول",
@@ -191,7 +193,8 @@
     "countries": "الدول",
     "products": "المنتجات",
     "categories": "الفئات",
-    "emirates": "الإمارات"
+    "emirates": "الإمارات",
+    "audit": "سجل التدقيق"
   },
   "shops": {
     "title": "المتاجر",
@@ -344,7 +347,8 @@
       },
       "started": "بدأ {when}",
       "decided": "تقرر {when}"
-    }
+    },
+    "auditLog": "سجل تدقيق هذا المتجر"
   },
   "decision": {
     "reason": "السبب",
@@ -483,5 +487,78 @@
     "rebuildConfirmBody": "تُقرأ كل المتاجر الموثّقة من جديد. قد يستغرق ذلك بضع دقائق، ويبقى البحث يعمل في الأثناء.",
     "rebuilt": "أُعيد البناء: متاجر {shops}، منتجات {products}، حُذف {removed}",
     "dismiss": "إخفاء"
+  },
+  "audit": {
+    "title": "سجل التدقيق",
+    "intro": "كل قرار ووثيقة فُتحت وإعداد غيّره مشرف، الأحدث أولًا. لا تُعدَّل الإدخالات ولا تُحذف أبدًا.",
+    "action": "الإجراء",
+    "allActions": "كل الإجراءات",
+    "oneShop": "متجر واحد",
+    "allShops": "عرض كل المتاجر",
+    "empty": "لم يُسجَّل شيء بعد",
+    "retry": "حاول مجددًا",
+    "loadMore": "عرض المزيد",
+    "loading": "جارٍ التحميل",
+    "by": "بواسطة {who}",
+    "anAdmin": "مشرف",
+    "server": "أمر على الخادم",
+    "reason": "السبب",
+    "request": "الطلب",
+    "area": {
+      "shop": "المتاجر",
+      "product": "المنتجات",
+      "category": "الفئات",
+      "emirate": "الإمارات",
+      "search": "البحث",
+      "document": "الوثائق",
+      "country": "الدول",
+      "user": "الحسابات"
+    },
+    "subject": {
+      "shop": "المتجر",
+      "product": "متجر المنتج",
+      "category": "الفئات",
+      "emirate": "الإمارة",
+      "search": "البحث",
+      "media": "متجر الوثيقة",
+      "country": "الدولة",
+      "user": "الحساب"
+    },
+    "actions": {
+      "shop": {
+        "listing_approved": "قبول متجر",
+        "listing_rejected": "رفض متجر",
+        "listing_suspended": "إيقاف متجر",
+        "listing_reinstated": "إعادة متجر",
+        "license_approved": "قبول رخصة تجارية",
+        "license_rejected": "رفض رخصة تجارية",
+        "kyc_document_viewed": "عرض صورة هوية"
+      },
+      "product": {
+        "approved": "قبول منتج",
+        "rejected": "رفض منتج"
+      },
+      "category": {
+        "created": "إضافة فئة",
+        "updated": "تعديل فئة"
+      },
+      "emirate": {
+        "search_opened": "فتح البحث",
+        "search_closed": "إغلاق البحث"
+      },
+      "search": {
+        "rebuilt": "إعادة بناء فهرس البحث"
+      },
+      "document": {
+        "downloaded": "فتح وثيقة خاصة"
+      },
+      "country": {
+        "updated": "تعديل دولة"
+      },
+      "user": {
+        "role_granted": "منح دور",
+        "role_revoked": "سحب دور"
+      }
+    }
   }
 }

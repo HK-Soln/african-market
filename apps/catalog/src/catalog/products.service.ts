@@ -383,6 +383,20 @@ export class ProductsService {
       }
       await manager.save(product);
       await this.announce(manager, 'product.upserted', product, input.correlationId);
+      // The admin audit log (decision T-42).
+      await this.outbox.enqueue(
+        manager,
+        'audit.recorded',
+        {
+          actorId: input.actor.userId,
+          action: input.decision === 'approve' ? 'product.approved' : 'product.rejected',
+          subjectType: 'product',
+          subjectId: product.id,
+          shopId: product.shopId,
+          details: { from, reason: product.reviewReason },
+        },
+        input.correlationId,
+      );
       return this.dto(manager, product, 'full');
     });
   }

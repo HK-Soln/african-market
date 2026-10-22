@@ -96,6 +96,12 @@ export function ShopReview({ shopId }: { shopId: string }) {
             {shop.verificationReason}
           </p>
         )}
+        <Link
+          href={{ pathname: '/audit', query: { shopId: shop.id } }}
+          className="self-start text-sm font-semibold text-clay-ink"
+        >
+          {t('auditLog')}
+        </Link>
         {shop.verificationStatus === 'verified' && (
           <a
             href={`${config.webUrl}/${locale}/s/${shop.slug}`}

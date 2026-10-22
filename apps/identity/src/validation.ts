@@ -26,3 +26,18 @@ export const fields = {
   refreshToken: z.string().min(1).max(256),
   userId: z.string().uuid(),
 };
+
+/** The signed-in person as the gateway passes them (ActorClaims). */
+export const actorSchema = z.object({
+  userId: z.uuid(),
+  roles: z.array(z.string().max(32)).max(10),
+  shops: z
+    .array(
+      z.object({
+        shopId: z.uuid(),
+        role: z.enum(['owner', 'manager', 'staff']),
+        branchIds: z.array(z.uuid()).max(100).optional(),
+      }),
+    )
+    .max(100),
+});

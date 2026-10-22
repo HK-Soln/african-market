@@ -211,4 +211,17 @@ Published by **payments**. Stripe paid a shop out from its own balance.
 | `shopId`     | The shop that was paid.   |
 | `amountFils` | Amount paid out, in fils. |
 
+### `audit.recorded`
+
+Published by **shops, catalog, discovery, media**. An admin did something that must stay on record (a decision, a document opened, a switch); published in the same transaction as the action.
+
+| Field         | Meaning                                                                                |
+| ------------- | -------------------------------------------------------------------------------------- |
+| `actorId`     | The admin; null when no person acted (a command run on the server).                    |
+| `action`      | What was done, from AUDIT_ACTIONS, e.g. shop.listing_suspended.                        |
+| `subjectType` | What it was done to: shop, product, category, emirate, search, media, country or user. |
+| `subjectId`   | The subject's id, or its code for an emirate or a country.                             |
+| `shopId`      | The shop concerned, or null.                                                           |
+| `details`     | Small facts about it (a reason, a document kind); never personal data.                 |
+
 <!-- events:end -->

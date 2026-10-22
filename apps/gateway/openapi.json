@@ -1215,6 +1215,148 @@
         ]
       }
     },
+    "/api/v1/admin/audit": {
+      "get": {
+        "description": "Newest first. Decisions, documents opened, category, search and country changes, roles.",
+        "operationId": "AdminAuditController_list_v1",
+        "parameters": [
+          {
+            "name": "filter[action]",
+            "required": false,
+            "in": "query",
+            "description": "enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[action][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[subjectType]",
+            "required": false,
+            "in": "query",
+            "description": "enum (shop, product, category, emirate, search, media, country, user)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[subjectType][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (shop, product, category, emirate, search, media, country, user), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[subjectId]",
+            "required": false,
+            "in": "query",
+            "description": "string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[shopId]",
+            "required": false,
+            "in": "query",
+            "description": "uuid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[actorId]",
+            "required": false,
+            "in": "query",
+            "description": "uuid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[occurredAt][gte]",
+            "required": false,
+            "in": "query",
+            "description": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[occurredAt][lt]",
+            "required": false,
+            "in": "query",
+            "description": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: occurredAt. Default: -occurredAt.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 50, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The audit log of admin actions",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/contact-events": {
       "post": {
         "description": "Public. Send it when the customer taps, before opening WhatsApp, the dialer or mail. Repeats by the same visitor on the same shop and channel within 10 minutes are not counted again. A signed-in customer's tap carries their account.",
@@ -5231,6 +5373,137 @@
           "branches",
           "products",
           "removed"
+        ]
+      },
+      "AuditEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "type": "string",
+            "description": "The service that recorded it"
+          },
+          "actorId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "Null: no person"
+          },
+          "actorName": {
+            "type": "string",
+            "nullable": true,
+            "description": "The admin's name now"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "shop.listing_approved",
+              "shop.listing_rejected",
+              "shop.listing_suspended",
+              "shop.listing_reinstated",
+              "shop.license_approved",
+              "shop.license_rejected",
+              "shop.kyc_document_viewed",
+              "product.approved",
+              "product.rejected",
+              "category.created",
+              "category.updated",
+              "emirate.search_opened",
+              "emirate.search_closed",
+              "search.rebuilt",
+              "document.downloaded",
+              "country.updated",
+              "user.role_granted",
+              "user.role_revoked"
+            ]
+          },
+          "subjectType": {
+            "type": "string",
+            "enum": [
+              "shop",
+              "product",
+              "category",
+              "emirate",
+              "search",
+              "media",
+              "country",
+              "user"
+            ]
+          },
+          "subjectId": {
+            "type": "string",
+            "description": "An id, or a code for an emirate or a country"
+          },
+          "shopId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "description": "Small facts: a reason, a document kind, what changed"
+          },
+          "correlationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "actorId",
+          "actorName",
+          "action",
+          "subjectType",
+          "subjectId",
+          "shopId",
+          "details",
+          "correlationId",
+          "occurredAt"
+        ]
+      },
+      "AuditPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "prevCursor"
         ]
       },
       "RecordContactDto": {

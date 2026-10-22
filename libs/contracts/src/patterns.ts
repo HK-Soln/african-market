@@ -31,6 +31,8 @@ export const IdentityPatterns = {
   socialSignIn: 'identity.social.sign_in',
   /** Which social providers are on, with their public client ids. */
   socialProviders: 'identity.social.providers',
+  /** Admins: the audit log of admin actions, newest first. Payload: ListAuditRequest. */
+  listAudit: 'identity.audit.list',
 } as const;
 
 /**

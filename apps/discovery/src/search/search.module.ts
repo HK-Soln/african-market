@@ -2,7 +2,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { EventBus, loadServiceEndpoints, ServiceClient } from '@am/core';
-import { IdempotentConsumer } from '@am/database';
+import { IdempotentConsumer, OutboxService } from '@am/database';
 import { EmiratesService } from './emirates.service';
 import { SearchIndexer } from './indexer';
 import { SEARCH_OWNERS, SearchOwners, TcpSearchOwners } from './owners';
@@ -31,8 +31,9 @@ import { SitemapService } from './sitemap.service';
     },
     {
       provide: EmiratesService,
-      inject: [getDataSourceToken()],
-      useFactory: (dataSource: DataSource) => new EmiratesService(dataSource),
+      inject: [getDataSourceToken(), OutboxService],
+      useFactory: (dataSource: DataSource, outbox: OutboxService) =>
+        new EmiratesService(dataSource, outbox),
     },
     {
       provide: SearchService,

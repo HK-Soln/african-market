@@ -102,7 +102,7 @@ describe('catalogue (Postgres)', () => {
     testDb = await createTestDatabase();
     db = testDb.db;
     const outbox = new OutboxService('catalog');
-    categories = new CategoriesService(db);
+    categories = new CategoriesService(db, outbox);
     products = new ProductsService(db, outbox);
     shopEvents = new ShopEvents(outbox);
     for (const c of await db.manager.find(Category)) slugs.set(c.slug, c.id);
@@ -492,6 +492,20 @@ describe('catalogue (Postgres)', () => {
           reason: 'Label missing',
         }),
       ).toMatchObject({ status: 'rejected', reviewReason: 'Label missing' });
+      // On the admin audit log, with the reason.
+      const recorded = (await db.getRepository(OutboxMessage).findBy({ name: 'audit.recorded' }))
+        .map((e) => (e.envelope as { payload: { subjectId: string } }).payload)
+        .filter((p) => p.subjectId === cream.id);
+      expect(recorded).toEqual([
+        {
+          actorId: admin.userId,
+          action: 'product.rejected',
+          subjectType: 'product',
+          subjectId: cream.id,
+          shopId,
+          details: { from: 'pending_review', reason: 'Label missing' },
+        },
+      ]);
     });
 
     it('reviews a rejected ordinary product before it shows again', async () => {

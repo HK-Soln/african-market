@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { DiscoveryErrors, SearchNearbyRequest } from '@am/contracts';
+import { OutboxMessage, OutboxService } from '@am/database';
 import { EmiratesService } from '../src/search/emirates.service';
 import { prefixQuery, SearchService } from '../src/search/search.service';
 import { SitemapService } from '../src/search/sitemap.service';
@@ -284,7 +285,7 @@ describe('nearby search (PostGIS)', () => {
 
   describe('emirates', () => {
     it('hide an emirate until an admin opens search there, and count its shops for admins', async () => {
-      const emirates = new EmiratesService(db);
+      const emirates = new EmiratesService(db, new OutboxService('discovery'));
       await insertBranch(db, { name: 'Majaz Foods', at: PLACES.sharjah, emirate: 'SHJ' });
       const admin = { userId: randomUUID(), roles: ['admin'], shops: [] };
       await emirates.setSearch({ actor: admin, code: 'SHJ', open: false });
@@ -309,6 +310,13 @@ describe('nearby search (PostGIS)', () => {
           emirates.setSearch({ actor: { ...admin, roles: ['seller'] }, code: 'SHJ', open: false }),
         ),
       ).toBe(DiscoveryErrors.adminOnly);
+
+      // Both switches are on the admin audit log, the refused one is not.
+      const recorded = (await db.getRepository(OutboxMessage).findBy({ name: 'audit.recorded' }))
+        .map((e) => (e.envelope as { payload: { actorId: string; action: string } }).payload)
+        .filter((p) => p.actorId === admin.userId)
+        .map((p) => p.action);
+      expect(recorded.sort()).toEqual(['emirate.search_closed', 'emirate.search_opened']);
     });
   });
 

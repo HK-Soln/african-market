@@ -1,4 +1,6 @@
 import type { ListQuery, ListSpec, Page } from '../list-query';
+import type { ActorClaims } from './actor';
+
 /**
  * Request and response shapes for the identity service's TCP patterns (`IdentityPatterns`).
  * The gateway validates its own HTTP DTOs and then sends these.
@@ -121,6 +123,8 @@ export const IdentityErrors = {
   socialProviderDisabled: 'SOCIAL_PROVIDER_DISABLED',
   /** The provider could not be reached; try again. */
   socialProviderUnavailable: 'SOCIAL_PROVIDER_UNAVAILABLE',
+  /** Only an admin may do this (the audit log). */
+  adminOnly: 'IDENTITY_ADMIN_ONLY',
 } as const;
 
 export type IdentityErrorCode = (typeof IdentityErrors)[keyof typeof IdentityErrors];
@@ -294,6 +298,9 @@ export interface ListRequest {
 }
 
 export interface UpdateCountryRequest {
+  /** The admin, for the audit log. */
+  actor?: ActorClaims;
+  correlationId?: string;
   code: string;
   name?: Partial<CountryDto['name']>;
   phoneEnabled?: boolean;

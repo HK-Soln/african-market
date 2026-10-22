@@ -8,6 +8,7 @@ import { UserHomeEmirate1791800000000 } from '../../src/migrations/1791800000000
 import { Countries1791900000000 } from '../../src/migrations/1791900000000-Countries';
 import { PrivacyBasics1792000000000 } from '../../src/migrations/1792000000000-PrivacyBasics';
 import { FacebookCredential1792512000000 } from '../../src/migrations/1792512000000-FacebookCredential';
+import { AdminAudit1792600000000 } from '../../src/migrations/1792600000000-AdminAudit';
 
 export type { TestDatabase };
 
@@ -23,5 +24,6 @@ export const createTestDatabase = (): Promise<TestDatabase> =>
       Countries1791900000000,
       PrivacyBasics1792000000000,
       FacebookCredential1792512000000,
+      AdminAudit1792600000000,
     ],
   });

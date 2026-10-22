@@ -35,7 +35,8 @@ describe('event contracts', () => {
   it('documents when each event is published and by which service', () => {
     for (const [name, doc] of entries) {
       expect([name, doc.description.length > 20]).toEqual([name, true]);
-      expect([name, doc.publisher]).toEqual([name, expect.stringMatching(/^[a-z]+$/)]);
+      // One service, or a list of them for an event several services publish.
+      expect([name, doc.publisher]).toEqual([name, expect.stringMatching(/^[a-z]+(, [a-z]+)*$/)]);
     }
   });
 

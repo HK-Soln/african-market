@@ -19,14 +19,17 @@ on:
   schedule:
     - cron: '*/30 * * * *'
 
-# One run at a time: an `up` and a teardown must never overlap.
+# Manual runs queue behind each other; the teardown check has its own queue, because GitHub keeps
+# one waiting run per queue and a newer one cancels it (a check must never cancel an `up` that
+# waits for approval). The check steps aside while a manual run is busy (below).
 concurrency:
-  group: test-environment
+  group: ${{ github.event_name == 'schedule' && 'test-environment-teardown' || 'test-environment' }}
   cancel-in-progress: false
 
 permissions:
   id-token: write
   contents: read
+  actions: read
 
 env:
   AWS_REGION: eu-north-1
@@ -42,13 +45,28 @@ jobs:
     steps:
       - name: Is AWS set up?
         id: ready
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "${{ vars.AWS_TEST_ROLE_ARN }}" ]; then
             echo "::notice::AWS_TEST_ROLE_ARN is not set (infra/terraform/README.md, Test environments); nothing to do."
             echo "go=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "go=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          # The teardown check never runs beside a manual run: an `up` may be half way.
+          if [ "$ACTION" = "reap" ]; then
+            busy=0
+            for status in queued waiting in_progress requested pending; do
+              n=$(gh run list -R "$GITHUB_REPOSITORY" --workflow test-env.yml --event workflow_dispatch                 --status "$status" --json databaseId --jq length)
+              busy=$((busy + n))
+            done
+            if [ "$busy" -gt 0 ]; then
+              echo "::notice::A manual run is queued, waiting or running; the teardown check waits for the next round."
+              echo "go=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "go=true" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         if: steps.ready.outputs.go == 'true'

@@ -45,7 +45,6 @@
     "@am/database": "workspace:*",
     "@aws-sdk/client-cloudfront": "^3.1152.0",
     "@aws-sdk/client-s3": "^3.1152.0",
-    "@aws-sdk/s3-presigned-post": "^3.1152.0",
     "@aws-sdk/s3-request-presigner": "^3.1152.0",
     "@nestjs/common": "^11.2.7",
     "@nestjs/core": "^11.2.7",

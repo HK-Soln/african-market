@@ -613,7 +613,7 @@ export interface paths {
         put?: never;
         /**
          * Start an upload
-         * @description Returns a form for one file, valid 5 minutes: POST `fields` and then the file (as `file`) to `url`, then call confirm. Shop purposes need `shopId` and a role in that shop.
+         * @description Returns a link for one file, valid 5 minutes: PUT the file as the body to `url` with exactly `headers`, then call confirm. Shop purposes need `shopId` and a role in that shop.
          */
         post: operations["MediaController_createUpload_v1"];
         delete?: never;
@@ -1779,7 +1779,7 @@ export interface components {
              */
             contentType: string;
             /**
-             * @description The file size in bytes; the upload may not exceed it
+             * @description The file size in bytes; the upload link takes exactly this many
              * @example 482113
              */
             sizeBytes: number;
@@ -1789,21 +1789,23 @@ export interface components {
              */
             shopId?: string;
         };
-        UploadFormDto: {
-            /** @example https://african-market-staging-uploads.s3.me-central-1.amazonaws.com/ */
+        UploadTargetDto: {
+            /** @enum {string} */
+            method: "PUT";
+            /** @description A signed link to the quarantine bucket, for exactly this type and size */
             url: string;
-            /** @description Form fields to send first, before the file (named `file`) */
-            fields: {
+            /** @description Headers to send exactly as given (Content-Type) */
+            headers: {
                 [key: string]: string;
             };
         };
         CreateUploadResponseDto: {
             /** Format: uuid */
             mediaId: string;
-            upload: components["schemas"]["UploadFormDto"];
+            upload: components["schemas"]["UploadTargetDto"];
             /**
              * Format: date-time
-             * @description The form stops working then (5 minutes)
+             * @description The link stops working then (5 minutes)
              */
             expiresAt: string;
         };

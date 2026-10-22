@@ -60,8 +60,8 @@ export class MediaController {
   @ApiOperation({
     summary: 'Start an upload',
     description:
-      'Returns a form for one file, valid 5 minutes: POST `fields` and then the file (as `file`) ' +
-      'to `url`, then call confirm. Shop purposes need `shopId` and a role in that shop.',
+      'Returns a link for one file, valid 5 minutes: PUT the file as the body to `url` with ' +
+      'exactly `headers`, then call confirm. Shop purposes need `shopId` and a role in that shop.',
   })
   @ApiOkResponse({ type: CreateUploadResponseDto })
   @Throttle({ default: { limit: 30, ttl: MINUTE } })

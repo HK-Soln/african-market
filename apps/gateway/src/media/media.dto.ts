@@ -17,7 +17,7 @@ export class CreateUploadDto {
 
   @ApiProperty({
     example: 482113,
-    description: 'The file size in bytes; the upload may not exceed it',
+    description: 'The file size in bytes; the upload link takes exactly this many',
   })
   @IsInt()
   @IsPositive()
@@ -32,26 +32,31 @@ export class CreateUploadDto {
   shopId?: string;
 }
 
-export class UploadFormDto {
-  @ApiProperty({ example: 'https://african-market-staging-uploads.s3.me-central-1.amazonaws.com/' })
+export class UploadTargetDto {
+  @ApiProperty({ enum: ['PUT'] })
+  method!: 'PUT';
+
+  @ApiProperty({
+    description: 'A signed link to the quarantine bucket, for exactly this type and size',
+  })
   url!: string;
 
   @ApiProperty({
     type: 'object',
     additionalProperties: { type: 'string' },
-    description: 'Form fields to send first, before the file (named `file`)',
+    description: 'Headers to send exactly as given (Content-Type)',
   })
-  fields!: Record<string, string>;
+  headers!: Record<string, string>;
 }
 
 export class CreateUploadResponseDto {
   @ApiProperty({ format: 'uuid' })
   mediaId!: string;
 
-  @ApiProperty({ type: UploadFormDto })
-  upload!: UploadFormDto;
+  @ApiProperty({ type: UploadTargetDto })
+  upload!: UploadTargetDto;
 
-  @ApiProperty({ format: 'date-time', description: 'The form stops working then (5 minutes)' })
+  @ApiProperty({ format: 'date-time', description: 'The link stops working then (5 minutes)' })
   expiresAt!: string;
 }
 

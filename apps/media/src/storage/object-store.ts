@@ -8,24 +8,30 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { MediaEnv } from '../config/media-env';
 
 export type BucketName = 'uploads' | 'public' | 'private';
 
-/** The upload form a browser posts, and when it stops working. */
-export interface UploadForm {
+/**
+ * Where a browser sends one file: a PUT of the file as the body to `url`, with exactly these
+ * headers. It works the same on every S3-compatible store (AWS S3, Cloudflare R2, MinIO), which
+ * the older POST form does not (R2 has no POST uploads), decision T-44.
+ */
+export interface UploadTarget {
+  method: 'PUT';
   url: string;
-  fields: Record<string, string>;
+  headers: Record<string, string>;
 }
 
 /** Thrown by `read` when an object is larger than the caller allows. */
 export class ObjectTooLargeError extends Error {}
 
 /**
- * Everything the media service does with storage. Only this class holds the credentials; the
- * service code names buckets by role (uploads, public, private), never by their real names.
+ * Everything the media service does with storage, over the S3 API, so any S3-compatible store
+ * works: AWS S3, Cloudflare R2 (S3_ENDPOINT and keys), MinIO locally. Only this class holds the
+ * credentials; the service code names buckets by role (uploads, public, private), never by their
+ * real names.
  */
 export class ObjectStore {
   private readonly client: S3Client;
@@ -44,6 +50,10 @@ export class ObjectStore {
         credentials,
         // MinIO serves buckets as paths, not subdomains.
         forcePathStyle: Boolean(endpoint),
+        // Checksums only where an operation needs one: signed upload links must not carry a
+        // checksum of an empty body, or every real upload would fail it.
+        requestChecksumCalculation: 'WHEN_REQUIRED',
+        responseChecksumValidation: 'WHEN_REQUIRED',
       });
     this.client = make(env.S3_ENDPOINT);
     this.presignClient = make(env.S3_PRESIGN_ENDPOINT ?? env.S3_ENDPOINT);
@@ -55,21 +65,27 @@ export class ObjectStore {
   }
 
   /**
-   * A form that lets a browser write exactly one object: this key, this content type, at most
-   * `maxBytes` (S3 itself refuses anything else), for `expiresSeconds`.
+   * A link that lets a browser write exactly one object: this key, this content type and exactly
+   * `sizeBytes` bytes (both are signed, so storage refuses anything else), for `expiresSeconds`.
    */
-  presignUpload(key: string, contentType: string, maxBytes: number, expiresSeconds: number) {
-    return createPresignedPost(this.presignClient, {
-      Bucket: this.buckets.uploads,
-      Key: key,
-      Conditions: [
-        ['eq', '$key', key],
-        ['eq', '$Content-Type', contentType],
-        ['content-length-range', 1, maxBytes],
-      ],
-      Fields: { 'Content-Type': contentType },
-      Expires: expiresSeconds,
-    }) as Promise<UploadForm>;
+  async presignUpload(
+    key: string,
+    contentType: string,
+    sizeBytes: number,
+    expiresSeconds: number,
+  ): Promise<UploadTarget> {
+    const url = await getSignedUrl(
+      this.presignClient,
+      new PutObjectCommand({
+        Bucket: this.buckets.uploads,
+        Key: key,
+        ContentType: contentType,
+        ContentLength: sizeBytes,
+      }),
+      { expiresIn: expiresSeconds, signableHeaders: new Set(['content-type', 'content-length']) },
+    );
+    // The browser sets Content-Length itself, from the file.
+    return { method: 'PUT', url, headers: { 'Content-Type': contentType } };
   }
 
   /** The object's bytes, or undefined when it is not there. Refuses more than `maxBytes`. */

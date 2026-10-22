@@ -6,7 +6,7 @@ type Schemas = components['schemas'];
 export type ApiMedia = Schemas['MediaDto'];
 export type MediaPurpose = Schemas['CreateUploadDto']['purpose'];
 
-/** The upload form refused the file: larger than announced, or the wrong type (from storage). */
+/** Storage refused the file: not the size or type announced, or the link expired. */
 export const UPLOAD_REFUSED = 'UPLOAD_REFUSED';
 
 export interface UploadOptions {
@@ -18,9 +18,9 @@ export interface UploadOptions {
 }
 
 /**
- * Uploads one file the way the media service expects (decision T-27): asks the gateway for a
- * form, posts the file straight to storage with it (the gateway never carries the bytes), then
- * confirms so media checks and stores it. Never throws; the result carries the error code.
+ * Uploads one file the way the media service expects (decisions T-27, T-44): asks the gateway for
+ * a signed link, PUTs the file straight to storage with it (the gateway never carries the bytes),
+ * then confirms so media checks and stores it. Never throws; the result carries the error code.
  */
 export async function uploadMedia(
   client: ApiClient,
@@ -39,13 +39,11 @@ export async function uploadMedia(
   );
   if (!created.ok) return created;
 
-  const form = new FormData();
-  for (const [name, value] of Object.entries(created.data.upload.fields)) form.append(name, value);
-  // The file goes last: storage ignores fields that come after it.
-  form.append('file', file);
+  const { method, url, headers } = created.data.upload;
   const doFetch = options.fetch ?? ((input, init) => globalThis.fetch(input, init));
   try {
-    const stored = await doFetch(created.data.upload.url, { method: 'POST', body: form });
+    // The file is the whole body; the browser sets Content-Length from it, which is signed.
+    const stored = await doFetch(url, { method, headers, body: file });
     if (!stored.ok) return { ok: false, code: UPLOAD_REFUSED };
   } catch {
     return { ok: false, code: NETWORK_ERROR };

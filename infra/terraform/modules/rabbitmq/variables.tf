@@ -23,7 +23,7 @@ variable "engine_version" {
 
 variable "instance_type" {
   type    = string
-  default = "mq.t3.micro"
+  default = "mq.m7g.medium"
 }
 
 variable "cluster" {

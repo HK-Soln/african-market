@@ -160,7 +160,7 @@ module "platform" {
   db_multi_az       = false # Multi-AZ in production only (decided 2026-10-16)
   redis_node_type   = "cache.t4g.micro"
   redis_replicas    = 0
-  mq_instance_type  = "mq.t3.micro"
+  mq_instance_type  = "mq.m7g.medium" # the smallest RabbitMQ broker; Amazon MQ dropped t3.micro for RabbitMQ
   mq_cluster        = false
 
   log_retention_days = 30

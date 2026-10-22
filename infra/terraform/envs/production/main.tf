@@ -152,7 +152,7 @@ module "platform" {
   db_multi_az       = true
   redis_node_type   = "cache.t4g.small"
   redis_replicas    = 1
-  mq_instance_type  = "mq.m5.large" # a cluster needs m5; t3.micro is single-instance only
+  mq_instance_type  = "mq.m5.large" # m5 or m7g; RabbitMQ has no t3 brokers
   mq_cluster        = true
 
   log_retention_days = 90

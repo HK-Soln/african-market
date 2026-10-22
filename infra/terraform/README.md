@@ -84,7 +84,7 @@ Their codes are generated per environment:
 | Postgres            | `db.t4g.micro`, single zone               | `db.t4g.medium`, Multi-AZ       |
 | NAT gateways        | one                                       | one per zone                    |
 | Redis               | one node                                  | primary and replica, failover   |
-| RabbitMQ            | one `mq.t3.micro`                         | three-node cluster across zones |
+| RabbitMQ            | one `mq.m7g.medium`                       | three-node cluster across zones |
 | Tasks per app       | one                                       | two (admin one)                 |
 | Running             | **08:00-20:00 Dubai time, Monday-Friday** | always                          |
 | Test phone numbers  | two (for the smoke tests)                 | none (identity refuses them)    |

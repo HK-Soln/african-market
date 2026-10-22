@@ -319,6 +319,7 @@ Location discovery and search, Contact, UAE specifics.
       product moderation queue for food/restricted categories, reports queue, category tree editor
       (en/ar/fr names), emirate search switches with live verified-shop counts, shop search and suspend,
       audit log viewer.
+
   > Note: part 1: the console's sections, the shops queue (waiting shops oldest first; live,
   > rejected, suspended or all, and search by name or web address) and one shop's review: the
   > identity check with what deserves a second look (provider decision, expired document, failed

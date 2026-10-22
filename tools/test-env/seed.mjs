@@ -29,8 +29,25 @@ const codes = new Map(
     .map((entry) => entry.trim().split(':')),
 );
 
+/**
+ * fetch, tried again when the connection itself fails (no answer at all, e.g. the load balancer
+ * moving a task): up to 5 times, 3 s apart. Its error says why; Node's own says only "fetch failed".
+ */
+async function send(url, init) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      const cause = error.cause?.code ?? error.cause?.message ?? 'unknown';
+      if (attempt >= 5) throw new Error(`${init.method} ${url}: no answer (${cause})`);
+      console.log(`  ${init.method} ${url}: no answer (${cause}), trying again`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
+}
+
 async function call(method, path, token, body) {
-  const response = await fetch(GATEWAY + path, {
+  const response = await send(GATEWAY + path, {
     method,
     headers: {
       'content-type': 'application/json',

@@ -62,6 +62,7 @@ x-service: &service
 x-next-build-args: &next-build-args
   NEXT_PUBLIC_GATEWAY_URL: http://localhost:4000
   NEXT_PUBLIC_WEB_URL: http://localhost:3000
+  NEXT_PUBLIC_SELLER_URL: http://localhost:3001
   # The map is off without a key; with one, Google's demo map id unless another is set.
   NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_KEY:-}
   NEXT_PUBLIC_GOOGLE_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAP_ID:-DEMO_MAP_ID}

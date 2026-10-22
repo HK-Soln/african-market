@@ -35,6 +35,8 @@ RUN test -n "$APP" || (echo "Build with --build-arg APP=<web|seller|admin>" && e
 # Required: where the browser finds the gateway and the customer site in this environment.
 ARG NEXT_PUBLIC_GATEWAY_URL
 ARG NEXT_PUBLIC_WEB_URL
+# Where the customer site sends sellers (web only).
+ARG NEXT_PUBLIC_SELLER_URL=
 # Google Maps (web); empty means no map. The map id is required with a key.
 ARG NEXT_PUBLIC_GOOGLE_MAPS_KEY=
 ARG NEXT_PUBLIC_GOOGLE_MAP_ID=
@@ -46,6 +48,7 @@ ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT=
 ARG BUILD_ID=
 ENV NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL} \
     NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL} \
+    NEXT_PUBLIC_SELLER_URL=${NEXT_PUBLIC_SELLER_URL} \
     NEXT_PUBLIC_GOOGLE_MAPS_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_KEY} \
     NEXT_PUBLIC_GOOGLE_MAP_ID=${NEXT_PUBLIC_GOOGLE_MAP_ID} \
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY} \
@@ -77,4 +80,6 @@ USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
     CMD ["node", "healthcheck.cjs"]
-CMD ["sh", "-c", "exec node apps/${APP}/server.js"]
+# HOSTNAME again at start: Fargate sets it to the task's own name, and Next would then listen
+# on that address only, not on 127.0.0.1 where the health check asks.
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 exec node apps/${APP}/server.js"]

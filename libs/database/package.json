@@ -33,7 +33,7 @@
     "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {
-    "testcontainers": "^12.2.0"
+    "testcontainers": "^12.2.1"
   },
   "exports": {
     ".": {

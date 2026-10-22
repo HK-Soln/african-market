@@ -15,7 +15,7 @@ import { MediaAccessLog, MediaObject } from '../src/entities';
 import { MediaCleanup } from '../src/media/media-cleanup';
 import { MediaService } from '../src/media/media.service';
 import { CdnPurger } from '../src/storage/cdn';
-import { ObjectStore, UploadForm } from '../src/storage/object-store';
+import { ObjectStore, type UploadTarget } from '../src/storage/object-store';
 import { createTestDatabase, TestDatabase } from './support/test-database';
 
 // Against real Postgres and MinIO (`pnpm infra:up`; CI starts both). Each run makes its own three
@@ -50,18 +50,14 @@ async function keysIn(bucket: string): Promise<string[]> {
   return (listed.Contents ?? []).map((o) => o.Key!).sort();
 }
 
-/** Posts the upload form the way a browser does: the fields, then the file. */
-async function post(
-  form: UploadForm,
-  bytes: Buffer,
-  type: string,
-  extra: Record<string, string> = {},
-) {
-  const body = new FormData();
-  for (const [name, value] of Object.entries({ ...form.fields, ...extra }))
-    body.append(name, value);
-  body.append('file', new Blob([new Uint8Array(bytes)], { type }), 'upload');
-  return (await fetch(form.url, { method: 'POST', body })).status;
+/** Sends the file the way a browser does: a PUT of the bytes, with the link's headers. */
+async function put(target: UploadTarget, bytes: Buffer, headers: Record<string, string> = {}) {
+  const response = await fetch(target.url, {
+    method: target.method,
+    headers: { ...target.headers, ...headers },
+    body: new Uint8Array(bytes),
+  });
+  return response.status;
 }
 
 async function codeOf(promise: Promise<unknown>): Promise<string | undefined> {
@@ -113,7 +109,7 @@ describe('media service (Postgres + MinIO)', () => {
       sizeBytes: bytes.length,
       shopId: purpose === 'avatar' ? undefined : shopId,
     });
-    expect(await post(created.upload, bytes, type)).toBe(204);
+    expect(await put(created.upload, bytes)).toBe(200);
     return media.confirmUpload({ actor: who, mediaId: created.mediaId });
   }
 
@@ -170,7 +166,7 @@ describe('media service (Postgres + MinIO)', () => {
       });
     });
 
-    it('lets storage refuse a file larger than announced, or another content type', async () => {
+    it('lets storage refuse a file of another size than announced, or another type', async () => {
       const who = actor();
       const bytes = await photo();
       const created = await media.createUpload({
@@ -179,11 +175,10 @@ describe('media service (Postgres + MinIO)', () => {
         contentType: 'image/jpeg',
         sizeBytes: 1000,
       });
-      expect(await post(created.upload, bytes, 'image/jpeg')).toBe(400);
+      // Size and type are signed into the link: anything else does not match its signature.
+      expect(await put(created.upload, bytes)).toBe(403);
       expect(
-        await post(created.upload, bytes.subarray(0, 900), 'image/jpeg', {
-          'Content-Type': 'text/html',
-        }),
+        await put(created.upload, bytes.subarray(0, 1000), { 'Content-Type': 'text/html' }),
       ).toBe(403);
       expect(await codeOf(media.confirmUpload({ actor: who, mediaId: created.mediaId }))).toBe(
         MediaErrors.uploadMissing,
@@ -199,7 +194,7 @@ describe('media service (Postgres + MinIO)', () => {
         contentType: 'image/png',
         sizeBytes: fake.length,
       });
-      expect(await post(created.upload, fake, 'image/png')).toBe(204);
+      expect(await put(created.upload, fake)).toBe(200);
       const error = media.confirmUpload({ actor: who, mediaId: created.mediaId });
       await expect(error).rejects.toMatchObject({
         error: { code: MediaErrors.fileRejected, details: { reason: 'wrong_type' } },

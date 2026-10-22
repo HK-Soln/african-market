@@ -1662,7 +1662,7 @@
     },
     "/api/v1/media/uploads": {
       "post": {
-        "description": "Returns a form for one file, valid 5 minutes: POST `fields` and then the file (as `file`) to `url`, then call confirm. Shop purposes need `shopId` and a role in that shop.",
+        "description": "Returns a link for one file, valid 5 minutes: PUT the file as the body to `url` with exactly `headers`, then call confirm. Shop purposes need `shopId` and a role in that shop.",
         "operationId": "MediaController_createUpload_v1",
         "parameters": [],
         "requestBody": {
@@ -5707,7 +5707,7 @@
           "sizeBytes": {
             "type": "number",
             "example": 482113,
-            "description": "The file size in bytes; the upload may not exceed it"
+            "description": "The file size in bytes; the upload link takes exactly this many"
           },
           "shopId": {
             "type": "string",
@@ -5721,24 +5721,31 @@
           "sizeBytes"
         ]
       },
-      "UploadFormDto": {
+      "UploadTargetDto": {
         "type": "object",
         "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "PUT"
+            ]
+          },
           "url": {
             "type": "string",
-            "example": "https://african-market-staging-uploads.s3.me-central-1.amazonaws.com/"
+            "description": "A signed link to the quarantine bucket, for exactly this type and size"
           },
-          "fields": {
+          "headers": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Form fields to send first, before the file (named `file`)"
+            "description": "Headers to send exactly as given (Content-Type)"
           }
         },
         "required": [
+          "method",
           "url",
-          "fields"
+          "headers"
         ]
       },
       "CreateUploadResponseDto": {
@@ -5749,12 +5756,12 @@
             "format": "uuid"
           },
           "upload": {
-            "$ref": "#/components/schemas/UploadFormDto"
+            "$ref": "#/components/schemas/UploadTargetDto"
           },
           "expiresAt": {
             "type": "string",
             "format": "date-time",
-            "description": "The form stops working then (5 minutes)"
+            "description": "The link stops working then (5 minutes)"
           }
         },
         "required": [

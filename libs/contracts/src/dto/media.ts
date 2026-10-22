@@ -87,7 +87,7 @@ export interface CreateUploadRequest {
   purpose: MediaPurpose;
   /** What the browser will send; must be one of the purpose's types. */
   contentType: string;
-  /** The file's size; the upload form allows exactly up to this many bytes. */
+  /** The file's size; the upload link takes exactly this many bytes. */
   sizeBytes: number;
   /** Required for shop purposes. */
   shopId?: string;
@@ -97,8 +97,11 @@ export interface CreateUploadRequest {
 
 export interface CreateUploadResponse {
   mediaId: string;
-  /** A form POST to the quarantine bucket: send `fields` first, then the file as `file`. */
-  upload: { url: string; fields: Record<string, string> };
+  /**
+   * Where the browser sends the file: a PUT of the file as the body, with exactly these headers,
+   * to the quarantine bucket. Any S3-compatible store (decision T-44).
+   */
+  upload: { method: 'PUT'; url: string; headers: Record<string, string> };
   /** ISO-8601 UTC: the form stops working then. */
   expiresAt: string;
 }

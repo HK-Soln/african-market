@@ -238,8 +238,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "uploads" {
 # Form uploads (POST) from the apps, nothing else.
 resource "aws_s3_bucket_cors_configuration" "uploads" {
   bucket = aws_s3_bucket.uploads.id
+  # Browsers PUT the file with a signed link (decision T-44).
   cors_rule {
-    allowed_methods = ["POST"]
+    allowed_methods = ["PUT"]
     allowed_origins = var.upload_origins
     allowed_headers = ["*"]
     max_age_seconds = 3000

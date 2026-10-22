@@ -9,22 +9,24 @@ const json = (status: number, body: unknown) =>
 
 /** Gateway and storage in one fake fetch; `storage` decides what the bucket answers. */
 function fakeBackend(storage: () => Response | Promise<Response>) {
-  const seen: Array<{ url: string; body?: unknown }> = [];
+  const seen: Array<{ url: string; method?: string; headers?: Headers; body?: unknown }> = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const request = new Request(input, init);
     const url = request.url;
     if (url === STORAGE) {
-      seen.push({ url, body: await request.formData() });
+      seen.push({
+        url,
+        method: request.method,
+        headers: request.headers,
+        body: new Uint8Array(await request.arrayBuffer()),
+      });
       return storage();
     }
     seen.push({ url, body: await request.text() });
     if (url.endsWith('/api/v1/media/uploads')) {
       return json(200, {
         mediaId: MEDIA_ID,
-        upload: {
-          url: STORAGE,
-          fields: { key: MEDIA_ID, 'Content-Type': 'image/png', Policy: 'p' },
-        },
+        upload: { method: 'PUT', url: STORAGE, headers: { 'Content-Type': 'image/png' } },
         expiresAt: '2026-10-16T10:05:00.000Z',
       });
     }
@@ -44,8 +46,8 @@ function fakeBackend(storage: () => Response | Promise<Response>) {
 const file = new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], { type: 'image/png' });
 
 describe('uploadMedia', () => {
-  it('asks for a form, posts the file to storage with the fields first, then confirms', async () => {
-    const { client, fetch, seen } = fakeBackend(() => new Response(null, { status: 204 }));
+  it('asks for a link, puts the file to storage as the body, then confirms', async () => {
+    const { client, fetch, seen } = fakeBackend(() => new Response(null, { status: 200 }));
     const result = await uploadMedia(client, file, { purpose: 'avatar', fetch });
 
     expect(result).toEqual({
@@ -62,10 +64,9 @@ describe('uploadMedia', () => {
       contentType: 'image/png',
       sizeBytes: 4,
     });
-    const form = seen[1].body as FormData;
-    const names: string[] = [];
-    form.forEach((_, name) => names.push(name));
-    expect(names).toEqual(['key', 'Content-Type', 'Policy', 'file']);
+    expect(seen[1].method).toBe('PUT');
+    expect(seen[1].headers?.get('content-type')).toBe('image/png');
+    expect(seen[1].body).toEqual(new Uint8Array([0x89, 0x50, 0x4e, 0x47]));
   });
 
   it('stops when storage refuses the file, without confirming', async () => {

@@ -35,7 +35,11 @@ class FakeMediaController {
     received.push({ pattern: MediaPatterns.createUpload, data });
     return {
       mediaId: randomUUID(),
-      upload: { url: 'http://storage.test/uploads', fields: { key: 'k' } },
+      upload: {
+        method: 'PUT',
+        url: 'http://storage.test/uploads',
+        headers: { 'Content-Type': 'image/png' },
+      },
       expiresAt: new Date().toISOString(),
     };
   }
@@ -118,7 +122,11 @@ describe('gateway media routes (HTTP -> gateway -> TCP -> media stand-in)', () =
       .set('Authorization', `Bearer ${token}`)
       .send({ purpose: 'product_image', contentType: 'image/jpeg', sizeBytes: 1000, shopId })
       .expect(200);
-    expect(res.body.upload).toEqual({ url: 'http://storage.test/uploads', fields: { key: 'k' } });
+    expect(res.body.upload).toEqual({
+      method: 'PUT',
+      url: 'http://storage.test/uploads',
+      headers: { 'Content-Type': 'image/png' },
+    });
     expect(last(MediaPatterns.createUpload)).toMatchObject({
       purpose: 'product_image',
       shopId,

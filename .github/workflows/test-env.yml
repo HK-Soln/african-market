@@ -1,0 +1,85 @@
+# Throwaway AWS test environments (decision T-43): Actions → "Test environment" → Run workflow,
+# choose the branch and up, down or status. Every 30 minutes a check takes down an environment
+# past its deadline (3 hours after it was created). Made-up data only.
+#
+# Signs in to AWS with OIDC as the role the bootstrap made (repository variable
+# AWS_TEST_ROLE_ARN). Two GitHub environments: `test` (up) waits for the owner's approval;
+# `test-teardown` (down, reap, status) does not, so the teardown never waits for anyone, and only
+# the dev branch may use it. Without the variable it does nothing.
+name: Test environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [up, down, status]
+        default: status
+  schedule:
+    - cron: '*/30 * * * *'
+
+# One run at a time: an `up` and a teardown must never overlap.
+concurrency:
+  group: test-environment
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-north-1
+
+jobs:
+  run:
+    name: ${{ github.event_name == 'schedule' && 'Teardown check' || inputs.action }}
+    runs-on: ubuntu-latest
+    environment: ${{ (github.event_name == 'workflow_dispatch' && inputs.action == 'up') && 'test' || 'test-teardown' }}
+    timeout-minutes: 75
+    env:
+      ACTION: ${{ github.event_name == 'schedule' && 'reap' || inputs.action }}
+    steps:
+      - name: Is AWS set up?
+        id: ready
+        run: |
+          if [ -z "${{ vars.AWS_TEST_ROLE_ARN }}" ]; then
+            echo "::notice::AWS_TEST_ROLE_ARN is not set (infra/terraform/README.md, Test environments); nothing to do."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.ready.outputs.go == 'true'
+        uses: actions/checkout@v7
+
+      - name: AWS credentials
+        if: steps.ready.outputs.go == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_TEST_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          # An `up` takes about 30 minutes; the role allows sessions of one hour.
+          role-duration-seconds: 3600
+
+      - name: Setup Terraform
+        if: steps.ready.outputs.go == 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Setup Docker Buildx
+        if: steps.ready.outputs.go == 'true' && env.ACTION == 'up'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Setup Node
+        if: steps.ready.outputs.go == 'true' && env.ACTION == 'up'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: ${{ env.ACTION }}
+        if: steps.ready.outputs.go == 'true'
+        run: bash infra/deploy/test-env.sh "$ACTION"

@@ -6,9 +6,12 @@
 #   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh up       # about 20-30 minutes
 #   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh status
 #   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh down     # about 10-15 minutes
+#   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh reap     # down, only if past its time
 #
-# `up` deletes itself after TTL_HOURS (default 3): the environment carries a one-time schedule
-# that starts the runner with ACTION=down. Running `up` again keeps the first deadline.
+# An environment lives TTL_HOURS (default 3) from when it was first created; running `up` again
+# keeps that deadline. `reap` takes it down once the deadline has passed: GitHub runs it every
+# 30 minutes (.github/workflows/test-env.yml), and with SCHEDULED_TEARDOWN=true the environment
+# also carries a one-time AWS schedule that starts the CodeBuild runner with ACTION=down.
 #
 # Needs terraform, jq, the AWS CLI, and for `up` Docker with buildx, node and pnpm.
 set -euo pipefail
@@ -19,7 +22,7 @@ DOMAIN="${DOMAIN:-am.amahkudi.dev}"
 TTL_HOURS="${TTL_HOURS:-3}"
 tf() { terraform -chdir="$TF" "$@"; }
 out() { tf output -json "$1"; }
-vars=(-var "domain=$DOMAIN" -var "ttl_hours=$TTL_HOURS")
+vars=(-var "domain=$DOMAIN" -var "ttl_hours=$TTL_HOURS" -var "scheduled_teardown=${SCHEDULED_TEARDOWN:-false}")
 
 section() { printf '\n== %s\n' "$*"; }
 
@@ -49,7 +52,7 @@ case "$action" in
     vars+=(-var "image_tag=$tag")
     tf apply -input=false -auto-approve "${vars[@]}" \
       -target=module.platform.module.service -target=module.platform.module.gateway \
-      -target=module.platform.module.next -target=aws_scheduler_schedule.teardown
+      -target=module.platform.module.next -target=time_static.created
 
     section "4/6 Migrations"
     bash infra/deploy/run-migrations.sh "$TF"
@@ -80,6 +83,22 @@ case "$action" in
     echo "Gone. The state bucket, the runner, the budget and the DNS zone stay (bootstrap)."
     ;;
 
+  reap)
+    if ! tf state list 2> /dev/null | grep -q .; then
+      echo "Nothing is running."
+      exit 0
+    fi
+    expires="$(out expires_at 2> /dev/null | jq -r . || true)"
+    if [ -z "$expires" ] || [ "$expires" = "null" ]; then
+      echo "::warning::An environment exists with no deadline (an \`up\` stopped early?); taking it down."
+    elif [ "$(date -u +%s)" -lt "$(date -u -d "$expires" +%s)" ]; then
+      echo "Up until $expires (UTC); nothing to do."
+      exit 0
+    fi
+    section "Past its deadline ($expires): destroying"
+    tf destroy -input=false -auto-approve "${vars[@]}"
+    ;;
+
   status)
     if tf state list 2> /dev/null | grep -q .; then
       echo "Up: $(tf state list | wc -l) resources."
@@ -91,7 +110,7 @@ case "$action" in
     ;;
 
   *)
-    echo "Usage: $0 up|down|status" >&2
+    echo "Usage: $0 up|down|reap|status" >&2
     exit 2
     ;;
 esac

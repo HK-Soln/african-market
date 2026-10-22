@@ -34,27 +34,31 @@ AWS's UAE region is unavailable for now, so infrastructure is tested in **throwa
 environments** (decision T-43): up for a session, then gone. Made-up data only.
 
 - `envs/test`: the whole platform at the smallest sizes in `eu-north-1`, at
-  `https://am.amahkudi.dev` (web), `api.`, `seller.` and `admin.am.amahkudi.dev`. It deletes
-  itself **3 hours** after it was created: a one-time EventBridge schedule starts the runner with
-  `ACTION=down`.
+  `https://am.amahkudi.dev` (web), `api.`, `seller.` and `admin.am.amahkudi.dev`. It lives **3
+  hours** from when it was created.
 - `bootstrap` (applied once, kept): the state bucket, the $10/month budget and its email alerts,
-  the `am.amahkudi.dev` zone (delegated from Vercel with four NS records), and the runner: the
-  CodeBuild project `african-market-env`, which checks out `dev` (or `GIT_REF`) and runs
-  `infra/deploy/test-env.sh`.
+  the `am.amahkudi.dev` zone (delegated from Vercel with four NS records), the GitHub OIDC
+  provider and the role `github-deploy-test`, and a CodeBuild runner (`african-market-env`) for
+  when CodeBuild builds are allowed in the account (its quota starts at 0).
 - About $1 per 3-hour session; about 20-30 minutes up (most of it building images), 10-15 down.
 
-```bash
-# start the runner (or run the script yourself: AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh up)
-aws codebuild start-build --profile aws-toolkit --project-name african-market-env   --environment-variables-override name=ACTION,value=up      # or down, status; name=GIT_REF,value=<branch>
-```
+**Run it from GitHub:** Actions → **Test environment** → Run workflow → choose the branch and
+`up`, `down` or `status`.
+
+| GitHub environment | Runs                                 | Approval        | Branches |
+| ------------------ | ------------------------------------ | --------------- | -------- |
+| `test`             | `up`                                 | the owner, each | any      |
+| `test-teardown`    | `down`, `status`, the teardown check | none            | `dev`    |
+
+Every 30 minutes the workflow runs `reap`, which takes down an environment past its deadline,
+without waiting for anyone. With `scheduled_teardown = true` (once CodeBuild builds are allowed)
+the environment also carries a one-time AWS schedule that starts the CodeBuild runner with
+`ACTION=down`, which does not depend on GitHub. By hand:
+`AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh up|down|reap|status` (needs Docker for `up`).
 
 Sign in with the test numbers: `+971500000010` is the seeded seller, `+971500000011` the admin.
 Their codes are generated per environment:
 `aws secretsmanager get-secret-value --profile aws-toolkit --secret-id african-market/test/OTP_TEST_NUMBERS --query SecretString --output text`.
-
-Why CodeBuild and not GitHub Actions: projects in AWS's new experience may not create identity
-providers, so GitHub cannot sign in without stored keys (the bootstrap's `github_oidc` stays
-off). The staging and production setup below is for an account where it can.
 
 ## The environments
 

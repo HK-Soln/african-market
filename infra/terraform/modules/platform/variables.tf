@@ -1,9 +1,19 @@
 variable "environment" {
-  description = "staging or production. Becomes NODE_ENV in the backends."
+  description = "test, staging or production. Becomes NODE_ENV in the backends."
   type        = string
   validation {
-    condition     = contains(["staging", "production"], var.environment)
-    error_message = "environment is staging or production."
+    condition     = contains(["test", "staging", "production"], var.environment)
+    error_message = "environment is test, staging or production."
+  }
+}
+
+variable "kyc_provider" {
+  description = "didit, or fake (approves every seller; test environments only, shops refuses it in staging and production)."
+  type        = string
+  default     = "didit"
+  validation {
+    condition     = contains(["didit", "fake"], var.kyc_provider)
+    error_message = "kyc_provider is didit or fake."
   }
 }
 
@@ -156,8 +166,9 @@ variable "sentry_dsn_frontend" {
 }
 
 variable "didit_workflow_id" {
-  description = "The Didit workflow seller verification sessions follow (Didit Console > Workflows)."
+  description = "The Didit workflow seller verification sessions follow (Didit Console > Workflows); unused with kyc_provider = fake."
   type        = string
+  default     = ""
 }
 
 variable "google_client_ids" {

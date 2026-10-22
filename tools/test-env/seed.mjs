@@ -8,6 +8,9 @@
  *
  *   node tools/test-env/seed.mjs        (SEED_GATEWAY_URL defaults to http://localhost:4000)
  *
+ * Against a test environment in AWS (infra/deploy/test-env.sh does this), set SEED_RUNNER=ecs and
+ * SEED_TF_DIR: the admin role is then granted by a one-off task instead of `docker compose exec`.
+ *
  * Running it again skips shops that already exist.
  */
 import { execFileSync } from 'node:child_process';
@@ -15,6 +18,8 @@ import { execFileSync } from 'node:child_process';
 const GATEWAY = (process.env.SEED_GATEWAY_URL ?? 'http://localhost:4000') + '/api/v1';
 const SELLER = '+971500000010';
 const ADMIN = '+971500000011';
+/** compose: the codespace stack (docker compose); ecs: a test environment in AWS. */
+const RUNNER = process.env.SEED_RUNNER ?? 'compose';
 
 /** The fixed codes, from the same variable identity reads. */
 const codes = new Map(
@@ -209,29 +214,36 @@ async function main() {
   };
 
   // Each code a number asks for doubles its wait for the next one, so reruns would soon wait for
-  // an hour: clear the sign-in limits first (test environment only, like everything here).
-  execFileSync(
-    'docker',
-    [
-      'compose',
-      'exec',
-      '-T',
-      'redis',
-      'sh',
-      '-c',
-      "redis-cli --scan --pattern 'identity:otp:*' | xargs -r redis-cli del > /dev/null",
-    ],
-    { stdio: 'inherit' },
-  );
+  // an hour: clear the sign-in limits first (test environment only, like everything here). An
+  // AWS test environment is new each time, so it has none to clear.
+  if (RUNNER === 'compose')
+    execFileSync(
+      'docker',
+      [
+        'compose',
+        'exec',
+        '-T',
+        'redis',
+        'sh',
+        '-c',
+        "redis-cli --scan --pattern 'identity:otp:*' | xargs -r redis-cli del > /dev/null",
+      ],
+      { stdio: 'inherit' },
+    );
 
   // The admin: signs up, gets the role from the identity container, signs in again for it.
   let admin = await signIn(ADMIN);
   if (!admin.user.roles.includes('admin')) {
-    execFileSync(
-      'docker',
-      ['compose', 'exec', '-T', 'identity', 'node', 'dist/scripts/grant-role.js', ADMIN, 'admin'],
-      { stdio: 'inherit' },
-    );
+    const grant = ['node', 'dist/scripts/grant-role.js', ADMIN, 'admin'];
+    if (RUNNER === 'ecs') {
+      execFileSync(
+        'bash',
+        ['infra/deploy/run-once.sh', process.env.SEED_TF_DIR, 'identity', ...grant],
+        { stdio: 'inherit' },
+      );
+    } else {
+      execFileSync('docker', ['compose', 'exec', '-T', 'identity', ...grant], { stdio: 'inherit' });
+    }
     admin = await signIn(ADMIN);
   }
   const adminToken = admin.accessToken;

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button, Modal, Skeleton } from '@am/ui';
 import type { Result } from '@/lib/result';
-import { useErrorText } from '../error-text';
+import { useErrorText } from './error-text';
 
 export interface DocumentViewerProps {
   title: string;

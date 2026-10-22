@@ -330,6 +330,12 @@ Location discovery and search, Contact, UAE specifics.
   > `grant-role <phone|email> admin` run (F0 note) rather than an env value: an env seed would
   > re-grant the role on every start after it was taken away. The reports queue comes with
   > F1-15, which stores reports.
+  > Note: part 2: products waiting for review (oldest first, by reviewed category) with photos,
+  > words in each language, prices, origin, the food declaration and the shop, approve or reject
+  > with the seller's reason; the category tree editor (names en/ar/fr, web address, parent within
+  > three levels and the same kind, review, food-declaration, checkout and on/off rules, order);
+  > emirate search switches with verified-shop and branch counts (confirmed, and warned when an
+  > emirate has no verified shop yet), and the search index rebuild.
 
 - [ ] **F1-15 Report listing** (depends on F1-12)
       Public "report this shop/product" (reason enum + text, optional sign-in), stored in the owning

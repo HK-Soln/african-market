@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button, Modal, Textarea } from '@am/ui';
 import type { Result } from '@/lib/result';
-import { useErrorText } from '../error-text';
+import { useErrorText } from './error-text';
 
 export interface DecisionDialogProps {
   /** A question: "Reject this shop?" */

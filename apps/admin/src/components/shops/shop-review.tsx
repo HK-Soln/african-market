@@ -14,7 +14,7 @@ import {
 } from '@/lib/review';
 import { shopsApi } from '@/lib/shops';
 import { useErrorText } from '../error-text';
-import { DecisionDialog } from './decision-dialog';
+import { DecisionDialog } from '../decision-dialog';
 import { BranchesSection, ProfileSection } from './shop-profile';
 import { KycBadge, ListingBadge } from './status';
 import { HistorySection, IdentitySection, LicenseSection } from './verification-sections';

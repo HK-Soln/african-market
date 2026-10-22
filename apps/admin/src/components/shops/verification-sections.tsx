@@ -13,8 +13,8 @@ import {
 } from '@/lib/review';
 import type { Result } from '@/lib/result';
 import { shopsApi } from '@/lib/shops';
-import { DecisionDialog } from './decision-dialog';
-import { DocumentViewer } from './document-viewer';
+import { DecisionDialog } from '../decision-dialog';
+import { DocumentViewer } from '../document-viewer';
 import { RequestBadge } from './status';
 
 /** A titled card section of the review page. */

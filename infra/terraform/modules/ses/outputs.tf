@@ -11,5 +11,5 @@ output "smtp_url" {
 
 output "dns_records" {
   description = "Records to add at the DNS provider when it is not Route 53."
-  value       = local.dns_records
+  value       = values(local.dns_records)
 }

@@ -25,22 +25,27 @@ resource "aws_sesv2_email_identity_mail_from_attributes" "this" {
 
 locals {
   region = data.aws_region.current.region
-  dns_records = concat(
-    [for token in aws_sesv2_email_identity.this.dkim_signing_attributes[0].tokens : {
-      name  = "${token}._domainkey.${var.domain}"
-      type  = "CNAME"
-      value = "${token}.dkim.amazonses.com"
-    }],
-    [
-      { name = "mail.${var.domain}", type = "MX", value = "10 feedback-smtp.${local.region}.amazonses.com" },
-      { name = "mail.${var.domain}", type = "TXT", value = "v=spf1 include:amazonses.com ~all" },
-      { name = "_dmarc.${var.domain}", type = "TXT", value = "v=DMARC1; p=none;" },
-    ],
+  tokens = aws_sesv2_email_identity.this.dkim_signing_attributes[0].tokens
+  # Keys are fixed, values come from SES: Terraform must know every key when it plans, before
+  # the identity (and so its DKIM tokens) exists. Easy DKIM always gives three tokens.
+  dns_records = merge(
+    {
+      for i in range(3) : "dkim-${i}" => {
+        name  = "${local.tokens[i]}._domainkey.${var.domain}"
+        type  = "CNAME"
+        value = "${local.tokens[i]}.dkim.amazonses.com"
+      }
+    },
+    {
+      mail-from-mx  = { name = "mail.${var.domain}", type = "MX", value = "10 feedback-smtp.${local.region}.amazonses.com" }
+      mail-from-spf = { name = "mail.${var.domain}", type = "TXT", value = "v=spf1 include:amazonses.com ~all" }
+      dmarc         = { name = "_dmarc.${var.domain}", type = "TXT", value = "v=DMARC1; p=none;" }
+    },
   )
 }
 
 resource "aws_route53_record" "this" {
-  for_each = var.route53_zone_id == null ? {} : { for record in local.dns_records : "${record.type} ${record.name}" => record }
+  for_each = var.route53_zone_id == null ? {} : local.dns_records
   zone_id  = var.route53_zone_id
   name     = each.value.name
   type     = each.value.type

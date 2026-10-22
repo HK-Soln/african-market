@@ -26,20 +26,34 @@ vars=(-var "domain=$DOMAIN" -var "ttl_hours=$TTL_HOURS" -var "scheduled_teardown
 
 section() { printf '\n== %s\n' "$*"; }
 
-# Sets every app's task count, then waits until ECS has done it: `scale stopped` (0 tasks) or
-# `scale running` (the counts in Terraform). Terraform sets a count only when it creates a
-# service (ignore_changes in modules/ecs-service), so this starts and stops existing apps.
+# Sets the task count of every service in the cluster, then waits until ECS has done it:
+# `scale stopped` (0 tasks) or `scale running` (the counts in Terraform's desired_counts).
+# Terraform sets a count only when it creates a service (ignore_changes in modules/ecs-service),
+# so this starts and stops existing apps. It goes by the services ECS has, not by the output:
+# outputs in the state are only as new as the last apply.
 scale() {
-  local cluster app count services
+  local cluster counts arn app count services i
   cluster="$(out cluster_name | jq -r .)"
-  while read -r app count; do
-    [ "$1" = running ] || count=0
-    aws ecs update-service --cluster "$cluster" --service "$app" --desired-count "$count" \
-      --query 'service.[serviceName,desiredCount]' --output text
-  done < <(out desired_counts | jq -r 'to_entries[] | "\(.key) \(.value)"')
+  [ "$1" = running ] && counts="$(out desired_counts)"
   mapfile -t services < <(aws ecs list-services --cluster "$cluster" \
-    --query 'serviceArns[]' --output text | tr '\t' '\n')
-  aws ecs wait services-stable --cluster "$cluster" --services "${services[@]}"
+    --query 'serviceArns[]' --output text | tr '\t' '\n' | sed '/^$/d')
+  for arn in "${services[@]}"; do
+    app="${arn##*/}"
+    count=0
+    if [ "$1" = running ]; then
+      count="$(jq -r --arg app "$app" '.[$app] // empty' <<< "$counts")"
+      if [ -z "$count" ]; then
+        echo "::warning::$app has no count in desired_counts; left as it is."
+        continue
+      fi
+    fi
+    aws ecs update-service --cluster "$cluster" --service "$arn" --desired-count "$count" \
+      --query 'service.[serviceName,desiredCount]' --output text
+  done
+  # The waiter takes at most 10 services at a time.
+  for ((i = 0; i < ${#services[@]}; i += 10)); do
+    aws ecs wait services-stable --cluster "$cluster" --services "${services[@]:i:10}"
+  done
 }
 
 # The test account only: the AWS profile is shared with other projects, so check whose
@@ -77,7 +91,7 @@ case "$action" in
     # so new code never meets an old schema. (Not a -target apply: that misses dependencies
     # Terraform cannot see, such as the internet gateway the load balancer needs.)
     # An `up` on an environment that is already up stops its apps first, for the same reason.
-    if out desired_counts > /dev/null 2>&1; then scale stopped; fi
+    if out cluster_name > /dev/null 2>&1; then scale stopped; fi
     vars+=(-var "image_tag=$tag")
     tf apply -input=false -auto-approve "${vars[@]}" -var apps_running=false
 

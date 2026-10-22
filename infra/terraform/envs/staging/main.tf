@@ -14,12 +14,23 @@ terraform {
 
 provider "aws" {
   region = var.region
+  # Only this environment's account: credentials for any other stop here.
+  allowed_account_ids = [var.aws_account_id]
   default_tags {
     tags = {
       Project     = "african-market"
       Environment = "staging"
       ManagedBy   = "terraform"
     }
+  }
+}
+
+variable "aws_account_id" {
+  description = "The staging AWS account; nothing else may be changed (CI: repository variable AWS_STAGING_ACCOUNT_ID)."
+  type        = string
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
+    error_message = "aws_account_id is a 12-digit AWS account id."
   }
 }
 

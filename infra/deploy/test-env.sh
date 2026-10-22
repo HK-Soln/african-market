@@ -26,6 +26,15 @@ vars=(-var "domain=$DOMAIN" -var "ttl_hours=$TTL_HOURS" -var "scheduled_teardown
 
 section() { printf '\n== %s\n' "$*"; }
 
+# The test account only: the AWS profile is shared with other projects, so check whose
+# credentials these are before anything else (Terraform's allowed_account_ids checks again).
+EXPECTED_ACCOUNT=726228202446
+account="$(aws sts get-caller-identity --query Account --output text)"
+if [ "$account" != "$EXPECTED_ACCOUNT" ]; then
+  echo "::error::Signed in to AWS account $account; test environments live in $EXPECTED_ACCOUNT only. Nothing was changed." >&2
+  exit 1
+fi
+
 tf init -input=false -reconfigure -backend-config=backend.tfbackend > /dev/null
 
 case "$action" in

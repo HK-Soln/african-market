@@ -177,6 +177,18 @@ When a directive is ambiguous, choose the option most consistent with `docs/PLAN
 above, note it under the task, and continue. Stop and ask the human only when a choice would change
 money flow, legal/regulatory posture, personal-data handling, or something irreversible in production.
 
+## AWS account guardrail
+
+The AWS CLI profile `aws-toolkit` is shared with other projects and can be signed in to another
+account. This project's test account is **726228202446** (`eu-north-1`, decision T-43).
+
+- Before any AWS call that creates, changes or deletes something for this project (Terraform,
+  the AWS MCP tools, the CLI), confirm `sts:GetCallerIdentity` returns this account; stop if not.
+- Terraform enforces it too: every AWS provider has `allowed_account_ids` (the test account in
+  `envs/test` and `bootstrap`, a required `aws_account_id` in staging and production), and
+  `infra/deploy/test-env.sh` checks the account before it starts.
+- Staging and production will be their own accounts; never point them at the test account.
+
 ## Things to never do
 
 - Push to `dev`, `stage` or `main`, or open a pull request that skips a step of feature → `dev` →

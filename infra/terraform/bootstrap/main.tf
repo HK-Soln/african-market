@@ -15,8 +15,20 @@ terraform {
 provider "aws" {
   region  = var.region
   profile = var.profile
+  # Stops at once if the credentials are for any other account.
+  allowed_account_ids = [var.account_id]
   default_tags {
     tags = { Project = "african-market", ManagedBy = "terraform", Stack = "bootstrap" }
+  }
+}
+
+variable "account_id" {
+  description = "The only AWS account this may change. The test account is 726228202446 (decision T-43); another account (staging, production) passes its own."
+  type        = string
+  default     = "726228202446"
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.account_id))
+    error_message = "account_id is a 12-digit AWS account id."
   }
 }
 

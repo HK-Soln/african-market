@@ -16,8 +16,11 @@ terraform {
 }
 
 # Credentials from the environment: AWS_PROFILE=aws-toolkit by hand, the runner's role in AWS.
+# Only the test account: a profile signed in to any other account stops here, before anything
+# is read or changed (the profile is shared with other projects).
 provider "aws" {
-  region = var.region
+  region              = var.region
+  allowed_account_ids = ["726228202446"]
   default_tags {
     tags = {
       Project     = "african-market"

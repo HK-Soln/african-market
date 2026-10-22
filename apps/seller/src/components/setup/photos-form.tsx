@@ -173,7 +173,6 @@ export function PhotosForm({
                       <IconButton
                         icon="chevron-left"
                         label={t('moveEarlier')}
-                        className="rtl:rotate-180"
                         onClick={() => move(index, -1)}
                       />
                     )}
@@ -181,7 +180,6 @@ export function PhotosForm({
                       <IconButton
                         icon="chevron-right"
                         label={t('moveLater')}
-                        className="rtl:rotate-180"
                         onClick={() => move(index, 1)}
                       />
                     )}

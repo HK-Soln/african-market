@@ -97,7 +97,6 @@ export function ProductPhotos({
                     <IconButton
                       icon="chevron-left"
                       label={p('moveEarlier')}
-                      className="rtl:rotate-180"
                       onClick={() => move(index, -1)}
                     />
                   )}

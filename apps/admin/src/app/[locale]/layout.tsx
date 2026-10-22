@@ -4,6 +4,7 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { textDirection, type Locale } from '@am/i18n';
 import { AccountMenu } from '@/components/account-menu';
+import { AdminNav } from '@/components/admin-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SessionProvider } from '@/components/session-provider';
 import { routing } from '@/i18n/routing';
@@ -59,6 +60,7 @@ export default async function LocaleLayout({
                 <LanguageSwitcher />
               </div>
             </header>
+            <AdminNav />
             {children}
           </SessionProvider>
         </NextIntlClientProvider>

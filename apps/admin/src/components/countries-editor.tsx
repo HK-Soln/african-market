@@ -17,6 +17,7 @@ import {
   Toggle,
 } from '@am/ui';
 import { browserApi } from '@/lib/browser-api';
+import { useDebounced } from '@/lib/use-debounced';
 
 interface Country {
   code: string;
@@ -327,14 +328,4 @@ function EditSheet({
       </form>
     </BottomSheet>
   );
-}
-
-/** The value once it has stopped changing for `ms`: one request per pause in typing. */
-function useDebounced<T>(value: T, ms: number): T {
-  const [settled, setSettled] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), ms);
-    return () => clearTimeout(timer);
-  }, [value, ms]);
-  return settled;
 }

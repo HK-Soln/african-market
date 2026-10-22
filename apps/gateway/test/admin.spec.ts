@@ -9,7 +9,7 @@ import { MessagePattern, Payload, Transport } from '@nestjs/microservices';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import type { AccessTokenClaims } from '@am/auth';
-import { CatalogPatterns, DiscoveryPatterns, ShopsPatterns } from '@am/contracts';
+import { CatalogPatterns, DiscoveryPatterns, MediaPatterns, ShopsPatterns } from '@am/contracts';
 
 const freePort = () =>
   new Promise<number>((resolve, reject) => {
@@ -30,7 +30,27 @@ class FakeServices {
   @MessagePattern(ShopsPatterns.decideListing)
   decide(@Payload() data: Record<string, unknown>) {
     calls.push({ pattern: ShopsPatterns.decideListing, data });
-    return { shop: { id: data.shopId }, requests: [] };
+    return { shop: { id: data.shopId, logoMediaId: null, galleryMediaIds: [] }, requests: [] };
+  }
+
+  @MessagePattern(ShopsPatterns.getVerification)
+  verification(@Payload() data: { shopId: string }) {
+    return {
+      shop: { id: data.shopId, logoMediaId: 'logo', galleryMediaIds: ['processing'] },
+      requests: [],
+    };
+  }
+
+  @MessagePattern(MediaPatterns.publicUrls)
+  urls(@Payload() data: { mediaIds: string[] }) {
+    // An image still being processed has no link yet.
+    return {
+      urls: Object.fromEntries(
+        data.mediaIds
+          .filter((id) => id !== 'processing')
+          .map((id) => [id, { card: `https://cdn.test/${id}` }]),
+      ),
+    };
   }
 
   @MessagePattern(ShopsPatterns.kycDocument)
@@ -141,6 +161,16 @@ describe('gateway admin routes (HTTP -> gateway -> TCP -> service stand-ins)', (
       .set('Authorization', `Bearer ${admin}`)
       .send({ decision: 'delete' })
       .expect(400);
+  });
+
+  it("shows a shop's verification with its photos' links", async () => {
+    const admin = await tokenFor(['admin']);
+    const res = await http()
+      .get(`/api/v1/admin/shops/${shopId}/verification`)
+      .set('Authorization', `Bearer ${admin}`)
+      .expect(200);
+    expect(res.headers['cache-control']).toBe('no-store');
+    expect(res.body.shop.imageUrls).toEqual({ logo: { card: 'https://cdn.test/logo' } });
   });
 
   it('streams an identity image without showing its link, and nothing that is not an image', async () => {

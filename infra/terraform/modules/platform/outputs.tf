@@ -45,7 +45,11 @@ output "cluster_name" {
 
 output "desired_counts" {
   description = "Tasks per ECS service when running. Terraform sets a count only when it creates a service (ignore_changes), so a script that starts the apps later uses these."
-  value       = { for app in keys(local.size) : app => lookup(var.app_sizes, app, local.default_size).desired_count }
+  # Only the apps that have a service in this phase.
+  value = {
+    for app in concat(["gateway"], keys(local.enabled_services), keys(local.next_apps)) :
+    app => lookup(var.app_sizes, app, local.default_size).desired_count
+  }
 }
 
 output "migration" {

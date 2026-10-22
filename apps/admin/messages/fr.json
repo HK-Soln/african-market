@@ -4,8 +4,10 @@
     "description": "Verification, moderation and categories"
   },
   "home": {
-    "tagline": "File de vérification, modération, catégories et journal d’audit.",
-    "queue": "File de vérification"
+    "tagline": "Vérifiez les boutiques, modérez les produits, gérez catégories et recherche, et voyez qui a fait quoi.",
+    "title": "Console d’administration",
+    "shopsHint": "Les boutiques en attente de vérification, et toutes les boutiques par statut ou par nom.",
+    "countriesHint": "Les pays d’inscription par téléphone, et les pays d’origine des produits."
   },
   "emirates": {
     "DXB": "Dubai",
@@ -99,7 +101,7 @@
     "VALIDATION_FAILED": "Vérifiez votre saisie et réessayez.",
     "IDENTITY_VALIDATION_FAILED": "Vérifiez votre saisie et réessayez.",
     "UPSTREAM_TIMEOUT": "Cela a pris trop de temps. Réessayez.",
-    "UPSTREAM_UNAVAILABLE": "La connexion est indisponible pour le moment. Réessayez dans quelques minutes.",
+    "UPSTREAM_UNAVAILABLE": "Indisponible pour le moment. Réessayez dans quelques minutes.",
     "PHONE_INVALID": "Saisissez un numéro de mobile valide, avec l’indicatif pour un numéro hors des Émirats.",
     "OTP_RESEND_TOO_SOON": "Nous venons d’envoyer un code. Vous pourrez en demander un autre dans {retryAfterSeconds} secondes.",
     "OTP_RATE_LIMITED": "Trop de codes demandés. Réessayez dans une heure.",
@@ -117,7 +119,18 @@
     "LOGIN_RATE_LIMITED": "Trop de tentatives de connexion. Réessayez dans 15 minutes ou réinitialisez votre mot de passe.",
     "EMAIL_SEND_FAILED": "Impossible d’envoyer l’e-mail. Réessayez.",
     "SESSION_INVALID": "Votre session est terminée. Reconnectez-vous.",
-    "SESSION_REUSED": "Par sécurité, vous avez été déconnecté. Reconnectez-vous."
+    "SESSION_REUSED": "Par sécurité, vous avez été déconnecté. Reconnectez-vous.",
+    "FORBIDDEN": "Ce compte ne peut pas faire cela.",
+    "SHOP_NOT_FOUND": "Cette boutique est introuvable.",
+    "VERIFICATION_ADMIN_ONLY": "Réservé aux administrateurs.",
+    "VERIFICATION_KYC_NOT_PASSED": "La vérification d’identité du propriétaire n’a pas encore réussi.",
+    "VERIFICATION_INVALID_TRANSITION": "Le statut de la boutique a changé entre-temps. Rechargez la page.",
+    "VERIFICATION_REASON_REQUIRED": "Écrivez le motif que le vendeur lira.",
+    "VERIFICATION_REQUEST_NOT_FOUND": "Cette demande est introuvable. Rechargez la page.",
+    "VERIFICATION_DOCUMENT_UNAVAILABLE": "Le prestataire n’a plus cette image.",
+    "VERIFICATION_PROVIDER_UNAVAILABLE": "Le prestataire de vérification est injoignable. Réessayez.",
+    "MEDIA_NOT_FOUND": "Ce document est introuvable.",
+    "AUTH_ROLE_REQUIRED": "Ce compte n’est pas administrateur."
   },
   "account": {
     "signIn": "Se connecter",
@@ -161,5 +174,176 @@
     "saveFailed": "Cette modification n’a pas été enregistrée. Réessayez.",
     "loadMore": "Afficher plus",
     "loading": "Chargement…"
+  },
+  "nav": {
+    "label": "Sections d’administration",
+    "shops": "Boutiques",
+    "countries": "Pays"
+  },
+  "shops": {
+    "title": "Boutiques",
+    "intro": "Les boutiques envoyées pour vérification attendent ici, les plus anciennes d’abord. Trouvez une boutique par son nom pour la suspendre ou la rétablir.",
+    "view": "Afficher",
+    "views": {
+      "pending": "En attente",
+      "verified": "En ligne",
+      "rejected": "Refusées",
+      "suspended": "Suspendues",
+      "all": "Toutes"
+    },
+    "search": "Rechercher par nom ou adresse web",
+    "queueEmpty": "Aucune boutique en attente de vérification",
+    "none": "Aucune boutique ne correspond",
+    "submittedAt": "Envoyée {when}",
+    "branchCount": "{n, plural, one {# point de vente} other {# points de vente}}",
+    "retry": "Réessayer",
+    "loadMore": "Afficher plus",
+    "loading": "Chargement",
+    "listing": {
+      "draft": "Brouillon",
+      "pending": "En attente de vérification",
+      "verified": "En ligne",
+      "rejected": "Refusée",
+      "suspended": "Suspendue"
+    },
+    "kyc": {
+      "none": "Identité non vérifiée",
+      "pending": "Vérification d’identité en cours",
+      "passed": "Identité vérifiée",
+      "failed": "Vérification d’identité échouée"
+    },
+    "request": {
+      "started": "Commencée",
+      "pending": "À décider",
+      "approved": "Acceptée",
+      "rejected": "Refusée",
+      "expired": "Expirée"
+    }
+  },
+  "review": {
+    "metaTitle": "Vérification de boutique",
+    "back": "Toutes les boutiques",
+    "submittedAt": "Envoyée pour vérification {when}",
+    "reason": "Motif donné au vendeur",
+    "viewPublic": "Ouvrir la page publique de la boutique",
+    "close": "Fermer",
+    "decision": {
+      "title": "Décision",
+      "kycFirst": "La boutique peut être mise en ligne une fois l’identité du propriétaire vérifiée.",
+      "approve": "Accepter",
+      "reject": "Refuser",
+      "suspend": "Suspendre",
+      "reinstate": "Rétablir",
+      "approveTitle": "Accepter cette boutique ?",
+      "approveBody": "Elle apparaît aussitôt dans la recherche, dans chaque émirat où la recherche est ouverte. Le vendeur est prévenu.",
+      "rejectTitle": "Refuser cette boutique ?",
+      "rejectBody": "Le vendeur lit votre motif, peut corriger la boutique et la renvoyer.",
+      "suspendTitle": "Suspendre cette boutique ?",
+      "suspendBody": "Elle quitte la recherche et sa page ferme aussitôt. Le vendeur lit votre motif.",
+      "reinstateTitle": "Rétablir cette boutique ?",
+      "reinstateBody": "Elle réapparaît aussitôt dans la recherche.",
+      "approveDone": "Boutique acceptée",
+      "rejectDone": "Boutique refusée",
+      "suspendDone": "Boutique suspendue",
+      "reinstateDone": "Boutique rétablie"
+    },
+    "identity": {
+      "title": "Vérification d’identité",
+      "notStarted": "Le propriétaire n’a pas commencé la vérification d’identité.",
+      "noResult": "Pas encore de résultat du prestataire.",
+      "concerns": "À regarder de près",
+      "concern": {
+        "notApproved": "Non acceptée par le prestataire",
+        "documentExpired": "Document expiré",
+        "idCheck": "Contrôle du document non réussi",
+        "liveness": "Détection du vivant non réussie",
+        "faceMatch": "Comparaison du visage non réussie"
+      },
+      "provider": "Décision du prestataire",
+      "fullName": "Nom sur le document",
+      "documentType": "Document",
+      "issuingState": "Délivré par",
+      "nationality": "Nationalité",
+      "documentExpiry": "Expiration du document",
+      "idStatus": "Contrôle du document",
+      "liveness": "Détection du vivant",
+      "faceMatch": "Comparaison du visage",
+      "warnings": "Alertes du prestataire",
+      "images": "Images",
+      "imagesHint": "Récupérées chez le prestataire à l’ouverture. Chaque consultation est enregistrée à votre nom.",
+      "kind": {
+        "id_front": "Recto de la pièce",
+        "id_back": "Verso de la pièce",
+        "portrait": "Photo de la pièce",
+        "selfie": "Selfie"
+      }
+    },
+    "license": {
+      "title": "Licence commerciale",
+      "none": "Aucune licence commerciale envoyée. Nécessaire seulement pour le paiement en ligne.",
+      "legalName": "Raison sociale",
+      "number": "Numéro de licence",
+      "authority": "Délivrée par",
+      "expiry": "Expiration",
+      "expired": "Expirée",
+      "expiresSoon": "Expire dans moins de 30 jours",
+      "reason": "Motif donné",
+      "document": "Ouvrir la licence",
+      "approve": "Accepter la licence",
+      "reject": "Refuser la licence",
+      "approveTitle": "Accepter cette licence commerciale ?",
+      "approveBody": "Les informations correspondent au document et la licence est valide. La raison sociale et le numéro s’affichent sur la page de la boutique.",
+      "rejectTitle": "Refuser cette licence commerciale ?",
+      "rejectBody": "Le vendeur lit votre motif et peut en envoyer une autre."
+    },
+    "profile": {
+      "title": "Page de la boutique",
+      "logo": "Logo",
+      "noLogo": "Pas de logo",
+      "photoN": "Photo {n}",
+      "processing": "{n, plural, one {# photo est} other {# photos sont}} encore en traitement.",
+      "description": {
+        "en": "Description en anglais",
+        "ar": "Description en arabe",
+        "fr": "Description en français"
+      },
+      "categories": "Catégories",
+      "origins": "Produits de",
+      "whatsapp": "WhatsApp",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "slug": "Adresse web"
+    },
+    "branches": {
+      "title": "{n, plural, one {Point de vente} other {Points de vente}}",
+      "none": "Aucun point de vente.",
+      "primary": "Point de vente principal",
+      "pickup": "Retrait",
+      "delivery": "Livre",
+      "noHours": "Pas d’horaires"
+    },
+    "history": {
+      "title": "Historique",
+      "none": "Rien pour l’instant.",
+      "type": {
+        "kyc": "Vérification d’identité",
+        "trade_license": "Licence commerciale"
+      },
+      "started": "Commencée {when}",
+      "decided": "décidée {when}"
+    }
+  },
+  "decision": {
+    "reason": "Motif",
+    "reasonHint": "Le vendeur le lit. Dites ce qu’il faut changer.",
+    "reasonRequired": "Écrivez le motif que le vendeur lira.",
+    "cancel": "Annuler",
+    "saving": "Enregistrement"
+  },
+  "documents": {
+    "close": "Fermer",
+    "loading": "Chargement du document",
+    "noPreview": "Ce document ne peut pas être affiché ici. Téléchargez-le.",
+    "download": "Télécharger"
   }
 }

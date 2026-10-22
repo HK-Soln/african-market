@@ -9,7 +9,7 @@
     "start": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next start -p 3002",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"no unit tests yet\""
+    "test": "jest"
   },
   "nx": {
     "tags": [

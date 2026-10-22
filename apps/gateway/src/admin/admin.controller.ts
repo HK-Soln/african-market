@@ -83,8 +83,18 @@ abstract class AdminBase {
 @Roles('admin')
 @Controller('admin')
 export class AdminVerificationController extends AdminBase {
-  constructor(caller: ServiceCaller) {
+  constructor(
+    caller: ServiceCaller,
+    private readonly links: MediaLinks,
+  ) {
     super(caller);
+  }
+
+  /** The shop's logo and gallery links, so the reviewer sees what customers would. */
+  private async withImages(overview: VerificationOverview): Promise<VerificationOverviewDto> {
+    const { shop } = overview;
+    const urls = await this.links.of([shop.logoMediaId, ...shop.galleryMediaIds]);
+    return { ...overview, shop: { ...shop, imageUrls: Object.fromEntries(urls) } };
   }
 
   @ApiOperation({
@@ -110,14 +120,16 @@ export class AdminVerificationController extends AdminBase {
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @Header('Cache-Control', 'no-store')
   @Get('shops/:shopId/verification')
-  get(
+  async get(
     @CurrentUser() user: AuthenticatedUser,
     @Param('shopId', ParseUUIDPipe) shopId: string,
-  ): Promise<VerificationOverview> {
-    return this.caller.call('shops', ShopsPatterns.getVerification, {
-      actor: actorOf(user),
-      shopId,
-    });
+  ): Promise<VerificationOverviewDto> {
+    return this.withImages(
+      await this.caller.call<VerificationOverview>('shops', ShopsPatterns.getVerification, {
+        actor: actorOf(user),
+        shopId,
+      }),
+    );
   }
 
   @ApiOperation({
@@ -128,17 +140,19 @@ export class AdminVerificationController extends AdminBase {
   @ApiParam({ name: 'shopId', format: 'uuid' })
   @Post('shops/:shopId/listing')
   @HttpCode(200)
-  decideListing(
+  async decideListing(
     @CurrentUser() user: AuthenticatedUser,
     @Param('shopId', ParseUUIDPipe) shopId: string,
     @Body() body: DecideListingBody,
     @Req() req: Request,
-  ): Promise<VerificationOverview> {
-    return this.caller.call('shops', ShopsPatterns.decideListing, {
-      ...body,
-      ...this.ctx(user, req),
-      shopId,
-    });
+  ): Promise<VerificationOverviewDto> {
+    return this.withImages(
+      await this.caller.call<VerificationOverview>('shops', ShopsPatterns.decideListing, {
+        ...body,
+        ...this.ctx(user, req),
+        shopId,
+      }),
+    );
   }
 
   @ApiOperation({ summary: 'Approve or reject a trade licence' })
@@ -147,19 +161,21 @@ export class AdminVerificationController extends AdminBase {
   @ApiParam({ name: 'requestId', format: 'uuid' })
   @Post('shops/:shopId/trade-license/:requestId')
   @HttpCode(200)
-  decideLicense(
+  async decideLicense(
     @CurrentUser() user: AuthenticatedUser,
     @Param('shopId', ParseUUIDPipe) shopId: string,
     @Param('requestId', ParseUUIDPipe) requestId: string,
     @Body() body: DecideBody,
     @Req() req: Request,
-  ): Promise<VerificationOverview> {
-    return this.caller.call('shops', ShopsPatterns.decideTradeLicense, {
-      ...body,
-      ...this.ctx(user, req),
-      shopId,
-      requestId,
-    });
+  ): Promise<VerificationOverviewDto> {
+    return this.withImages(
+      await this.caller.call<VerificationOverview>('shops', ShopsPatterns.decideTradeLicense, {
+        ...body,
+        ...this.ctx(user, req),
+        shopId,
+        requestId,
+      }),
+    );
   }
 
   @ApiOperation({

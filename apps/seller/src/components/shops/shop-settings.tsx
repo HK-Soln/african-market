@@ -84,7 +84,7 @@ export function ShopSettings({ shopId }: { shopId: string }) {
                     <span className="font-semibold">{row.label}</span>
                     <span className="text-sm text-ink-muted">{row.hint}</span>
                   </span>
-                  <Icon name="chevron-right" className="shrink-0 text-ink-muted rtl:rotate-180" />
+                  <Icon name="chevron-right" className="shrink-0 text-ink-muted" />
                 </Link>
               </li>
             ))}

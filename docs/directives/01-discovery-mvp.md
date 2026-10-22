@@ -319,6 +319,16 @@ Location discovery and search, Contact, UAE specifics.
       product moderation queue for food/restricted categories, reports queue, category tree editor
       (en/ar/fr names), emirate search switches with live verified-shop counts, shop search and suspend,
       audit log viewer.
+  > Note: part 1: the console's sections, the shops queue (waiting shops oldest first; live,
+  > rejected, suspended or all, and search by name or web address) and one shop's review: the
+  > identity check with what deserves a second look (provider decision, expired document, failed
+  > checks), its four images opened one at a time from the gateway's stream (each view recorded,
+  > shown from memory, never an `<img src>` link), the trade licence with its document and
+  > decision, the page customers would see, branches and history; approve, reject, suspend and
+  > reinstate with the reason the seller reads. The first admin stays a one-off
+  > `grant-role <phone|email> admin` run (F0 note) rather than an env value: an env seed would
+  > re-grant the role on every start after it was taken away. The reports queue comes with
+  > F1-15, which stores reports.
 
 - [ ] **F1-15 Report listing** (depends on F1-12)
       Public "report this shop/product" (reason enum + text, optional sign-in), stored in the owning

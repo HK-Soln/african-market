@@ -4,8 +4,10 @@
     "description": "Verification, moderation and categories"
   },
   "home": {
-    "tagline": "Verification queue, moderation, categories and audit log.",
-    "queue": "Verification queue"
+    "tagline": "Review shops, moderate products, run categories and search, and see who did what.",
+    "title": "Admin console",
+    "shopsHint": "Shops waiting for review, and every shop by status or name.",
+    "countriesHint": "Where people may sign up by phone, and the countries goods come from."
   },
   "emirates": {
     "DXB": "Dubai",
@@ -99,7 +101,7 @@
     "VALIDATION_FAILED": "Check what you entered and try again.",
     "IDENTITY_VALIDATION_FAILED": "Check what you entered and try again.",
     "UPSTREAM_TIMEOUT": "That took too long. Try again.",
-    "UPSTREAM_UNAVAILABLE": "Sign-in is unavailable right now. Try again in a few minutes.",
+    "UPSTREAM_UNAVAILABLE": "This is unavailable right now. Try again in a few minutes.",
     "PHONE_INVALID": "Enter a valid mobile number, including the country code for a number outside the UAE.",
     "OTP_RESEND_TOO_SOON": "We sent a code a moment ago. You can ask for another in {retryAfterSeconds} seconds.",
     "OTP_RATE_LIMITED": "Too many codes requested. Try again in an hour.",
@@ -117,7 +119,18 @@
     "LOGIN_RATE_LIMITED": "Too many sign-in attempts. Try again in 15 minutes or reset your password.",
     "EMAIL_SEND_FAILED": "We couldn’t send the email. Try again.",
     "SESSION_INVALID": "Your session has ended. Sign in again.",
-    "SESSION_REUSED": "For your safety you were signed out. Sign in again."
+    "SESSION_REUSED": "For your safety you were signed out. Sign in again.",
+    "FORBIDDEN": "This account cannot do that.",
+    "SHOP_NOT_FOUND": "This shop was not found.",
+    "VERIFICATION_ADMIN_ONLY": "Only admins can do this.",
+    "VERIFICATION_KYC_NOT_PASSED": "The owner's identity check has not passed yet.",
+    "VERIFICATION_INVALID_TRANSITION": "The shop's status changed meanwhile. Reload the page.",
+    "VERIFICATION_REASON_REQUIRED": "Write the reason the seller will read.",
+    "VERIFICATION_REQUEST_NOT_FOUND": "This request was not found. Reload the page.",
+    "VERIFICATION_DOCUMENT_UNAVAILABLE": "The provider no longer has this image.",
+    "VERIFICATION_PROVIDER_UNAVAILABLE": "The identity provider could not be reached. Try again.",
+    "MEDIA_NOT_FOUND": "This document was not found.",
+    "AUTH_ROLE_REQUIRED": "This account is not an admin."
   },
   "account": {
     "signIn": "Sign in",
@@ -161,5 +174,176 @@
     "saveFailed": "That change was not saved. Try again.",
     "loadMore": "Load more",
     "loading": "Loading…"
+  },
+  "nav": {
+    "label": "Admin sections",
+    "shops": "Shops",
+    "countries": "Countries"
+  },
+  "shops": {
+    "title": "Shops",
+    "intro": "Shops sent for review wait here, oldest first. Find any shop by name to suspend or reinstate it.",
+    "view": "Show",
+    "views": {
+      "pending": "Waiting",
+      "verified": "Live",
+      "rejected": "Rejected",
+      "suspended": "Suspended",
+      "all": "All"
+    },
+    "search": "Search by shop name or web address",
+    "queueEmpty": "No shop is waiting for review",
+    "none": "No shop matches",
+    "submittedAt": "Sent {when}",
+    "branchCount": "{n, plural, one {# branch} other {# branches}}",
+    "retry": "Try again",
+    "loadMore": "Load more",
+    "loading": "Loading",
+    "listing": {
+      "draft": "Draft",
+      "pending": "Waiting for review",
+      "verified": "Live",
+      "rejected": "Rejected",
+      "suspended": "Suspended"
+    },
+    "kyc": {
+      "none": "Identity not checked",
+      "pending": "Identity check under way",
+      "passed": "Identity checked",
+      "failed": "Identity check failed"
+    },
+    "request": {
+      "started": "Started",
+      "pending": "To decide",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    }
+  },
+  "review": {
+    "metaTitle": "Shop review",
+    "back": "All shops",
+    "submittedAt": "Sent for review {when}",
+    "reason": "Reason given to the seller",
+    "viewPublic": "Open the shop's public page",
+    "close": "Close",
+    "decision": {
+      "title": "Decision",
+      "kycFirst": "The shop can go live once the owner's identity check has passed.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "suspend": "Suspend",
+      "reinstate": "Reinstate",
+      "approveTitle": "Approve this shop?",
+      "approveBody": "It appears in search at once, in every emirate where search is open. The seller is told.",
+      "rejectTitle": "Reject this shop?",
+      "rejectBody": "The seller reads your reason, can fix the shop and send it again.",
+      "suspendTitle": "Suspend this shop?",
+      "suspendBody": "It leaves search and its page closes at once. The seller reads your reason.",
+      "reinstateTitle": "Reinstate this shop?",
+      "reinstateBody": "It appears in search again at once.",
+      "approveDone": "Shop approved",
+      "rejectDone": "Shop rejected",
+      "suspendDone": "Shop suspended",
+      "reinstateDone": "Shop reinstated"
+    },
+    "identity": {
+      "title": "Identity check",
+      "notStarted": "The owner has not started the identity check.",
+      "noResult": "No result from the identity provider yet.",
+      "concerns": "Worth a second look",
+      "concern": {
+        "notApproved": "Provider did not approve",
+        "documentExpired": "Document expired",
+        "idCheck": "Document check not passed",
+        "liveness": "Liveness not passed",
+        "faceMatch": "Face match not passed"
+      },
+      "provider": "Provider's decision",
+      "fullName": "Name on the document",
+      "documentType": "Document",
+      "issuingState": "Issued by",
+      "nationality": "Nationality",
+      "documentExpiry": "Document expiry",
+      "idStatus": "Document check",
+      "liveness": "Liveness",
+      "faceMatch": "Face match",
+      "warnings": "Provider's warnings",
+      "images": "Images",
+      "imagesHint": "Fetched from the provider when you open one. Each view is recorded with your name.",
+      "kind": {
+        "id_front": "ID front",
+        "id_back": "ID back",
+        "portrait": "Photo on the ID",
+        "selfie": "Selfie"
+      }
+    },
+    "license": {
+      "title": "Trade licence",
+      "none": "No trade licence sent. Only needed for online checkout.",
+      "legalName": "Legal name",
+      "number": "Licence number",
+      "authority": "Issued by",
+      "expiry": "Expiry",
+      "expired": "Expired",
+      "expiresSoon": "Expires within 30 days",
+      "reason": "Reason given",
+      "document": "Open the licence",
+      "approve": "Approve licence",
+      "reject": "Reject licence",
+      "approveTitle": "Approve this trade licence?",
+      "approveBody": "The details match the document and the licence is valid. The legal name and number show on the shop's page.",
+      "rejectTitle": "Reject this trade licence?",
+      "rejectBody": "The seller reads your reason and can send another."
+    },
+    "profile": {
+      "title": "Shop page",
+      "logo": "Logo",
+      "noLogo": "No logo",
+      "photoN": "Photo {n}",
+      "processing": "{n, plural, one {# photo is} other {# photos are}} still being processed.",
+      "description": {
+        "en": "Description in English",
+        "ar": "Description in Arabic",
+        "fr": "Description in French"
+      },
+      "categories": "Categories",
+      "origins": "Goods from",
+      "whatsapp": "WhatsApp",
+      "phone": "Phone",
+      "email": "Email",
+      "slug": "Web address"
+    },
+    "branches": {
+      "title": "{n, plural, one {Branch} other {Branches}}",
+      "none": "No branch yet.",
+      "primary": "Main branch",
+      "pickup": "Pickup",
+      "delivery": "Delivers",
+      "noHours": "No opening hours"
+    },
+    "history": {
+      "title": "History",
+      "none": "Nothing yet.",
+      "type": {
+        "kyc": "Identity check",
+        "trade_license": "Trade licence"
+      },
+      "started": "Started {when}",
+      "decided": "decided {when}"
+    }
+  },
+  "decision": {
+    "reason": "Reason",
+    "reasonHint": "The seller reads this. Say what to change.",
+    "reasonRequired": "Write the reason the seller will read.",
+    "cancel": "Cancel",
+    "saving": "Saving"
+  },
+  "documents": {
+    "close": "Close",
+    "loading": "Loading the document",
+    "noPreview": "This document cannot be shown here. Download it instead.",
+    "download": "Download"
   }
 }

@@ -49,9 +49,13 @@ COPY --from=build --chown=node:node /repo/apps/${APP}/dist ./dist
 COPY --chown=node:node infra/docker/healthcheck.cjs infra/docker/service-entrypoint.sh ./
 # AWS's certificate authorities for RDS, so DATABASE_URL can verify the server
 # (sslmode=verify-full&sslrootcert=/app/certs/rds-global-bundle.pem). Unused locally.
-ADD --chown=node:node --chmod=444 \
-    https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem /app/certs/rds-global-bundle.pem
+# Not ADD --chmod: BuildKit gives the directory it creates the same mode (444, no x), and the
+# app user could not open the file inside.
+ADD https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem /app/certs/rds-global-bundle.pem
+RUN chmod 755 /app/certs && chmod 444 /app/certs/rds-global-bundle.pem
 USER node
+# Fails the build, not the first deploy, if the app user cannot read it.
+RUN head -c 1 /app/certs/rds-global-bundle.pem > /dev/null
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
     CMD ["node", "healthcheck.cjs"]
 ENTRYPOINT ["sh", "service-entrypoint.sh"]

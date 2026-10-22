@@ -138,6 +138,12 @@ variable "github_repository" {
   default = "HK-Soln/african-market"
 }
 
+variable "github_subject_prefix" {
+  description = "How GitHub names this repository in its OIDC tokens. The repository uses immutable subjects (owner and repository ids, so a renamed or re-created repository cannot take the role): `gh api repos/<owner>/<repo>/actions/oidc/customization/sub` shows it as sub_claim_prefix."
+  type        = string
+  default     = "repo:HK-Soln@290608801/african-market@1412969868"
+}
+
 variable "deploy_environment" {
   description = "The GitHub environment that deploys to this account: test, staging or production."
   type        = string
@@ -172,7 +178,7 @@ resource "aws_iam_role" "deploy" {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           "token.actions.githubusercontent.com:sub" = [
             for env in concat([var.deploy_environment], var.extra_github_environments) :
-            "repo:${var.github_repository}:environment:${env}"
+            "${var.github_subject_prefix}:environment:${env}"
           ]
         }
       }

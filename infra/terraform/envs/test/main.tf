@@ -1,7 +1,8 @@
 # A throwaway test environment (decision T-43): made-up data only, any region, smallest sizes,
-# and it deletes itself: three hours after it is created, a one-time schedule starts the
-# runner (bootstrap: african-market-env) with ACTION=down. Brought up and down by that runner
-# (infra/deploy/test-env.sh), or by hand with the same script.
+# gone three hours after it was created: GitHub's teardown check (every 30 minutes) runs `reap`,
+# and with scheduled_teardown a one-time AWS schedule also starts the CodeBuild runner with
+# ACTION=down. Brought up and down by infra/deploy/test-env.sh (GitHub Actions, CodeBuild, or
+# by hand).
 
 terraform {
   required_version = ">= 1.10"
@@ -57,6 +58,12 @@ variable "ttl_hours" {
     condition     = var.ttl_hours >= 1 && var.ttl_hours <= 3
     error_message = "A test environment lives one to three hours."
   }
+}
+
+variable "scheduled_teardown" {
+  description = "Also carry a one-time AWS schedule that starts the CodeBuild runner with ACTION=down. Needs CodeBuild builds allowed in the account (its quota starts at 0)."
+  type        = bool
+  default     = false
 }
 
 variable "runner_project" {
@@ -121,10 +128,12 @@ locals {
 data "aws_caller_identity" "current" {}
 
 data "aws_iam_role" "scheduler" {
-  name = "${var.runner_project}-scheduler"
+  count = var.scheduled_teardown ? 1 : 0
+  name  = "${var.runner_project}-scheduler"
 }
 
 resource "aws_scheduler_schedule" "teardown" {
+  count       = var.scheduled_teardown ? 1 : 0
   name        = "am-test-teardown"
   description = "Deletes the test environment ${var.ttl_hours} hours after it was created"
   # One run, then the schedule removes itself (the destroy removes it from the state too).
@@ -138,7 +147,7 @@ resource "aws_scheduler_schedule" "teardown" {
 
   target {
     arn      = "arn:aws:scheduler:::aws-sdk:codebuild:startBuild"
-    role_arn = data.aws_iam_role.scheduler.arn
+    role_arn = data.aws_iam_role.scheduler[0].arn
     input = jsonencode({
       ProjectName = var.runner_project
       EnvironmentVariablesOverride = [

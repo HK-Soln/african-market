@@ -42,6 +42,10 @@ jobs:
     timeout-minutes: 75
     env:
       ACTION: ${{ github.event_name == 'schedule' && 'reap' || inputs.action }}
+      # Google Maps for the customer and seller sites (variables of the `test` environment): a
+      # browser key, limited in Google Cloud to https://*.am.amahkudi.dev/*, and a map id.
+      GOOGLE_MAPS_BROWSER_KEY: ${{ vars.GOOGLE_MAPS_BROWSER_KEY }}
+      GOOGLE_MAP_ID: ${{ vars.GOOGLE_MAP_ID }}
     steps:
       - name: Is AWS set up?
         id: ready

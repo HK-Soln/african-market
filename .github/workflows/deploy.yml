@@ -115,6 +115,7 @@ jobs:
             echo "REGISTRY=$repo"
             echo "NEXT_PUBLIC_GATEWAY_URL=$(jq -r .NEXT_PUBLIC_GATEWAY_URL <<<"$args")"
             echo "NEXT_PUBLIC_WEB_URL=$(jq -r .NEXT_PUBLIC_WEB_URL <<<"$args")"
+            echo "NEXT_PUBLIC_SELLER_URL=$(jq -r .NEXT_PUBLIC_SELLER_URL <<<"$args")"
             echo "NEXT_PUBLIC_SENTRY_DSN=$(jq -r .NEXT_PUBLIC_SENTRY_DSN <<<"$args")"
             echo "NEXT_PUBLIC_SENTRY_ENVIRONMENT=$(jq -r .NEXT_PUBLIC_SENTRY_ENVIRONMENT <<<"$args")"
             echo "NEXT_PUBLIC_GOOGLE_MAPS_KEY=$(jq -r .NEXT_PUBLIC_GOOGLE_MAPS_KEY <<<"$args")"

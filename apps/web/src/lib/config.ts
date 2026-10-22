@@ -12,6 +12,7 @@ function required(value: string | undefined, name: string): string {
 
 const gatewayUrl = required(process.env.NEXT_PUBLIC_GATEWAY_URL, 'NEXT_PUBLIC_GATEWAY_URL');
 const webUrl = required(process.env.NEXT_PUBLIC_WEB_URL, 'NEXT_PUBLIC_WEB_URL');
+const sellerUrl = required(process.env.NEXT_PUBLIC_SELLER_URL, 'NEXT_PUBLIC_SELLER_URL');
 const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN || undefined;
 const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || undefined;
 
@@ -20,6 +21,8 @@ export const config = {
   gatewayUrl,
   /** This site's public address: canonical links, the sitemap, shared links and WhatsApp messages. */
   webUrl: webUrl.replace(/\/+$/, ''),
+  /** The seller app, where "For sellers" leads. */
+  sellerUrl,
   /**
    * The gateway as this app's server reaches it: inside the VPC in AWS, so not public. The same
    * as the browser's address when unset (locally).

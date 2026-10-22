@@ -27,6 +27,10 @@ variable "NEXT_PUBLIC_WEB_URL" {
   default = ""
 }
 
+variable "NEXT_PUBLIC_SELLER_URL" {
+  default = ""
+}
+
 # Error reports from the Next apps (F0-15); empty means none. The environment names where they
 # are filed and is required with a DSN.
 variable "NEXT_PUBLIC_SENTRY_DSN" {
@@ -71,6 +75,7 @@ target "_next" {
   args = {
     NEXT_PUBLIC_GATEWAY_URL        = NEXT_PUBLIC_GATEWAY_URL
     NEXT_PUBLIC_WEB_URL            = NEXT_PUBLIC_WEB_URL
+    NEXT_PUBLIC_SELLER_URL         = NEXT_PUBLIC_SELLER_URL
     NEXT_PUBLIC_SENTRY_DSN         = NEXT_PUBLIC_SENTRY_DSN
     NEXT_PUBLIC_SENTRY_ENVIRONMENT = NEXT_PUBLIC_SENTRY_ENVIRONMENT
     NEXT_PUBLIC_GOOGLE_MAPS_KEY    = NEXT_PUBLIC_GOOGLE_MAPS_KEY

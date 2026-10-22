@@ -7,6 +7,7 @@ import { LocationProvider } from '@/components/location/location-provider';
 import { HomeSearch, NearYou } from '@/components/search/home-search';
 import { SearchDataProvider } from '@/components/search/search-data';
 import { Link } from '@/i18n/navigation';
+import { config } from '@/lib/config';
 import { serverLocation } from '@/lib/location/server';
 import { MapsProvider } from '@/lib/maps';
 import { DEFAULT_SEARCH, searchQueryString } from '@/lib/search/params';
@@ -79,7 +80,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <EmirateChoices />
             </section>
 
-            <LinkButton href="http://localhost:3001" variant="ghost" className="self-start">
+            <LinkButton href={config.sellerUrl} variant="ghost" className="self-start">
               {t('forSellers')}
             </LinkButton>
           </main>

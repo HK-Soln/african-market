@@ -26,6 +26,22 @@ vars=(-var "domain=$DOMAIN" -var "ttl_hours=$TTL_HOURS" -var "scheduled_teardown
 
 section() { printf '\n== %s\n' "$*"; }
 
+# Sets every app's task count, then waits until ECS has done it: `scale stopped` (0 tasks) or
+# `scale running` (the counts in Terraform). Terraform sets a count only when it creates a
+# service (ignore_changes in modules/ecs-service), so this starts and stops existing apps.
+scale() {
+  local cluster app count services
+  cluster="$(out cluster_name | jq -r .)"
+  while read -r app count; do
+    [ "$1" = running ] || count=0
+    aws ecs update-service --cluster "$cluster" --service "$app" --desired-count "$count" \
+      --query 'service.[serviceName,desiredCount]' --output text
+  done < <(out desired_counts | jq -r 'to_entries[] | "\(.key) \(.value)"')
+  mapfile -t services < <(aws ecs list-services --cluster "$cluster" \
+    --query 'serviceArns[]' --output text | tr '\t' '\n')
+  aws ecs wait services-stable --cluster "$cluster" --services "${services[@]}"
+}
+
 # The test account only: the AWS profile is shared with other projects, so check whose
 # credentials these are before anything else (Terraform's allowed_account_ids checks again).
 EXPECTED_ACCOUNT=726228202446
@@ -60,6 +76,8 @@ case "$action" in
     # Everything, with every app at 0 tasks: the apps start only after the migrations (step 5),
     # so new code never meets an old schema. (Not a -target apply: that misses dependencies
     # Terraform cannot see, such as the internet gateway the load balancer needs.)
+    # An `up` on an environment that is already up stops its apps first, for the same reason.
+    if out desired_counts > /dev/null 2>&1; then scale stopped; fi
     vars+=(-var "image_tag=$tag")
     tf apply -input=false -auto-approve "${vars[@]}" -var apps_running=false
 
@@ -67,11 +85,7 @@ case "$action" in
     bash infra/deploy/run-migrations.sh "$TF"
 
     section "5/6 Apps"
-    tf apply -input=false -auto-approve "${vars[@]}" -var apps_running=true
-    cluster="$(out cluster_name | jq -r .)"
-    mapfile -t services < <(aws ecs list-services --cluster "$cluster" \
-      --query 'serviceArns[]' --output text | tr '\t' '\n')
-    aws ecs wait services-stable --cluster "$cluster" --services "${services[@]}"
+    scale running
 
     section "6/6 Made-up shops"
     secret="$(out otp_test_numbers_secret | jq -r .)"

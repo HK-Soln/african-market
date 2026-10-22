@@ -1,0 +1,35 @@
+# Dependabot's minor and patch updates merge on their own once every required check passes; major
+# updates wait for a person. This only turns on auto-merge: the branch rules still decide.
+#
+# When several Dependabot PRs are open, the next one falls behind dev after one merges; comment
+# `@dependabot rebase` on it (Dependabot takes commands from people, not from workflows).
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: What kind of update?
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # For a group, update-type is the largest update in it.
+      - name: Turn on auto-merge (minor and patch only)
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Major update
+        if: steps.meta.outputs.update-type == 'version-update:semver-major'
+        run: echo "::notice::A major update (${{ steps.meta.outputs.dependency-names }}); it waits for a review."

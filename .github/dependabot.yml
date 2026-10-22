@@ -46,3 +46,7 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    # One PR a week for every action, so updates do not queue behind each other.
+    groups:
+      github-actions:
+        patterns: ['*']

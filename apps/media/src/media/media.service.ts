@@ -260,10 +260,26 @@ export class MediaService {
     });
     const document = object?.files.document;
     if (!object || !document) throw mediaError(MediaErrors.notFound);
-    await this.dataSource.manager.insert(MediaAccessLog, {
-      mediaId: object.id,
-      actorId: input.actor.userId,
-      correlationId: input.correlationId ?? null,
+    await this.dataSource.transaction(async (manager) => {
+      await manager.insert(MediaAccessLog, {
+        mediaId: object.id,
+        actorId: input.actor.userId,
+        correlationId: input.correlationId ?? null,
+      });
+      // The admin audit log (decision T-42).
+      await this.outbox.enqueue(
+        manager,
+        'audit.recorded',
+        {
+          actorId: input.actor.userId,
+          action: 'document.downloaded',
+          subjectType: 'media',
+          subjectId: object.id,
+          shopId: object.shopId,
+          details: { purpose: object.purpose },
+        },
+        input.correlationId,
+      );
     });
     const extension = document.contentType === 'application/pdf' ? 'pdf' : 'webp';
     const filename = `${object.purpose}-${object.id}.${extension}`;

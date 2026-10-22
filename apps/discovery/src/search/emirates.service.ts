@@ -1,20 +1,29 @@
 import { DataSource } from 'typeorm';
 import {
+  ActorClaims,
   DiscoveryErrors,
   EmirateDto,
   EmirateList,
   ListEmiratesRequest,
+  RebuildSearchResponse,
   SetEmirateSearchRequest,
 } from '@am/contracts';
 import { AppRpcException } from '@am/core';
+import { OutboxService } from '@am/database';
 import { EMIRATES } from '@am/geo';
 import { EmirateSearch } from '../entities';
 
 const isAdmin = (actor?: { roles: string[] }) => Boolean(actor?.roles.includes('admin'));
 
-/** The emirates and the switch that opens customer search in each. */
+/**
+ * The emirates and the switch that opens customer search in each, and the admin audit log
+ * entries (decision T-42) for discovery's admin actions.
+ */
 export class EmiratesService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly outbox: OutboxService,
+  ) {}
 
   async list(input: ListEmiratesRequest): Promise<EmirateList> {
     const settings = new Map(
@@ -47,11 +56,47 @@ export class EmiratesService {
       throw AppRpcException.forbidden(DiscoveryErrors.adminOnly, 'Only an admin can do this');
     if (!EMIRATES.some((e) => e.code === input.code))
       throw AppRpcException.badRequest(DiscoveryErrors.validationFailed, 'No such emirate');
-    await this.dataSource.manager.update(
-      EmirateSearch,
-      { code: input.code },
-      { searchOpen: input.open, changedBy: input.actor.userId, changedAt: new Date() },
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(
+        EmirateSearch,
+        { code: input.code },
+        { searchOpen: input.open, changedBy: input.actor.userId, changedAt: new Date() },
+      );
+      await this.outbox.enqueue(
+        manager,
+        'audit.recorded',
+        {
+          actorId: input.actor.userId,
+          action: input.open ? 'emirate.search_opened' : 'emirate.search_closed',
+          subjectType: 'emirate',
+          subjectId: input.code,
+          shopId: null,
+          details: {},
+        },
+        input.correlationId,
+      );
+    });
     return this.list({ actor: input.actor });
+  }
+
+  /** A finished rebuild of the search index, on the audit log. */
+  async recordRebuild(
+    actor: ActorClaims,
+    result: RebuildSearchResponse,
+    correlationId?: string,
+  ): Promise<void> {
+    await this.outbox.enqueue(
+      this.dataSource.manager,
+      'audit.recorded',
+      {
+        actorId: actor.userId,
+        action: 'search.rebuilt',
+        subjectType: 'search',
+        subjectId: 'index',
+        shopId: null,
+        details: { ...result },
+      },
+      correlationId,
+    );
   }
 }

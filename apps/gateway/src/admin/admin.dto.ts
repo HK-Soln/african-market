@@ -13,6 +13,13 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import {
+  AUDIT_ACTIONS,
+  AUDIT_SUBJECTS,
+  type AuditAction,
+  type AuditDetails,
+  type AuditSubject,
+} from '@am/contracts';
 
 export class DecideListingBody {
   @ApiProperty({
@@ -116,4 +123,33 @@ export class RebuildResponseDto {
   @ApiProperty() branches!: number;
   @ApiProperty() products!: number;
   @ApiProperty({ description: 'Rows of shops no longer verified, or gone' }) removed!: number;
+}
+
+// ---- Audit log ---------------------------------------------------------------------------
+
+export class AuditEntryDto {
+  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty({ description: 'The service that recorded it' }) source!: string;
+  @ApiProperty({ type: String, nullable: true, format: 'uuid', description: 'Null: no person' })
+  actorId!: string | null;
+  @ApiProperty({ type: String, nullable: true, description: "The admin's name now" })
+  actorName!: string | null;
+  @ApiProperty({ enum: AUDIT_ACTIONS }) action!: AuditAction;
+  @ApiProperty({ enum: AUDIT_SUBJECTS }) subjectType!: AuditSubject;
+  @ApiProperty({ description: 'An id, or a code for an emirate or a country' }) subjectId!: string;
+  @ApiProperty({ type: String, nullable: true, format: 'uuid' }) shopId!: string | null;
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { oneOf: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }] },
+    description: 'Small facts: a reason, a document kind, what changed',
+  })
+  details!: AuditDetails;
+  @ApiProperty({ type: String, nullable: true }) correlationId!: string | null;
+  @ApiProperty({ format: 'date-time' }) occurredAt!: string;
+}
+
+export class AuditPageDto {
+  @ApiProperty({ type: [AuditEntryDto] }) items!: AuditEntryDto[];
+  @ApiProperty({ type: String, nullable: true }) nextCursor!: string | null;
+  @ApiProperty({ type: String, nullable: true }) prevCursor!: string | null;
 }

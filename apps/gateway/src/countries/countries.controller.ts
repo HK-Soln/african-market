@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Header, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, Patch, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import {
   ApiBearerAuth,
   ApiCookieAuth,
@@ -7,7 +8,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Public, Roles } from '@am/auth';
+import { AuthenticatedUser, CurrentUser, Public, Roles } from '@am/auth';
 import {
   COUNTRY_LIST_SPEC,
   CountryDto as Country,
@@ -15,7 +16,9 @@ import {
   IdentityPatterns,
   type ListQuery,
 } from '@am/contracts';
+import { actorOf } from '../common/actor';
 import { ApiListQuery, ListQueryParams } from '../common/list-query';
+import { correlationId } from '../common/request-context';
 import { ServiceCaller } from '../common/service-caller';
 import { CountryDto, CountryPageDto, UpdateCountryDto } from './countries.dto';
 
@@ -61,7 +64,17 @@ export class AdminCountriesController {
   @ApiParam({ name: 'code', example: 'NG' })
   @ApiOkResponse({ type: CountryDto })
   @Patch(':code')
-  update(@Param('code') code: string, @Body() body: UpdateCountryDto): Promise<CountryDto> {
-    return this.caller.call<Country>('identity', IdentityPatterns.updateCountry, { ...body, code });
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('code') code: string,
+    @Body() body: UpdateCountryDto,
+    @Req() req: Request,
+  ): Promise<CountryDto> {
+    return this.caller.call<Country>('identity', IdentityPatterns.updateCountry, {
+      ...body,
+      code,
+      actor: actorOf(user),
+      correlationId: correlationId(req),
+    });
   }
 }

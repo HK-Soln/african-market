@@ -2,13 +2,13 @@
 
 Phase introduced: **0** (see `docs/directives/`).
 
-|                            |                                                                                                |
-| -------------------------- | ---------------------------------------------------------------------------------------------- |
-| Owns                       | Users, credentials, OTP, sessions and refresh tokens, roles, shop memberships, saved addresses |
-| Tables (schema `identity`) | user, credential, otp_challenge, session (refresh token family), shop_member, address          |
-| Publishes                  | `user.registered`, `user.deleted`, `membership.changed`                                        |
-| Consumes                   | `shop.created` (makes the creator owner and seller, then `membership.changed`)                 |
-| Ports (dev)                | TCP and HTTP from `SERVICES.identity` in `libs/contracts/src/services.ts`                      |
+|                            |                                                                                                                        |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Owns                       | Users, credentials, OTP, sessions and refresh tokens, roles, shop memberships, saved addresses                         |
+| Tables (schema `identity`) | user, credential, otp_challenge, session (refresh token family), shop_member, address                                  |
+| Publishes                  | `user.registered`, `user.deleted`, `membership.changed`                                                                |
+| Consumes                   | `shop.created` (makes the creator owner and seller, then `membership.changed`); `audit.recorded` (the admin audit log) |
+| Ports (dev)                | TCP and HTTP from `SERVICES.identity` in `libs/contracts/src/services.ts`                                              |
 
 ## Phone sign-up and sign-in (F0-03)
 

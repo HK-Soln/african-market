@@ -6,6 +6,7 @@ import {
   ListCategoriesRequest,
   UpsertCategoryRequest,
 } from '@am/contracts';
+import { OutboxService } from '@am/database';
 import { Category } from '../entities';
 import { catalogError, invalid } from '../errors';
 import { requireAdmin } from './access';
@@ -74,7 +75,10 @@ export function treeOrder(categories: Category[]): Category[] {
 }
 
 export class CategoriesService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly outbox: OutboxService,
+  ) {}
 
   /** The tree; a category under an inactive parent is left out with it. */
   async list(input: ListCategoriesRequest): Promise<CategoryList> {
@@ -167,7 +171,30 @@ export class CategoriesService {
       if (input.sort !== undefined) category.sort = input.sort;
       if (input.active !== undefined) category.active = input.active;
 
-      return toCategoryDto(await manager.save(category));
+      const created = !category.id;
+      const saved = await manager.save(category);
+      // The admin audit log (decision T-42): what the category is now.
+      await this.outbox.enqueue(
+        manager,
+        'audit.recorded',
+        {
+          actorId: input.actor.userId,
+          action: created ? 'category.created' : 'category.updated',
+          subjectType: 'category',
+          subjectId: saved.id,
+          shopId: null,
+          details: {
+            slug: saved.slug,
+            parentId: saved.parentId,
+            isRestricted: saved.isRestricted,
+            requiresDeclaration: saved.requiresDeclaration,
+            checkoutAllowed: saved.checkoutAllowed,
+            active: saved.active,
+          },
+        },
+        input.correlationId,
+      );
+      return toCategoryDto(saved);
     });
   }
 

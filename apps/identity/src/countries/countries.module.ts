@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CountriesController } from './countries.controller';
+import { AuditService } from '../audit/audit.service';
 import { CountriesService } from './countries.service';
 
 /** Global: phone sign-up checks the number's country. */
@@ -11,8 +12,9 @@ import { CountriesService } from './countries.service';
   providers: [
     {
       provide: CountriesService,
-      inject: [getDataSourceToken()],
-      useFactory: (dataSource: DataSource) => new CountriesService(dataSource),
+      inject: [getDataSourceToken(), AuditService],
+      useFactory: (dataSource: DataSource, audit: AuditService) =>
+        new CountriesService(dataSource, audit),
     },
   ],
   exports: [CountriesService],

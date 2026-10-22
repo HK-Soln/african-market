@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { normalizePhone } from '@am/contracts';
 import { PlatformRole } from '@am/auth';
 import { createCliDataSource } from '@am/database';
+import { AuditService } from '../audit/audit.service';
 import { dataSourceConfig } from '../data-source';
 import { User } from '../entities';
 
@@ -29,16 +30,34 @@ async function main(argv: string[]): Promise<void> {
 
   const db = await createCliDataSource(dataSourceConfig).initialize();
   try {
-    const users = db.getRepository(User);
     const phone = normalizePhone(who);
-    const user = await users.findOneBy(phone ? { phone } : { email: who.trim() });
-    if (!user) throw new Error(`No account with ${phone ?? who}; they must sign up first`);
+    const roles = await db.transaction(async (manager) => {
+      const user = await manager.findOne(User, {
+        where: phone ? { phone } : { email: who.trim() },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!user) throw new Error(`No account with ${phone ?? who}; they must sign up first`);
 
-    const roles = new Set(user.roles);
-    if (revoke) roles.delete(role as PlatformRole);
-    else roles.add(role as PlatformRole);
-    await users.update({ id: user.id }, { roles: [...roles] });
-    console.log(`${user.id}: roles are now ${[...roles].join(', ') || '(none)'}`);
+      const next = new Set(user.roles);
+      if (revoke) next.delete(role as PlatformRole);
+      else next.add(role as PlatformRole);
+      await manager.update(User, { id: user.id }, { roles: [...next] });
+      // On the audit log with no actor: it was run on the server, not done by an admin in the app.
+      await new AuditService(db).record(
+        manager,
+        {
+          actorId: null,
+          action: revoke ? 'user.role_revoked' : 'user.role_granted',
+          subjectType: 'user',
+          subjectId: user.id,
+          shopId: null,
+          details: { role },
+        },
+        { source: 'identity-cli' },
+      );
+      return { id: user.id, roles: [...next] };
+    });
+    console.log(`${roles.id}: roles are now ${roles.roles.join(', ') || '(none)'}`);
   } finally {
     await db.destroy();
   }

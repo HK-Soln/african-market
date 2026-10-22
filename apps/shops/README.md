@@ -6,7 +6,7 @@ Phase introduced: **1** (see `docs/directives/`).
 | ----------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Owns                    | Shops, branches, opening hours, special hours, service areas, KYC and verification status, contact-tap events |
 | Tables (schema `shops`) | shop, branch, opening_hours, special_hours, verification_request, contact_event                               |
-| Publishes               | `shop.created`, `shop.updated`, `shop.verified`, `branch.updated`                                             |
+| Publishes               | `shop.created`, `shop.updated`, `shop.verified`, `branch.updated`, `audit.recorded` (admin actions)           |
 | Consumes                | `user.deleted` (deletes the provider's identity session at erasure time)                                      |
 | Ports (dev)             | TCP and HTTP from `SERVICES.shops` in `libs/contracts/src/services.ts`                                        |
 

@@ -1,3 +1,5 @@
+import { AUDIT_ACTIONS } from '@am/contracts';
+import { ACTION_GROUPS, auditQuery, subjectHref } from './audit';
 import {
   categoryTree,
   parentOptions,
@@ -189,5 +191,33 @@ describe('priceRange and reviewQuery', () => {
       limit: 20,
       cursor: 'x',
     });
+  });
+});
+
+describe('audit', () => {
+  it('groups every action once', () => {
+    expect(ACTION_GROUPS.flatMap((g) => g.actions).sort()).toEqual([...AUDIT_ACTIONS].sort());
+  });
+
+  it('asks for the newest entries, of an action and a shop if chosen', () => {
+    expect(auditQuery('', null)).toEqual({ sort: '-occurredAt', limit: 50 });
+    expect(auditQuery('product.rejected', 's1', 'c')).toEqual({
+      'filter[action]': 'product.rejected',
+      'filter[shopId]': 's1',
+      sort: '-occurredAt',
+      limit: 50,
+      cursor: 'c',
+    });
+  });
+
+  it('links an entry to where its subject is', () => {
+    expect(subjectHref({ subjectType: 'shop', subjectId: 's1', shopId: 's1' })).toBe('/shops/s1');
+    expect(subjectHref({ subjectType: 'product', subjectId: 'p1', shopId: 's1' })).toBe(
+      '/shops/s1',
+    );
+    expect(subjectHref({ subjectType: 'emirate', subjectId: 'DXB', shopId: null })).toBe(
+      '/emirates',
+    );
+    expect(subjectHref({ subjectType: 'user', subjectId: 'u1', shopId: null })).toBeNull();
   });
 });

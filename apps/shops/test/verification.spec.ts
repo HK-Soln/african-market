@@ -197,6 +197,18 @@ describe('seller verification (PostGIS)', () => {
           codEnabled: false,
         },
       ]);
+      // On the admin audit log too (identity keeps it).
+      const recorded = (await db.getRepository(OutboxMessage).findBy({ name: 'audit.recorded' }))
+        .map((e) => (e.envelope as { payload: { shopId: string } }).payload)
+        .filter((p) => p.shopId === shop.id);
+      expect(recorded).toContainEqual({
+        actorId: expect.any(String),
+        action: 'shop.listing_approved',
+        subjectType: 'shop',
+        subjectId: shop.id,
+        shopId: shop.id,
+        details: { reason: null },
+      });
       expect(await auditOf(shop.id)).toEqual([
         'kyc_started',
         'submitted',
@@ -524,6 +536,19 @@ describe('seller verification (PostGIS)', () => {
         .findBy({ shopId: shop.id, action: 'document_viewed' });
       expect(views.map((v) => [v.actorId, v.details, v.correlationId])).toEqual(
         expect.arrayContaining([[reviewer.userId, { kind: 'id_front' }, 'req-7']]),
+      );
+      const recorded = (
+        await db.getRepository(OutboxMessage).findBy({ name: 'audit.recorded' })
+      ).map((e) => e.envelope as { correlationId?: string; payload: Record<string, unknown> });
+      expect(recorded).toContainEqual(
+        expect.objectContaining({
+          correlationId: 'req-7',
+          payload: expect.objectContaining({
+            actorId: reviewer.userId,
+            action: 'shop.kyc_document_viewed',
+            details: { kind: 'id_front', requestId },
+          }),
+        }),
       );
     });
   });

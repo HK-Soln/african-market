@@ -511,6 +511,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The audit log of admin actions
+         * @description Newest first. Decisions, documents opened, category, search and country changes, roles.
+         */
+        get: operations["AdminAuditController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contact-events": {
         parameters: {
             query?: never;
@@ -1642,6 +1662,39 @@ export interface components {
             products: number;
             /** @description Rows of shops no longer verified, or gone */
             removed: number;
+        };
+        AuditEntryDto: {
+            /** Format: uuid */
+            id: string;
+            /** @description The service that recorded it */
+            source: string;
+            /**
+             * Format: uuid
+             * @description Null: no person
+             */
+            actorId: string | null;
+            /** @description The admin's name now */
+            actorName: string | null;
+            /** @enum {string} */
+            action: "shop.listing_approved" | "shop.listing_rejected" | "shop.listing_suspended" | "shop.listing_reinstated" | "shop.license_approved" | "shop.license_rejected" | "shop.kyc_document_viewed" | "product.approved" | "product.rejected" | "category.created" | "category.updated" | "emirate.search_opened" | "emirate.search_closed" | "search.rebuilt" | "document.downloaded" | "country.updated" | "user.role_granted" | "user.role_revoked";
+            /** @enum {string} */
+            subjectType: "shop" | "product" | "category" | "emirate" | "search" | "media" | "country" | "user";
+            /** @description An id, or a code for an emirate or a country */
+            subjectId: string;
+            /** Format: uuid */
+            shopId: string | null;
+            /** @description Small facts: a reason, a document kind, what changed */
+            details: {
+                [key: string]: string | number | boolean;
+            };
+            correlationId: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        AuditPageDto: {
+            items: components["schemas"]["AuditEntryDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
         };
         RecordContactDto: {
             /** Format: uuid */
@@ -2947,6 +3000,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RebuildResponseDto"];
+                };
+            };
+        };
+    };
+    AdminAuditController_list_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked) */
+                "filter[action]"?: string;
+                /** @description enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked), comma-separated */
+                "filter[action][in]"?: string;
+                /** @description enum (shop, product, category, emirate, search, media, country, user) */
+                "filter[subjectType]"?: string;
+                /** @description enum (shop, product, category, emirate, search, media, country, user), comma-separated */
+                "filter[subjectType][in]"?: string;
+                /** @description string */
+                "filter[subjectId]"?: string;
+                /** @description uuid */
+                "filter[shopId]"?: string;
+                /** @description uuid */
+                "filter[actorId]"?: string;
+                /** @description date */
+                "filter[occurredAt][gte]"?: string;
+                /** @description date */
+                "filter[occurredAt][lt]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: occurredAt. Default: -occurredAt. */
+                sort?: string;
+                /** @description Page size, default 50, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPageDto"];
                 };
             };
         };

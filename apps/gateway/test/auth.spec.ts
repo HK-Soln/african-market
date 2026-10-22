@@ -313,10 +313,13 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
         .send({ phoneEnabled: true, name: { en: 'France' } })
         .expect(200);
       expect(updated.body).toMatchObject({ code: 'FR', phoneEnabled: true });
+      // With the admin and the request id, for the audit log.
       expect(FakeIdentityController.last(IdentityPatterns.updateCountry)).toEqual({
         code: 'fr',
         phoneEnabled: true,
         name: { en: 'France' },
+        actor: expect.objectContaining({ roles: ['customer', 'admin'] }),
+        correlationId: expect.any(String),
       });
     });
 

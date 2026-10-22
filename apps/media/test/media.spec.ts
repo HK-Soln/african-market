@@ -320,6 +320,20 @@ describe('media service (Postgres + MinIO)', () => {
       const response = await fetch(access.url);
       expect(response.headers.get('content-disposition')).toContain('attachment');
       expect(Buffer.from(await response.arrayBuffer())).toEqual(pdf);
+      const recorded = (await db.getRepository(OutboxMessage).findBy({ name: 'audit.recorded' }))
+        .map((e) => e.envelope as { correlationId?: string; payload: { subjectId: string } })
+        .filter((e) => e.payload.subjectId === result.id);
+      expect(recorded).toEqual([
+        expect.objectContaining({
+          correlationId: 'req-1',
+          payload: expect.objectContaining({
+            actorId: admin.userId,
+            action: 'document.downloaded',
+            subjectType: 'media',
+            details: { purpose: 'trade_license' },
+          }),
+        }),
+      ]);
       expect(await db.getRepository(MediaAccessLog).findBy({ mediaId: result.id })).toEqual([
         expect.objectContaining({ actorId: admin.userId, correlationId: 'req-1' }),
       ]);

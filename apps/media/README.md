@@ -6,7 +6,7 @@ Phase introduced: **1** (see `docs/directives/`). Design: decision T-27 in `docs
 | ----------------------- | ---------------------------------------------------------------------- |
 | Owns                    | Uploads, checking and re-encoding files, the three buckets, CDN URLs   |
 | Tables (schema `media`) | media_object, media_access_log                                         |
-| Publishes               | `media.ready`                                                          |
+| Publishes               | `media.ready`, `audit.recorded` (admin actions)                        |
 | Consumes                | `user.deleted` (deletes the avatar and unused uploads at once)         |
 | Ports (dev)             | TCP and HTTP from `SERVICES.media` in `libs/contracts/src/services.ts` |
 

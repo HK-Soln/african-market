@@ -8,6 +8,7 @@ import {
   UpdateCountryRequest,
 } from '@am/contracts';
 import { findPage } from '@am/database';
+import { AuditService } from '../audit/audit.service';
 import { Country } from '../entities';
 import { identityError } from '../errors';
 
@@ -42,7 +43,10 @@ const COLUMNS = {
 
 /** Countries: reference data the apps list and admins edit. */
 export class CountriesService implements PhoneCountryPolicy {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly audit: AuditService,
+  ) {}
 
   private get repo() {
     return this.dataSource.getRepository(Country);
@@ -65,14 +69,38 @@ export class CountriesService implements PhoneCountryPolicy {
     return this.page(query, false);
   }
 
+  /** An admin's change, recorded in the audit log in the same transaction. */
   async update(input: UpdateCountryRequest): Promise<CountryDto> {
-    const country = await this.repo.findOneBy({ code: input.code.toUpperCase() });
-    if (!country) throw identityError(IdentityErrors.countryNotFound);
-    if (input.name) country.name = { ...country.name, ...input.name };
-    if (input.phoneEnabled !== undefined) country.phoneEnabled = input.phoneEnabled;
-    if (input.originEnabled !== undefined) country.originEnabled = input.originEnabled;
-    if (input.sortOrder !== undefined) country.sortOrder = input.sortOrder;
-    return toDto(await this.repo.save(country));
+    return this.dataSource.transaction(async (manager) => {
+      const country = await manager.findOne(Country, {
+        where: { code: input.code.toUpperCase() },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!country) throw identityError(IdentityErrors.countryNotFound);
+      if (input.name) country.name = { ...country.name, ...input.name };
+      if (input.phoneEnabled !== undefined) country.phoneEnabled = input.phoneEnabled;
+      if (input.originEnabled !== undefined) country.originEnabled = input.originEnabled;
+      if (input.sortOrder !== undefined) country.sortOrder = input.sortOrder;
+      const saved = await manager.save(country);
+      await this.audit.record(
+        manager,
+        {
+          actorId: input.actor?.userId ?? null,
+          action: 'country.updated',
+          subjectType: 'country',
+          subjectId: saved.code,
+          shopId: null,
+          details: {
+            phoneEnabled: saved.phoneEnabled,
+            originEnabled: saved.originEnabled,
+            sortOrder: saved.sortOrder,
+            renamed: Boolean(input.name),
+          },
+        },
+        { source: 'identity', correlationId: input.correlationId },
+      );
+      return toDto(saved);
+    });
   }
 
   async allowsNewPhone(e164: string): Promise<boolean> {

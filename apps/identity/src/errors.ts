@@ -19,6 +19,7 @@ const STATUS: Partial<Record<IdentityErrorCode, number>> = {
   [IdentityErrors.socialTokenInvalid]: 401,
   [IdentityErrors.socialProviderDisabled]: 404,
   [IdentityErrors.socialProviderUnavailable]: 503,
+  [IdentityErrors.adminOnly]: 403,
 };
 
 /** Developer-facing text. Frontends show their own translated message for the code. */
@@ -51,6 +52,7 @@ const MESSAGE: Record<IdentityErrorCode, string> = {
   [IdentityErrors.socialProviderDisabled]: 'That sign-in option is not available',
   [IdentityErrors.socialProviderUnavailable]:
     'The sign-in provider could not be reached; try again',
+  [IdentityErrors.adminOnly]: 'Only an admin can do this',
 };
 
 /** The one place identity turns an error code into what goes back over TCP. */

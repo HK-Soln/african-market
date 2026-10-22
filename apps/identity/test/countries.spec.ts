@@ -3,6 +3,7 @@ import Redis from 'ioredis';
 import { DataSource } from 'typeorm';
 import { COUNTRY_LIST_SPEC, IdentityErrors, parseListQuery } from '@am/contracts';
 import { OutboxService } from '@am/database';
+import { AuditService } from '../src/audit/audit.service';
 import { CountriesService } from '../src/countries/countries.service';
 import { Country, User } from '../src/entities';
 import { OtpChallenges } from '../src/otp/otp-challenges';
@@ -16,6 +17,7 @@ import { createTestDatabase, TestDatabase } from './support/test-database';
 const key = `${randomUUID()}${randomUUID()}`;
 
 /** A list request in the standard format, as the gateway would pass it. */
+const admin = { userId: randomUUID(), roles: ['customer', 'admin'], shops: [] };
 const q = (raw: Record<string, string> = {}) => parseListQuery(raw, COUNTRY_LIST_SPEC);
 
 async function errorOf(promise: Promise<unknown>) {
@@ -60,7 +62,7 @@ describe('countries (Postgres)', () => {
     testDb = await createTestDatabase();
     db = testDb.db;
     redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379');
-    countries = new CountriesService(db);
+    countries = new CountriesService(db, new AuditService(db));
   }, 60_000);
 
   afterAll(async () => {
@@ -143,6 +145,8 @@ describe('countries (Postgres)', () => {
 
   it('lets an admin rename, reorder and switch a country', async () => {
     const updated = await countries.update({
+      actor: admin,
+      correlationId: 'req-country',
       code: 'fr',
       name: { en: 'France (test)' },
       phoneEnabled: true,
@@ -159,6 +163,21 @@ describe('countries (Postgres)', () => {
     // Sort order 5 ties with Ethiopia; ties go by English name.
     expect(listed.indexOf('FR')).toBeGreaterThan(listed.indexOf('KE'));
     expect(listed).toContain('FR');
+
+    // On record, with who did it.
+    const audit = await new AuditService(db).list(admin, {
+      filters: [{ field: 'subjectId', op: 'eq', value: 'FR' }],
+      sort: [{ field: 'occurredAt', direction: 'desc' }],
+      limit: 10,
+    });
+    expect(audit.items[0]).toMatchObject({
+      source: 'identity',
+      actorId: admin.userId,
+      action: 'country.updated',
+      subjectType: 'country',
+      details: { phoneEnabled: true, sortOrder: 5, renamed: true },
+      correlationId: 'req-country',
+    });
 
     await countries.update({
       code: 'FR',

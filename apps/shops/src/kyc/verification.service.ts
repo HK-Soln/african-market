@@ -1,6 +1,8 @@
 import { DataSource, EntityManager, In, IsNull, LessThan, Not } from 'typeorm';
 import {
   ActorClaims,
+  AuditAction,
+  AuditDetails,
   DecideListingRequest,
   DecideTradeLicenseRequest,
   GetVerificationRequest,
@@ -269,6 +271,14 @@ export class VerificationService {
         { reason },
         input.correlationId,
       );
+      await this.adminAudit(
+        manager,
+        input.actor,
+        `shop.${AUDIT_ACTION[input.decision]}` as AuditAction,
+        shop.id,
+        { reason },
+        input.correlationId,
+      );
       await this.outbox.enqueue(
         manager,
         'shop.verified',
@@ -311,6 +321,14 @@ export class VerificationService {
         { reason },
         input.correlationId,
       );
+      await this.adminAudit(
+        manager,
+        input.actor,
+        input.decision === 'approve' ? 'shop.license_approved' : 'shop.license_rejected',
+        request.shopId,
+        { reason, requestId: request.id },
+        input.correlationId,
+      );
     });
     return this.overview(input.shopId, input.actor);
   }
@@ -325,15 +343,25 @@ export class VerificationService {
     });
     if (!request?.providerSessionId || request.erasedAt)
       throw verificationError(VerificationErrors.requestNotFound);
-    await this.audit(
-      this.dataSource.manager,
-      request.shopId,
-      request.id,
-      input.actor.userId,
-      'document_viewed',
-      { kind: input.kind },
-      input.correlationId,
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await this.audit(
+        manager,
+        request.shopId,
+        request.id,
+        input.actor.userId,
+        'document_viewed',
+        { kind: input.kind },
+        input.correlationId,
+      );
+      await this.adminAudit(
+        manager,
+        input.actor,
+        'shop.kyc_document_viewed',
+        request.shopId,
+        { kind: input.kind, requestId: request.id },
+        input.correlationId,
+      );
+    });
     const decision = await this.providerCall(() =>
       this.provider.getDecision(request.providerSessionId!),
     );
@@ -492,6 +520,23 @@ export class VerificationService {
         throw verificationError(VerificationErrors.providerUnavailable);
       throw err;
     }
+  }
+
+  /** The admin audit log (decision T-42), published with the action it records. */
+  private adminAudit(
+    manager: EntityManager,
+    actor: ActorClaims,
+    action: AuditAction,
+    shopId: string,
+    details: AuditDetails,
+    correlationId?: string,
+  ) {
+    return this.outbox.enqueue(
+      manager,
+      'audit.recorded',
+      { actorId: actor.userId, action, subjectType: 'shop', subjectId: shopId, shopId, details },
+      correlationId,
+    );
   }
 
   private audit(

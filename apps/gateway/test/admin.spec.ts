@@ -9,7 +9,13 @@ import { MessagePattern, Payload, Transport } from '@nestjs/microservices';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import type { AccessTokenClaims } from '@am/auth';
-import { CatalogPatterns, DiscoveryPatterns, MediaPatterns, ShopsPatterns } from '@am/contracts';
+import {
+  CatalogPatterns,
+  DiscoveryPatterns,
+  IdentityPatterns,
+  MediaPatterns,
+  ShopsPatterns,
+} from '@am/contracts';
 
 const freePort = () =>
   new Promise<number>((resolve, reject) => {
@@ -65,6 +71,12 @@ class FakeServices {
     return { id: randomUUID(), ...data };
   }
 
+  @MessagePattern(IdentityPatterns.listAudit)
+  audit(@Payload() data: Record<string, unknown>) {
+    calls.push({ pattern: IdentityPatterns.listAudit, data });
+    return { items: [], nextCursor: null, prevCursor: null };
+  }
+
   @MessagePattern(DiscoveryPatterns.setEmirateSearch)
   emirate(@Payload() data: Record<string, unknown>) {
     calls.push({ pattern: DiscoveryPatterns.setEmirateSearch, data });
@@ -102,7 +114,7 @@ describe('gateway admin routes (HTTP -> gateway -> TCP -> service stand-ins)', (
     providerBase = `http://127.0.0.1:${(provider.address() as AddressInfo).port}`;
 
     const port = await freePort();
-    for (const name of ['SHOPS', 'CATALOG', 'DISCOVERY', 'MEDIA']) {
+    for (const name of ['SHOPS', 'CATALOG', 'DISCOVERY', 'MEDIA', 'IDENTITY']) {
       process.env[`${name}_TCP_PORT`] = String(port);
       process.env[`${name}_HOST`] = '127.0.0.1';
     }
@@ -220,5 +232,33 @@ describe('gateway admin routes (HTTP -> gateway -> TCP -> service stand-ins)', (
       pattern: DiscoveryPatterns.setEmirateSearch,
       data: { code: 'DXB', open: true },
     });
+  });
+
+  it('lists the audit log for admins, with the filters as a list query', async () => {
+    const admin = await tokenFor(['admin']);
+    const seller = await tokenFor(['seller']);
+    await http().get('/api/v1/admin/audit').set('Authorization', `Bearer ${seller}`).expect(403);
+    await http()
+      .get(`/api/v1/admin/audit?filter[shopId]=${shopId}&filter[action][in]=shop.listing_approved`)
+      .set('Authorization', `Bearer ${admin}`)
+      .expect(200);
+    expect(calls.at(-1)).toMatchObject({
+      pattern: IdentityPatterns.listAudit,
+      data: {
+        actor: { roles: ['admin'] },
+        query: {
+          filters: expect.arrayContaining([
+            { field: 'action', op: 'in', value: ['shop.listing_approved'] },
+            { field: 'shopId', op: 'eq', value: shopId },
+          ]),
+          sort: [{ field: 'occurredAt', direction: 'desc' }],
+          limit: 50,
+        },
+      },
+    });
+    await http()
+      .get('/api/v1/admin/audit?filter[action]=shop.deleted')
+      .set('Authorization', `Bearer ${admin}`)
+      .expect(400);
   });
 });

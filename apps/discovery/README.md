@@ -6,7 +6,7 @@ Phase introduced: **1** (see `docs/directives/`).
 | --------------------------- | ------------------------------------------------------------------------------------------------- |
 | Owns                        | Denormalised geo search read model (branches joined with shop and product data), ranking, filters |
 | Tables (schema `discovery`) | search_branch, search_product, search_category, search_media (read model only)                    |
-| Publishes                   | none                                                                                              |
+| Publishes                   | `audit.recorded` (admin actions)                                                                  |
 | Consumes                    | `shop.*`, `branch.updated`, `product.*`, `media.ready`                                            |
 | Ports (dev)                 | TCP and HTTP from `SERVICES.discovery` in `libs/contracts/src/services.ts`                        |
 

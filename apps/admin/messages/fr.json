@@ -10,7 +10,8 @@
     "countriesHint": "Les pays d’inscription par téléphone, et les pays d’origine des produits.",
     "productsHint": "Les produits alimentaires et réglementés en attente de vérification avant d’apparaître.",
     "categoriesHint": "L’arbre des catégories dans chaque langue, et celles qui sont vérifiées.",
-    "emiratesHint": "Ouvrir la recherche par émirat, et reconstruire l’index de recherche."
+    "emiratesHint": "Ouvrir la recherche par émirat, et reconstruire l’index de recherche.",
+    "auditHint": "Qui a fait quoi dans cette console, et quand."
   },
   "emirates": {
     "DXB": "Dubai",
@@ -140,7 +141,8 @@
     "PRODUCT_REASON_REQUIRED": "Écrivez le motif que le vendeur lira.",
     "CATEGORY_NOT_FOUND": "Cette catégorie est introuvable. Rechargez la page.",
     "CATEGORY_INVALID": "Ce changement ne convient pas à l’arbre des catégories.",
-    "CATALOG_TOO_MANY_CATEGORIES": "Le catalogue a atteint le nombre maximal de catégories."
+    "CATALOG_TOO_MANY_CATEGORIES": "Le catalogue a atteint le nombre maximal de catégories.",
+    "IDENTITY_ADMIN_ONLY": "Réservé aux administrateurs."
   },
   "account": {
     "signIn": "Se connecter",
@@ -191,7 +193,8 @@
     "countries": "Pays",
     "products": "Produits",
     "categories": "Catégories",
-    "emirates": "Émirats"
+    "emirates": "Émirats",
+    "audit": "Journal d’audit"
   },
   "shops": {
     "title": "Boutiques",
@@ -344,7 +347,8 @@
       },
       "started": "Commencée {when}",
       "decided": "décidée {when}"
-    }
+    },
+    "auditLog": "Journal d’audit de cette boutique"
   },
   "decision": {
     "reason": "Motif",
@@ -483,5 +487,78 @@
     "rebuildConfirmBody": "Chaque boutique vérifiée est relue. Cela peut prendre quelques minutes ; la recherche continue de fonctionner.",
     "rebuilt": "Reconstruit : {shops} boutiques, {products} produits, {removed} retirés",
     "dismiss": "Masquer"
+  },
+  "audit": {
+    "title": "Journal d’audit",
+    "intro": "Chaque décision, document ouvert et réglage modifié par un administrateur, du plus récent au plus ancien. Les entrées ne sont jamais modifiées ni supprimées.",
+    "action": "Action",
+    "allActions": "Toutes les actions",
+    "oneShop": "Une boutique",
+    "allShops": "Afficher toutes les boutiques",
+    "empty": "Rien d’enregistré pour l’instant",
+    "retry": "Réessayer",
+    "loadMore": "Afficher plus",
+    "loading": "Chargement",
+    "by": "Par {who}",
+    "anAdmin": "un administrateur",
+    "server": "une commande sur le serveur",
+    "reason": "Motif",
+    "request": "Requête",
+    "area": {
+      "shop": "Boutiques",
+      "product": "Produits",
+      "category": "Catégories",
+      "emirate": "Émirats",
+      "search": "Recherche",
+      "document": "Documents",
+      "country": "Pays",
+      "user": "Comptes"
+    },
+    "subject": {
+      "shop": "Boutique",
+      "product": "Boutique du produit",
+      "category": "Catégories",
+      "emirate": "Émirat",
+      "search": "Recherche",
+      "media": "Boutique du document",
+      "country": "Pays",
+      "user": "Compte"
+    },
+    "actions": {
+      "shop": {
+        "listing_approved": "Boutique acceptée",
+        "listing_rejected": "Boutique refusée",
+        "listing_suspended": "Boutique suspendue",
+        "listing_reinstated": "Boutique rétablie",
+        "license_approved": "Licence commerciale acceptée",
+        "license_rejected": "Licence commerciale refusée",
+        "kyc_document_viewed": "Image d’identité consultée"
+      },
+      "product": {
+        "approved": "Produit accepté",
+        "rejected": "Produit refusé"
+      },
+      "category": {
+        "created": "Catégorie ajoutée",
+        "updated": "Catégorie modifiée"
+      },
+      "emirate": {
+        "search_opened": "Recherche ouverte",
+        "search_closed": "Recherche fermée"
+      },
+      "search": {
+        "rebuilt": "Index de recherche reconstruit"
+      },
+      "document": {
+        "downloaded": "Document privé ouvert"
+      },
+      "country": {
+        "updated": "Pays modifié"
+      },
+      "user": {
+        "role_granted": "Rôle attribué",
+        "role_revoked": "Rôle retiré"
+      }
+    }
   }
 }

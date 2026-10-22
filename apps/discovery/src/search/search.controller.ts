@@ -154,6 +154,7 @@ export class SearchController {
     const result = await this.indexer.rebuild();
     if (!result)
       throw AppRpcException.conflict(DiscoveryErrors.rebuildRunning, 'A rebuild is running');
+    await this.emirates.recordRebuild(parsed.data.actor, result, parsed.data.correlationId);
     return result;
   }
 }

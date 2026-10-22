@@ -47,18 +47,18 @@ case "$action" in
       NEXT_PUBLIC_SENTRY_ENVIRONMENT=test \
       docker buildx bake -f infra/docker/docker-bake.hcl --push phase1
 
-    section "3/6 Task definitions"
-    # The services start only after the migrations, so new code never meets an old schema.
+    section "3/6 Infrastructure, apps not started"
+    # Everything, with every app at 0 tasks: the apps start only after the migrations (step 5),
+    # so new code never meets an old schema. (Not a -target apply: that misses dependencies
+    # Terraform cannot see, such as the internet gateway the load balancer needs.)
     vars+=(-var "image_tag=$tag")
-    tf apply -input=false -auto-approve "${vars[@]}" \
-      -target=module.platform.module.service -target=module.platform.module.gateway \
-      -target=module.platform.module.next -target=time_static.created
+    tf apply -input=false -auto-approve "${vars[@]}" -var apps_running=false
 
     section "4/6 Migrations"
     bash infra/deploy/run-migrations.sh "$TF"
 
-    section "5/6 Everything else"
-    tf apply -input=false -auto-approve "${vars[@]}"
+    section "5/6 Apps"
+    tf apply -input=false -auto-approve "${vars[@]}" -var apps_running=true
     cluster="$(out cluster_name | jq -r .)"
     mapfile -t services < <(aws ecs list-services --cluster "$cluster" \
       --query 'serviceArns[]' --output text | tr '\t' '\n')

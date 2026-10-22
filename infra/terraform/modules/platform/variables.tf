@@ -199,3 +199,9 @@ variable "google_map_id" {
     error_message = "google_map_id must be set with google_maps_browser_key."
   }
 }
+
+variable "apps_running" {
+  description = "false runs every app with 0 tasks (the infrastructure exists, nothing serves): for a first deploy, before migrations."
+  type        = bool
+  default     = true
+}

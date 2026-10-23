@@ -58,9 +58,17 @@ scale() {
     aws ecs update-service --cluster "$cluster" --service "$arn" --desired-count "$count" \
       --query 'service.[serviceName,desiredCount]' --output text
   done
-  # The waiter takes at most 10 services at a time.
+  # The waiter takes at most 10 services at a time. When it gives up, say which services did
+  # not get there and what ECS last said about each, instead of only "max attempts exceeded".
   for ((i = 0; i < ${#services[@]}; i += 10)); do
-    aws ecs wait services-stable --cluster "$cluster" --services "${services[@]:i:10}"
+    if ! aws ecs wait services-stable --cluster "$cluster" --services "${services[@]:i:10}"; then
+      aws ecs describe-services --cluster "$cluster" --services "${services[@]:i:10}" \
+        --query 'services[?runningCount != desiredCount].[serviceName, runningCount, desiredCount, events[0].message]' \
+        --output text | while IFS=$'\t' read -r name running desired message; do
+        echo "::error::$name: $running of $desired tasks running. ECS: $message"
+      done
+      return 1
+    fi
   done
 }
 

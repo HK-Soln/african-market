@@ -19,6 +19,10 @@ locals {
   } : {}
   # One user name for both tools' logins; each has its own password.
   inspection_user = "inspect"
+  # Created with the apps, at 0 tasks while apps_running is false, and started with them
+  # (test-env.sh step 5, from desired_counts). Started at once, a task can ask Secrets Manager for
+  # its password before the password's value is written, fail, and ECS then stops trying.
+  inspection_tasks = var.apps_running ? 1 : 0
 }
 
 resource "random_password" "inspection" {
@@ -43,7 +47,7 @@ module "mailpit" {
   extra_ports        = [1025]
   cpu                = 256
   memory             = 512
-  desired_count      = 1
+  desired_count      = local.inspection_tasks
   log_retention_days = var.log_retention_days
 
   # Kept in memory: a test environment's mail lives only as long as the environment.
@@ -83,7 +87,7 @@ module "pgweb" {
   container_port     = 8081
   cpu                = 256
   memory             = 512
-  desired_count      = 1
+  desired_count      = local.inspection_tasks
   log_retention_days = var.log_retention_days
 
   environment = { PGWEB_AUTH_USER = local.inspection_user }

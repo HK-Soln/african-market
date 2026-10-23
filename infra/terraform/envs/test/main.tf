@@ -1,5 +1,5 @@
 # A throwaway test environment (decision T-43): made-up data only, any region, smallest sizes,
-# gone three hours after it was created: GitHub's teardown check (every 30 minutes) runs `reap`,
+# gone ttl_minutes (at most three hours) after it was created: GitHub's teardown check (every 30 minutes) runs `reap`,
 # and with scheduled_teardown a one-time AWS schedule also starts the CodeBuild runner with
 # ACTION=down. Brought up and down by infra/deploy/test-env.sh (GitHub Actions, CodeBuild, or
 # by hand).
@@ -59,14 +59,23 @@ variable "apps_running" {
   default     = true
 }
 
-variable "ttl_hours" {
-  description = "How long the environment lives before it deletes itself."
+variable "ttl_minutes" {
+  description = "How long the environment lives, from when it was first created, before it deletes itself."
   type        = number
-  default     = 3
+  default     = 180
   validation {
-    condition     = var.ttl_hours >= 1 && var.ttl_hours <= 3
-    error_message = "A test environment lives one to three hours."
+    # At least 45: the timer starts when the infrastructure is created, and the rest of an `up`
+    # (database, broker, migrations, the made-up shops) takes another 15-20 minutes. A teardown
+    # in the middle of an `up` leaves a lock and half a state behind.
+    condition     = var.ttl_minutes >= 45 && var.ttl_minutes <= 180
+    error_message = "A test environment lives 45 to 180 minutes."
   }
+}
+
+variable "inspection_tools" {
+  description = "The mail inbox, RabbitMQ console and database view, each behind its own login (decision T-47)."
+  type        = bool
+  default     = true
 }
 
 variable "scheduled_teardown" {
@@ -123,6 +132,8 @@ module "platform" {
   tracing            = false
   # Nothing here is kept: no deletion protection, no final snapshot, buckets emptied on destroy.
   protect_data = false
+
+  inspection_tools = var.inspection_tools
 }
 
 # ── the self-destruct timer ──────────────────────────────────────────────────────────────────
@@ -132,7 +143,7 @@ module "platform" {
 resource "time_static" "created" {}
 
 locals {
-  expires_at = timeadd(time_static.created.rfc3339, "${var.ttl_hours}h")
+  expires_at = timeadd(time_static.created.rfc3339, "${var.ttl_minutes}m")
 }
 
 data "aws_caller_identity" "current" {}
@@ -145,7 +156,7 @@ data "aws_iam_role" "scheduler" {
 resource "aws_scheduler_schedule" "teardown" {
   count       = var.scheduled_teardown ? 1 : 0
   name        = "am-test-teardown"
-  description = "Deletes the test environment ${var.ttl_hours} hours after it was created"
+  description = "Deletes the test environment ${var.ttl_minutes} minutes after it was created"
   # One run, then the schedule removes itself (the destroy removes it from the state too).
   schedule_expression          = "at(${formatdate("YYYY-MM-DD'T'hh:mm:ss", local.expires_at)})"
   schedule_expression_timezone = "UTC"
@@ -171,6 +182,14 @@ resource "aws_scheduler_schedule" "teardown" {
 
 output "expires_at" {
   value = local.expires_at
+}
+
+output "inspection_urls" {
+  value = module.platform.inspection_urls
+}
+
+output "inspection_logins" {
+  value = module.platform.inspection_logins
 }
 
 output "urls" {

@@ -123,8 +123,16 @@ variable "load_balancer" {
     hosts        = list(string)
     priority     = number
     health_path  = string
+    # The answers that count as healthy; "200,401" for a tool behind its own login.
+    health_matcher = optional(string, "200")
   })
   default = null
+}
+
+variable "image_health_check" {
+  description = "Run the image's own check (node healthcheck.cjs, in our images). false for a third-party image, which the load balancer checks instead."
+  type        = bool
+  default     = true
 }
 
 variable "enable_exec" {

@@ -3,26 +3,34 @@
 # (decision T-43). The runner (CodeBuild project african-market-env, made by the bootstrap)
 # runs this; so can you, from the repository root, with Docker for `up`:
 #
-#   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh up       # about 20-30 minutes
+#   AWS_PROFILE=aws-toolkit TTL_MINUTES=180 SCHEDULED_TEARDOWN=false \
+#     bash infra/deploy/test-env.sh up                             # about 20-30 minutes
 #   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh status
 #   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh down     # about 10-15 minutes
 #   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh reap     # down, only if past its time
+#   AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh unlock   # after a run that was stopped
 #
-# An environment lives TTL_HOURS (default 3) from when it was first created; running `up` again
-# keeps that deadline. `reap` takes it down once the deadline has passed: GitHub runs it every
-# 30 minutes (.github/workflows/test-env.yml), and with SCHEDULED_TEARDOWN=true the environment
-# also carries a one-time AWS schedule that starts the CodeBuild runner with ACTION=down.
+# An environment lives TTL_MINUTES (45 to 180) from when it was first created; running `up`
+# again keeps that deadline. `reap` takes it down once the deadline has passed: GitHub runs it
+# every 30 minutes (.github/workflows/test-env.yml), and with SCHEDULED_TEARDOWN=true the
+# environment also carries a one-time AWS schedule that starts the CodeBuild runner with
+# ACTION=down, on the minute.
+#
+# Never stop an `up` (or a `down`) half way: Terraform keeps a lock while it works and would
+# leave it behind, with resources it made but did not record. If it happens: `unlock`, then
+# `down` (infra/terraform/README.md, "A run that was stopped").
 #
 # Needs terraform, jq, the AWS CLI, and for `up` Docker with buildx, node and pnpm.
 set -euo pipefail
 
-action="${1:-${ACTION:-status}}"
+action="${1:-${ACTION:?say up, down, reap, status or unlock}}"
 TF=infra/terraform/envs/test
-DOMAIN="${DOMAIN:-am.amahkudi.dev}"
-TTL_HOURS="${TTL_HOURS:-3}"
+DOMAIN=am.amahkudi.dev
 tf() { terraform -chdir="$TF" "$@"; }
 out() { tf output -json "$1"; }
-vars=(-var "domain=$DOMAIN" -var "ttl_hours=$TTL_HOURS" -var "scheduled_teardown=${SCHEDULED_TEARDOWN:-false}")
+vars=(-var "domain=$DOMAIN")
+# Where Terraform keeps this environment's state and its lock (for `unlock`).
+backend() { sed -n "s/^$1 *= *\"\(.*\)\"/\1/p" "$TF/backend.tfbackend"; }
 
 section() { printf '\n== %s\n' "$*"; }
 
@@ -69,6 +77,9 @@ tf init -input=false -reconfigure -backend-config=backend.tfbackend > /dev/null
 
 case "$action" in
   up)
+    # No defaults (decision T-45): how long it lives, and whether AWS also takes it down.
+    vars+=(-var "ttl_minutes=${TTL_MINUTES:?TTL_MINUTES: how many minutes it lives, 45 to 180}")
+    vars+=(-var "scheduled_teardown=${SCHEDULED_TEARDOWN:?SCHEDULED_TEARDOWN: true or false}")
     tag="$(git rev-parse HEAD)"
 
     section "1/6 Image repositories"
@@ -117,6 +128,13 @@ case "$action" in
     section "Ready"
     out urls | jq -r 'to_entries[] | "\(.key): \(.value)"'
     echo "Deletes itself at $(out expires_at | jq -r .) (UTC)."
+    inspection="$(out inspection_logins)"
+    if [ "$inspection" != "{}" ]; then
+      echo
+      echo "Inspection pages (each asks for its own login):"
+      out inspection_urls | jq -r 'to_entries[] | "  \(.key): \(.value)"'
+      jq -r 'to_entries[] | "  \(.key) password (user \(.value.user); \(.value.note)):\n    aws secretsmanager get-secret-value --secret-id \(.value.secret) --query SecretString --output text --profile aws-toolkit --region eu-north-1"' <<< "$inspection"
+    fi
     echo "Test sign-in codes: aws secretsmanager get-secret-value --secret-id $secret --query SecretString --output text --profile aws-toolkit --region eu-north-1"
     ;;
 
@@ -142,6 +160,19 @@ case "$action" in
     tf destroy -input=false -auto-approve "${vars[@]}"
     ;;
 
+  unlock)
+    # Only after a run that was stopped half way: a live run's lock must never be taken.
+    # (The workflow refuses while another run of it is going; by hand, check that first.)
+    lockfile="s3://$(backend bucket)/$(backend key).tflock"
+    if ! lock="$(aws s3 cp "$lockfile" - 2> /dev/null)"; then
+      echo "No lock: nothing to do."
+      exit 0
+    fi
+    echo "Lock held: $(jq -r '"\(.Operation) by \(.Who), since \(.Created)"' <<< "$lock")"
+    tf force-unlock -force "$(jq -r .ID <<< "$lock")"
+    echo "Released. If that run had started creating things, run \`down\` now."
+    ;;
+
   status)
     if tf state list 2> /dev/null | grep -q .; then
       echo "Up: $(tf state list | wc -l) resources."
@@ -153,7 +184,7 @@ case "$action" in
     ;;
 
   *)
-    echo "Usage: $0 up|down|reap|status" >&2
+    echo "Usage: $0 up|down|reap|status|unlock" >&2
     exit 2
     ;;
 esac

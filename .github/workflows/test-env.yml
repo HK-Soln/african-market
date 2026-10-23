@@ -1,9 +1,11 @@
 # Throwaway AWS test environments (decision T-43): Actions → "Test environment" → Run workflow,
-# choose the branch and up, down or status. Every 30 minutes a check takes down an environment
-# past its deadline (3 hours after it was created). Made-up data only.
+# choose the branch and up, down, status or unlock. Every 30 minutes a check takes down an
+# environment past its deadline (its lifetime, chosen at `up`, counted from when it was created).
+# Made-up data only. Never cancel an `up` or a `down` half way; if one was, run `unlock`, then
+# `down` (infra/terraform/README.md, "A run that was stopped").
 #
 # Signs in to AWS with OIDC as the role the bootstrap made (repository variable
-# AWS_TEST_ROLE_ARN). Two GitHub environments: `test` (up) waits for the owner's approval;
+# AWS_TEST_ROLE_ARN). Two GitHub environments: `test` (up, unlock) waits for the owner's approval;
 # `test-teardown` (down, reap, status) does not, so the teardown never waits for anyone, and only
 # the dev branch may use it. Without the variable it does nothing.
 name: Test environment
@@ -14,8 +16,13 @@ on:
       action:
         description: What to do
         type: choice
-        options: [up, down, status]
+        options: [up, down, status, unlock]
         default: status
+      lifetime_minutes:
+        description: For up, how long it lives (from when it is first created)
+        type: choice
+        options: ['180', '120', '60', '45']
+        default: '180'
   schedule:
     - cron: '*/30 * * * *'
 
@@ -38,10 +45,14 @@ jobs:
   run:
     name: ${{ github.event_name == 'schedule' && 'Teardown check' || inputs.action }}
     runs-on: ubuntu-latest
-    environment: ${{ (github.event_name == 'workflow_dispatch' && inputs.action == 'up') && 'test' || 'test-teardown' }}
+    environment: ${{ (github.event_name == 'workflow_dispatch' && (inputs.action == 'up' || inputs.action == 'unlock')) && 'test' || 'test-teardown' }}
     timeout-minutes: 75
     env:
       ACTION: ${{ github.event_name == 'schedule' && 'reap' || inputs.action }}
+      TTL_MINUTES: ${{ inputs.lifetime_minutes }}
+      # `true` once CodeBuild may run builds in the account (its quota starts at 0): AWS then also
+      # takes the environment down on the minute, without GitHub. A variable of the repository.
+      SCHEDULED_TEARDOWN: ${{ vars.TEST_SCHEDULED_TEARDOWN }}
       # Google Maps for the customer and seller sites (variables of the `test` environment): a
       # browser key, limited in Google Cloud to https://*.am.amahkudi.dev/*, and a map id.
       GOOGLE_MAPS_BROWSER_KEY: ${{ vars.GOOGLE_MAPS_BROWSER_KEY }}
@@ -68,6 +79,16 @@ jobs:
               echo "::notice::A manual run is queued, waiting or running; the teardown check waits for the next round."
               echo "go=false" >> "$GITHUB_OUTPUT"
               exit 0
+            fi
+          fi
+          # Taking the lock is only safe when nothing else holds it: no other run of this workflow
+          # (a manual one, or the teardown check) may be going.
+          if [ "$ACTION" = "unlock" ]; then
+            others=$(gh run list -R "$GITHUB_REPOSITORY" --workflow test-env.yml --status in_progress \
+              --json databaseId --jq "[.[] | select(.databaseId != $GITHUB_RUN_ID)] | length")
+            if [ "$others" -gt 0 ]; then
+              echo "::error::Another run of this workflow is going; it holds the lock. Nothing was changed."
+              exit 1
             fi
           fi
           echo "go=true" >> "$GITHUB_OUTPUT"

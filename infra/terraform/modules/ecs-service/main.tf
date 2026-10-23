@@ -139,7 +139,7 @@ resource "aws_ecs_task_definition" "this" {
     cpu_architecture        = var.cpu_architecture
   }
 
-  container_definitions = jsonencode(concat([{
+  container_definitions = jsonencode(concat([merge({
     name      = var.name
     image     = var.image
     essential = true
@@ -148,19 +148,22 @@ resource "aws_ecs_task_definition" "this" {
       containerPort = port
       protocol      = "tcp"
     }]
-    environment = [for key in sort(keys(var.environment)) : { name = key, value = var.environment[key] }]
-    secrets     = [for key in sort(keys(var.secrets)) : { name = key, valueFrom = var.secrets[key] }]
-    # The image's own check: /health on the app's HTTP port.
-    healthCheck = {
-      command     = ["CMD", "node", "healthcheck.cjs"]
-      interval    = 15
-      timeout     = 5
-      retries     = 3
-      startPeriod = 30
-    }
+    environment            = [for key in sort(keys(var.environment)) : { name = key, value = var.environment[key] }]
+    secrets                = [for key in sort(keys(var.secrets)) : { name = key, valueFrom = var.secrets[key] }]
     readonlyRootFilesystem = false
     logConfiguration       = local.log_configuration
-  }], local.collector_container))
+    },
+    # The image's own check: /health on the app's HTTP port (our images only; left out, not
+    # null, for a third-party image).
+    { for key, check in {
+      healthCheck = {
+        command     = ["CMD", "node", "healthcheck.cjs"]
+        interval    = 15
+        timeout     = 5
+        retries     = 3
+        startPeriod = 30
+      }
+  } : key => check if var.image_health_check })], local.collector_container))
 }
 
 resource "aws_service_discovery_service" "this" {
@@ -190,7 +193,7 @@ resource "aws_lb_target_group" "this" {
 
   health_check {
     path                = var.load_balancer.health_path
-    matcher             = "200"
+    matcher             = var.load_balancer.health_matcher
     interval            = 15
     healthy_threshold   = 2
     unhealthy_threshold = 3

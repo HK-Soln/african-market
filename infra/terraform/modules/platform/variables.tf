@@ -205,3 +205,25 @@ variable "apps_running" {
   type        = bool
   default     = true
 }
+
+variable "inspection_tools" {
+  description = "Test environments only: Mailpit (the apps' email goes to it), the RabbitMQ console and a read-only database view, each on its own host behind its own login (inspection.tf, decision T-47)."
+  type        = bool
+  default     = false
+  validation {
+    condition     = !var.inspection_tools || var.environment == "test"
+    error_message = "The inspection tools are for test environments only; staging and production keep these private."
+  }
+}
+
+variable "mailpit_image" {
+  description = "Mailpit, for inspection_tools. A pinned version."
+  type        = string
+  default     = "axllent/mailpit:v1.31.4"
+}
+
+variable "pgweb_image" {
+  description = "pgweb, for inspection_tools. A pinned version."
+  type        = string
+  default     = "sosedoff/pgweb:0.17.0"
+}

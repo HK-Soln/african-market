@@ -6,7 +6,8 @@
 #   backends ──▶ RDS Postgres, ElastiCache Redis, Amazon MQ, S3; secrets from Secrets Manager
 
 locals {
-  ses   = var.email_provider == "ses"
+  # The inspection tools' Mailpit takes the email instead of SES (inspection.tf).
+  ses   = var.email_provider == "ses" && !var.inspection_tools
   didit = var.kyc_provider == "didit"
   # Social sign-in (F1-09): only the providers with ids set are switched on.
   social_providers = join(",", compact([length(var.google_client_ids) > 0 ? "google" : "", var.facebook_app_id != "" ? "facebook" : ""]))
@@ -104,6 +105,7 @@ module "rabbitmq" {
   vpc_id                  = module.network.vpc_id
   subnet_ids              = module.network.database_subnet_ids
   allowed_security_groups = { backend = aws_security_group.backend.id }
+  console_security_groups = var.inspection_tools ? { alb = module.alb.security_group_id } : {}
   instance_type           = var.mq_instance_type
   cluster                 = var.mq_cluster
 }
@@ -146,11 +148,26 @@ module "secrets" {
   generated = ["JWT_ACCESS_SECRET", "OTP_HMAC_SECRET"]
   value_names = concat(
     ["DATABASE_URL", "REDIS_URL", "RABBITMQ_URL"],
-    local.ses ? ["SMTP_URL"] : [],
+    local.ses || var.inspection_tools ? ["SMTP_URL"] : [],
     local.has_test_numbers ? ["OTP_TEST_NUMBERS"] : [],
+    var.inspection_tools ? ["MAILPIT_UI_AUTH", "PGWEB_AUTH_PASS", "PGWEB_DATABASE_URL"] : [],
   )
   values = merge(
     local.ses ? { SMTP_URL = module.ses[0].smtp_url } : {},
+    var.inspection_tools ? {
+      SMTP_URL        = "smtp://mailpit.${local.namespace}:1025"
+      MAILPIT_UI_AUTH = "${local.inspection_user}:${random_password.inspection["mail"].result}"
+      PGWEB_AUTH_PASS = random_password.inspection["db"].result
+      # pgweb has no copy of the RDS certificate bundle: encrypted, not verified (test data only).
+      PGWEB_DATABASE_URL = format(
+        "postgres://%s:%s@%s:%d/%s?sslmode=require",
+        module.postgres.username,
+        module.postgres.password,
+        module.postgres.address,
+        module.postgres.port,
+        module.postgres.database_name,
+      )
+    } : {},
     local.has_test_numbers ? { OTP_TEST_NUMBERS = local.otp_test_numbers } : {},
     {
       # Verified TLS against the RDS certificate bundle baked into the service images.
@@ -170,7 +187,7 @@ module "secrets" {
   # Facebook's app secret likewise (Meta for Developers > App settings), when Facebook is on.
   manual = concat(
     var.manual_secrets,
-    local.ses ? [] : ["SMTP_URL"],
+    local.ses || var.inspection_tools ? [] : ["SMTP_URL"],
     local.didit ? ["DIDIT_API_KEY", "DIDIT_API_SECRET"] : [],
     var.facebook_app_id != "" ? ["FACEBOOK_APP_SECRET"] : [],
   )
@@ -194,7 +211,7 @@ module "alb" {
   vpc_cidr            = module.network.vpc_cidr
   public_subnet_ids   = module.network.public_subnet_ids
   domain_name         = local.hosts.web
-  alternative_names   = [local.hosts.gateway, local.hosts.seller, local.hosts.admin]
+  alternative_names   = concat([local.hosts.gateway, local.hosts.seller, local.hosts.admin], values(local.inspection_hosts))
   route53_zone_id     = var.route53_zone_id
   deletion_protection = var.protect_data
 }

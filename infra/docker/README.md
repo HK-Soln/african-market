@@ -17,11 +17,14 @@ docker build -f infra/docker/next.Dockerfile --build-arg APP=web \
 `docker-bake.hcl` lists every image with its arguments; CI and the deploy build through it:
 
 ```bash
-docker buildx bake -f infra/docker/docker-bake.hcl                # the current phase's apps, :local
-docker buildx bake -f infra/docker/docker-bake.hcl identity web   # some of them
+REGISTRY=african-market TAG=local BUILD_ID=local \
+  NEXT_PUBLIC_GATEWAY_URL=http://localhost:4000 NEXT_PUBLIC_WEB_URL=http://localhost:3000 \
+  NEXT_PUBLIC_SELLER_URL=http://localhost:3001 NEXT_PUBLIC_SENTRY_DSN=none \
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT=none NEXT_PUBLIC_GOOGLE_MAPS_KEY=none NEXT_PUBLIC_GOOGLE_MAP_ID=none \
+  docker buildx bake -f infra/docker/docker-bake.hcl identity web   # or no names: the phase's apps
 ```
 
-The Next apps need `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_WEB_URL` set (there is no default).
+Every variable must be set; none has a default (decision T-45). `none` switches a feature off.
 
 ## How they are built
 
@@ -46,9 +49,11 @@ The Next apps need `NEXT_PUBLIC_GATEWAY_URL` and `NEXT_PUBLIC_WEB_URL` set (ther
   port, `/api/v1/health` on the gateway, `/health` on a Next.js app.
 - NestJS images carry AWS's RDS certificate bundle at `/app/certs/rds-global-bundle.pem`, so
   `DATABASE_URL` in AWS can verify the database (`sslmode=verify-full`).
-- `NODE_ENV` is `production` in the image. Identity refuses to start in production with the
-  development secrets or the console SMS provider, so set real values, or `NODE_ENV=development`
-  as docker compose does.
+- `NODE_ENV` is `production` in the image (for Node and its libraries); which environment the
+  app runs in is `DEPLOY_ENV`, which has no default. Identity refuses to start in staging or
+  production with the development secrets or the console SMS provider, so set real values, or
+  `DEPLOY_ENV=development` as docker compose does. Every setting must be passed; none has a
+  default (decision T-45).
 
 ## Traces locally
 

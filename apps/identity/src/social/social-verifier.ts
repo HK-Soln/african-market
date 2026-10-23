@@ -181,7 +181,7 @@ export class FacebookVerifier implements SocialVerifier {
 
 /**
  * For tests: a token `fake:<subject>[:<email>[:<name>]]` is that person; anything else is refused.
- * Never wired outside NODE_ENV=test.
+ * Wired only with FAKE_SOCIAL_SIGN_IN=true, which staging and production refuse.
  */
 export class FakeSocialVerifier implements SocialVerifier {
   constructor(readonly provider: SocialProvider) {}

@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import type { EventEnvelope } from '@am/contracts';
 import { baseEnvSchema, EventBus, HealthService } from '@am/core';
+import { testBaseEnv } from '@am/core/testing';
 import { createServiceSchema } from './migration-helpers';
 import { OutboxMessage, ProcessedEvent } from './outbox.entity';
 import { IdempotentConsumer, OutboxRelay, OutboxService } from './outbox.service';
@@ -81,10 +82,8 @@ class BrokerProxy {
 }
 
 /** Required by the schema; the event bus never connects to them. */
-const notUsedHere = {
-  DATABASE_URL: 'postgres://unused:unused@localhost:5432/unused',
-  REDIS_URL: 'redis://localhost:6379',
-};
+/** Every base key, with throwaway values for what this file does not use. */
+const notUsedHere = testBaseEnv;
 describe('transactional outbox (Postgres + RabbitMQ)', () => {
   let testDb: TestDatabase;
   let db: DataSource;

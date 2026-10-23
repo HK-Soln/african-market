@@ -32,7 +32,8 @@ Example: "seller creates a branch".
 - Every handler receives an `actorId` (and `roles`) from the gateway and re-checks ownership.
   The gateway guard is the first check, not the only one.
 - Service-specific env keys: extend `ServiceCoreModule.forRoot({ name, envSchema })` with a zod schema
-  and add them to `.env.example`.
+  and add them to `.env.example`, CI, docker compose and Terraform. No key has a default; off is
+  `none` (decision T-45).
 - Provider integrations (SMS, email, push, Stripe, Google Maps geocoding, S3, KYC) are interfaces with
   a real adapter and a fake adapter selected by env. Fakes are the default in development and tests.
 - **Tracing and error reports** (decision T-22). Every app's `main.ts` imports `./instrument` first,

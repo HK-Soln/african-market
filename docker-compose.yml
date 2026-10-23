@@ -9,10 +9,21 @@
 # S3 + CloudFront, SES.
 name: african-market
 
+# Every key the apps read is written out: they have no defaults (decision T-45). `${X:?}` values
+# come from .env (copy .env.example), and stop compose by name when missing.
 x-backend-env: &backend-env
-  NODE_ENV: development # the containers stand in for a developer machine: console SMS, Mailpit
+  DEPLOY_ENV: development # the containers stand in for a developer machine: console SMS, Mailpit
   LOG_LEVEL: info
-  CURRENT_PHASE: ${CURRENT_PHASE:-0}
+  LOG_FORMAT: pretty
+  CURRENT_PHASE: ${CURRENT_PHASE:?set it in .env (see .env.example)}
+  EVENTS_EXCHANGE: am.events
+  EVENT_RETRY_DELAYS_MS: '5000,30000,120000'
+  TYPEORM_LOGGING: 'false'
+  OUTBOX_POLL_MS: 500
+  OTEL_EXPORTER_OTLP_ENDPOINT: none
+  OTEL_TRACES_SAMPLE_RATIO: 1
+  SENTRY_DSN: none
+  TEST_SUPPORT_ROUTES: 'false'
   DATABASE_URL: postgres://am:am@postgres:5432/african_market
   RABBITMQ_URL: amqp://am:am@rabbitmq:5672
   REDIS_URL: redis://redis:6379
@@ -26,24 +37,54 @@ x-backend-env: &backend-env
   S3_PUBLIC_BUCKET: am-media-public
   S3_PRIVATE_BUCKET: am-media-private
   S3_CREATE_BUCKETS: 'true'
+  CLOUDFRONT_DISTRIBUTION_ID: none
   KYC_PROVIDER: fake
   SELLER_APP_URL: http://localhost:3001
+  DIDIT_API_URL: none
+  DIDIT_API_KEY: none
+  DIDIT_API_SECRET: none
+  DIDIT_WORKFLOW_ID: none
   MEDIA_PUBLIC_BASE_URL: http://localhost:9000/am-media-public
+  EMAIL_PROVIDER: smtp
   EMAIL_FROM: African Market <no-reply@africanmarket.local>
   SMS_PROVIDER: console # prints codes to the log: docker compose logs identity
-  OTP_TEST_NUMBERS: ${OTP_TEST_NUMBERS:-} # fixed codes for tests and the seed (.devcontainer)
-  SOCIAL_PROVIDERS: '' # none locally; see .env.example
+  # Fixed codes for tests and the seed (.devcontainer sets them); none for none.
+  OTP_TEST_NUMBERS: ${OTP_TEST_NUMBERS:?set it in .env, none for none (see .env.example)}
+  SOCIAL_PROVIDERS: none # see .env.example
+  GOOGLE_CLIENT_IDS: none
+  FACEBOOK_APP_ID: none
+  FACEBOOK_APP_SECRET: none
+  FAKE_SOCIAL_SIGN_IN: 'false'
   JWT_ACCESS_SECRET: dev-only-access-secret-change-me-0123456789
   OTP_HMAC_SECRET: dev-only-otp-hmac-secret-change-me-0123456789
+  # Each service listens on, and is reached at, its usual ports (libs/contracts/src/services.ts).
   IDENTITY_HOST: identity
+  IDENTITY_TCP_PORT: 4101
+  IDENTITY_HTTP_PORT: 4201
   SHOPS_HOST: shops
+  SHOPS_TCP_PORT: 4102
+  SHOPS_HTTP_PORT: 4202
   CATALOG_HOST: catalog
+  CATALOG_TCP_PORT: 4103
+  CATALOG_HTTP_PORT: 4203
   DISCOVERY_HOST: discovery
+  DISCOVERY_TCP_PORT: 4104
+  DISCOVERY_HTTP_PORT: 4204
   MEDIA_HOST: media
+  MEDIA_TCP_PORT: 4105
+  MEDIA_HTTP_PORT: 4205
   MESSAGING_HOST: messaging
+  MESSAGING_TCP_PORT: 4106
+  MESSAGING_HTTP_PORT: 4206
   NOTIFICATIONS_HOST: notifications
+  NOTIFICATIONS_TCP_PORT: 4107
+  NOTIFICATIONS_HTTP_PORT: 4207
   ORDERS_HOST: orders
+  ORDERS_TCP_PORT: 4108
+  ORDERS_HTTP_PORT: 4208
   PAYMENTS_HOST: payments
+  PAYMENTS_TCP_PORT: 4109
+  PAYMENTS_HTTP_PORT: 4209
 
 x-backend-deps: &backend-deps
   postgres: { condition: service_healthy }
@@ -63,9 +104,13 @@ x-next-build-args: &next-build-args
   NEXT_PUBLIC_GATEWAY_URL: http://localhost:4000
   NEXT_PUBLIC_WEB_URL: http://localhost:3000
   NEXT_PUBLIC_SELLER_URL: http://localhost:3001
-  # The map is off without a key; with one, Google's demo map id unless another is set.
-  NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_KEY:-}
-  NEXT_PUBLIC_GOOGLE_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAP_ID:-DEMO_MAP_ID}
+  NEXT_PUBLIC_SENTRY_DSN: none
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT: none
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: none
+  # The map is off with none as the key; with one, a map id too (Google's DEMO_MAP_ID is fine).
+  NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_KEY:?set it in .env, none for no map}
+  NEXT_PUBLIC_GOOGLE_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAP_ID:?set it in .env, none for no map}
+  BUILD_ID: local
 
 x-next: &next
   profiles: [apps]
@@ -83,7 +128,7 @@ services:
       POSTGRES_USER: am
       POSTGRES_PASSWORD: am
       POSTGRES_DB: african_market
-    ports: ['${POSTGRES_HOST_PORT:-5432}:5432'] # override in .env if 5432 is taken on the host
+    ports: ['${POSTGRES_HOST_PORT:?set it in .env (see .env.example)}:5432']
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infra/docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
@@ -95,7 +140,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    ports: ['${REDIS_HOST_PORT:-6379}:6379'] # override in .env if 6379 is taken on the host
+    ports: ['${REDIS_HOST_PORT:?set it in .env (see .env.example)}:6379']
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -144,7 +189,11 @@ services:
       GATEWAY_PORT: 4000
       CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
       TRUST_PROXY_HOPS: 0
-    ports: ['${GATEWAY_HOST_PORT:-4000}:4000'] # /docs for Swagger
+      SERVICE_TIMEOUT_MS: 5000
+      AUTH_THROTTLE_MULTIPLIER: 1
+      COOKIE_DOMAIN: none
+      COOKIE_SECURE: 'false' # plain http on this machine
+    ports: ['${GATEWAY_HOST_PORT:?set it in .env (see .env.example)}:4000'] # /docs for Swagger
     depends_on:
       <<: *backend-deps
       identity: { condition: service_healthy }
@@ -205,7 +254,7 @@ services:
       context: .
       dockerfile: infra/docker/next.Dockerfile
       args: { APP: web, <<: *next-build-args }
-    ports: ['${WEB_HOST_PORT:-3000}:3000']
+    ports: ['${WEB_HOST_PORT:?set it in .env (see .env.example)}:3000']
 
   seller:
     <<: *next

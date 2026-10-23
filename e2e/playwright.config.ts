@@ -5,8 +5,9 @@ import { GATEWAY_URL, WEB_URL } from './urls';
  * End-to-end tests for the core journeys, in English and Arabic.
  *
  * By default this starts its own copy of the stack on its own ports (web 3100, gateway 4100,
- * identity 4111), so it can run beside `pnpm dev`. The backend runs with NODE_ENV=test, which is
- * what switches on the in-memory SMS provider and the route the tests read their codes from.
+ * identity 4111), so it can run beside `pnpm dev`. The backend runs with DEPLOY_ENV=test, the
+ * in-memory SMS provider and TEST_SUPPORT_ROUTES=true, the route the tests read their codes from.
+ * Everything else comes from .env (copy .env.example).
  *
  * Before the first run: `pnpm infra:up`, `pnpm build`, `pnpm migration:run`, and once
  * `pnpm --filter @am/e2e exec playwright install chromium`.
@@ -49,7 +50,8 @@ export default defineConfig({
           cwd: '../apps/identity',
           url: 'http://localhost:4211/health',
           env: {
-            NODE_ENV: 'test',
+            DEPLOY_ENV: 'test',
+            TEST_SUPPORT_ROUTES: 'true',
             SMS_PROVIDER: 'memory',
             IDENTITY_TCP_PORT: '4111',
             IDENTITY_HTTP_PORT: '4211',
@@ -64,7 +66,8 @@ export default defineConfig({
           cwd: '../apps/gateway',
           url: `${GATEWAY_URL}/api/v1/health`,
           env: {
-            NODE_ENV: 'test',
+            DEPLOY_ENV: 'test',
+            TEST_SUPPORT_ROUTES: 'true',
             GATEWAY_PORT: '4100',
             IDENTITY_TCP_PORT: '4111',
             CORS_ORIGINS: WEB_URL,
@@ -78,7 +81,11 @@ export default defineConfig({
           command: `${node} ../../node_modules/next/dist/bin/next dev -p 3100`,
           cwd: '../apps/web',
           url: `${WEB_URL}/en`,
-          env: { NEXT_PUBLIC_GATEWAY_URL: GATEWAY_URL, NEXT_DIST_DIR: '.next-e2e' },
+          env: {
+            NEXT_PUBLIC_GATEWAY_URL: GATEWAY_URL,
+            GATEWAY_URL,
+            NEXT_DIST_DIR: '.next-e2e',
+          },
           reuseExistingServer: !ci,
           timeout: 240_000,
         },

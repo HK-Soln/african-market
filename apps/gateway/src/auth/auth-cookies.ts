@@ -13,7 +13,7 @@ export const REFRESH_COOKIE_PATH = '/api/v1/auth';
 function baseOptions(env: GatewayEnv): CookieOptions {
   return {
     httpOnly: true,
-    secure: env.NODE_ENV === 'staging' || env.NODE_ENV === 'production',
+    secure: env.COOKIE_SECURE,
     sameSite: 'lax',
     ...(env.COOKIE_DOMAIN ? { domain: env.COOKIE_DOMAIN } : {}),
   };

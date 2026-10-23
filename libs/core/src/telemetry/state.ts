@@ -20,8 +20,8 @@ export function describeTelemetry(): string {
   if (!current) return 'telemetry: not started';
   const traces = current.exportingTo
     ? `traces to ${current.exportingTo} (sampled ${current.sampleRatio})`
-    : 'traces not exported (OTEL_EXPORTER_OTLP_ENDPOINT unset)';
-  const errors = current.sentry ? 'errors to Sentry' : 'Sentry off (SENTRY_DSN unset)';
+    : 'traces not exported (OTEL_EXPORTER_OTLP_ENDPOINT none)';
+  const errors = current.sentry ? 'errors to Sentry' : 'Sentry off (SENTRY_DSN none)';
   return `telemetry: ${traces}; ${errors}`;
 }
 

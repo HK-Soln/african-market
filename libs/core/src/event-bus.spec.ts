@@ -9,6 +9,7 @@ import {
 import { connect, type Channel, type ChannelModel } from 'amqplib';
 import type { EventEnvelope } from '@am/contracts';
 import { baseEnvSchema } from './env';
+import { testBaseEnv } from './testing';
 import { ATTEMPT_HEADER, EventBus, LAST_ERROR_HEADER } from './event-bus';
 import { HealthService } from './health';
 import { currentTrace, injectTraceContext, tracer } from './telemetry/context';
@@ -45,10 +46,8 @@ const event = (overrides: Partial<EventEnvelope<'user.registered'>> = {}) =>
   }) as EventEnvelope<'user.registered'>;
 
 /** Required by the schema; the event bus never connects to them. */
-const notUsedHere = {
-  DATABASE_URL: 'postgres://unused:unused@localhost:5432/unused',
-  REDIS_URL: 'redis://localhost:6379',
-};
+/** Every base key, with throwaway values for what this file does not use. */
+const notUsedHere = testBaseEnv;
 describe('EventBus (RabbitMQ)', () => {
   let admin: ChannelModel;
   let adminChannel: Channel;

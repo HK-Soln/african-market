@@ -1,0 +1,7 @@
+{
+  "name": "@am/core-testing-entry",
+  "private": true,
+  "description": "Lets TypeScript (node resolution) find @am/core/testing; Node itself uses the exports map.",
+  "main": "../dist/testing/index.js",
+  "types": "../dist/testing/index.d.ts"
+}

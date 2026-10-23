@@ -3,14 +3,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard, RolesGuard, ACCESS_TOKEN_TTL_SECONDS } from '@am/auth';
-import { loadEnv, loadNodeEnv, ServiceCoreModule } from '@am/core';
+import { baseEnvSchema, loadEnv, ServiceCoreModule } from '@am/core';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { ClientsRegistryModule } from './clients.module';
 import { CommonModule } from './common/common.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { CountriesModule } from './countries/countries.module';
-import { gatewayEnvSchema } from './env';
+import { assertSafeGatewayEnv, gatewayEnvSchema } from './env';
 import { GatewayHealthController } from './health/health.controller';
 import { MediaModule } from './media/media.module';
 import { PublicModule } from './public/public.module';
@@ -18,7 +18,8 @@ import { SellerModule } from './seller/seller.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { testSupportModules } from './test-support/test-support.module';
 
-const env = loadEnv(gatewayEnvSchema);
+const env = loadEnv(baseEnvSchema.extend(gatewayEnvSchema.shape));
+assertSafeGatewayEnv(env);
 
 @Module({
   imports: [
@@ -42,7 +43,7 @@ const env = loadEnv(gatewayEnvSchema);
     PublicModule,
     SellerModule,
     WebhooksModule,
-    ...testSupportModules(loadNodeEnv()),
+    ...testSupportModules(env.TEST_SUPPORT_ROUTES),
     // Further feature modules (shops, catalog, search, media, ...) are added per phase; see docs/directives.
   ],
   controllers: [GatewayHealthController],

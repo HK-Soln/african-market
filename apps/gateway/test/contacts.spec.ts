@@ -52,7 +52,7 @@ describe('gateway contact taps (HTTP -> gateway -> TCP -> shops stand-in)', () =
     process.env.SHOPS_TCP_PORT = String(port);
     process.env.SHOPS_HOST = '127.0.0.1';
     process.env.JWT_ACCESS_SECRET = accessKey;
-    process.env.NODE_ENV = 'test';
+    process.env.DEPLOY_ENV = 'test';
     process.env.LOG_LEVEL = 'fatal';
     shops = await NestFactory.createMicroservice(FakeShopsModule, {
       transport: Transport.TCP,

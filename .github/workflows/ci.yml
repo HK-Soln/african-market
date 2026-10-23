@@ -19,8 +19,65 @@ permissions:
 
 env:
   NX_NO_CLOUD: 'true'
-  # Throwaway values for the ephemeral CI services, not secrets. The apps have no defaults for
-  # these (they differ per environment), so every job gets the full set.
+  # Throwaway values for the ephemeral CI services, not secrets. The apps have no defaults at all
+  # (decision T-45), so every job gets the full set; `none` means a feature is off.
+  DEPLOY_ENV: test
+  LOG_LEVEL: info
+  LOG_FORMAT: json
+  EVENTS_EXCHANGE: am.events
+  EVENT_RETRY_DELAYS_MS: '5000,30000,120000'
+  TYPEORM_LOGGING: 'false'
+  OUTBOX_POLL_MS: '500'
+  OTEL_EXPORTER_OTLP_ENDPOINT: none
+  OTEL_TRACES_SAMPLE_RATIO: '1'
+  SENTRY_DSN: none
+  GATEWAY_PORT: '4000'
+  SERVICE_TIMEOUT_MS: '5000'
+  AUTH_THROTTLE_MULTIPLIER: '1'
+  COOKIE_DOMAIN: none
+  COOKIE_SECURE: 'false'
+  TEST_SUPPORT_ROUTES: 'false'
+  EMAIL_PROVIDER: smtp
+  OTP_TEST_NUMBERS: none
+  GOOGLE_CLIENT_IDS: none
+  FACEBOOK_APP_ID: none
+  FACEBOOK_APP_SECRET: none
+  FAKE_SOCIAL_SIGN_IN: 'false'
+  S3_PRESIGN_ENDPOINT: none
+  S3_CREATE_BUCKETS: 'false'
+  CLOUDFRONT_DISTRIBUTION_ID: none
+  DIDIT_API_URL: none
+  DIDIT_API_KEY: none
+  DIDIT_API_SECRET: none
+  DIDIT_WORKFLOW_ID: none
+  GATEWAY_URL: http://localhost:4000
+  NEXT_PUBLIC_SENTRY_DSN: none
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT: none
+  NEXT_PUBLIC_GOOGLE_MAPS_KEY: none
+  NEXT_PUBLIC_GOOGLE_MAP_ID: none
+  BUILD_ID: ${{ github.sha }}
+  NEXT_DIST_DIR: .next
+  # Host ports docker compose publishes (the E2E job).
+  POSTGRES_HOST_PORT: '5432'
+  REDIS_HOST_PORT: '6379'
+  IDENTITY_TCP_PORT: '4101'
+  IDENTITY_HTTP_PORT: '4201'
+  SHOPS_TCP_PORT: '4102'
+  SHOPS_HTTP_PORT: '4202'
+  CATALOG_TCP_PORT: '4103'
+  CATALOG_HTTP_PORT: '4203'
+  DISCOVERY_TCP_PORT: '4104'
+  DISCOVERY_HTTP_PORT: '4204'
+  MEDIA_TCP_PORT: '4105'
+  MEDIA_HTTP_PORT: '4205'
+  MESSAGING_TCP_PORT: '4106'
+  MESSAGING_HTTP_PORT: '4206'
+  NOTIFICATIONS_TCP_PORT: '4107'
+  NOTIFICATIONS_HTTP_PORT: '4207'
+  ORDERS_TCP_PORT: '4108'
+  ORDERS_HTTP_PORT: '4208'
+  PAYMENTS_TCP_PORT: '4109'
+  PAYMENTS_HTTP_PORT: '4209'
   DATABASE_URL: postgres://am:am@localhost:5432/african_market
   REDIS_URL: redis://localhost:6379
   RABBITMQ_URL: amqp://am:am@localhost:5672
@@ -28,7 +85,7 @@ env:
   MAILPIT_URL: http://localhost:8025
   EMAIL_FROM: African Market <no-reply@africanmarket.local>
   SMS_PROVIDER: console
-  SOCIAL_PROVIDERS: ''
+  SOCIAL_PROVIDERS: none
   JWT_ACCESS_SECRET: dev-only-access-secret-change-me-0123456789
   OTP_HMAC_SECRET: dev-only-otp-hmac-secret-change-me-0123456789
   CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
@@ -192,7 +249,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # The core journeys in a real browser, in English and Arabic, against the real images: the
-    # stack runs in containers (docker-compose.e2e.yml: NODE_ENV=test, in-memory SMS), built from
+    # stack runs in containers (docker-compose.e2e.yml: DEPLOY_ENV=test, in-memory SMS), built from
     # the same Dockerfiles as staging and production. A required check (decided 2026-10-16).
     # The @smoke tests run here too, with throwaway test numbers, and again on staging after each
     # deploy (deploy.yml).
@@ -319,6 +376,7 @@ jobs:
           done
           docker buildx bake -f infra/docker/docker-bake.hcl --load "${sets[@]}" ${{ steps.affected.outputs.apps }}
         env:
+          REGISTRY: african-market
           TAG: ci
           NEXT_PUBLIC_GATEWAY_URL: https://api.example.ae
           NEXT_PUBLIC_WEB_URL: https://example.ae

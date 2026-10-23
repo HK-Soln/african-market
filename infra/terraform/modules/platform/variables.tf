@@ -1,5 +1,5 @@
 variable "environment" {
-  description = "test, staging or production. Becomes NODE_ENV in the backends."
+  description = "test, staging or production. Becomes DEPLOY_ENV in the backends."
   type        = string
   validation {
     condition     = contains(["test", "staging", "production"], var.environment)

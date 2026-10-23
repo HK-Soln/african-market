@@ -17,6 +17,11 @@ export class OtpTestNumbers {
     return new OtpTestNumbers(new Map());
   }
 
+  /** The OTP_TEST_NUMBERS setting as loaded: undefined when it is `none`. */
+  static fromSetting(setting: string | undefined): OtpTestNumbers {
+    return setting === undefined ? OtpTestNumbers.none() : OtpTestNumbers.parse(setting);
+  }
+
   /** Parses the setting; throws on anything malformed, so a typo is found at start. */
   static parse(setting: string): OtpTestNumbers {
     const codes = new Map<string, string>();

@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
@@ -6,8 +5,15 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
-/** Changes with every build, so a new deploy replaces the precached offline pages. */
-const revision = process.env.BUILD_ID ?? randomUUID();
+/** A build setting that must be set (decision T-45: no defaults). */
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} must be set (see .env.example)`);
+  return value;
+}
+
+/** Changes with every build (the commit), so a new deploy replaces the precached offline pages. */
+const revision = required('BUILD_ID');
 
 /**
  * Builds src/sw.ts into public/sw.js with the list of files to precache. Off in development,
@@ -26,17 +32,13 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  // The end-to-end run builds into its own folder, so it can run beside `pnpm dev`.
-  distDir: process.env.NEXT_DIST_DIR ?? '.next',
+  // `.next`; the end-to-end run builds into its own folder, so it can run beside `pnpm dev`.
+  distDir: required('NEXT_DIST_DIR'),
   output: 'standalone',
   // The monorepo root, so the standalone build also traces the hoisted node_modules and the libs.
   outputFileTracingRoot: path.join(__dirname, '../..'),
   reactStrictMode: true,
   poweredByHeader: false,
-  images: {
-    // Product and shop images come from the media service's CDN (MinIO locally).
-    remotePatterns: [{ protocol: 'http', hostname: 'localhost', port: '9000' }],
-  },
   async headers() {
     return [
       {

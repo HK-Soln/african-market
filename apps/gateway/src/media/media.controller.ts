@@ -12,14 +12,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiCookieAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiProduces,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthenticatedUser, CurrentUser, Roles } from '@am/auth';
@@ -52,7 +45,6 @@ const actorOf = (user: AuthenticatedUser): MediaActor => ({
  */
 @ApiTags('media')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Controller('media')
 export class MediaController {
   constructor(private readonly caller: ServiceCaller) {}
@@ -119,7 +111,6 @@ export class MediaController {
 /** Private documents, for admins. The bytes pass through here; no link ever reaches the browser. */
 @ApiTags('admin')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Roles('admin')
 @Controller('admin/media')
 export class AdminMediaController {

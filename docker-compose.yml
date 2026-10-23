@@ -187,7 +187,9 @@ services:
     environment:
       <<: *backend-env
       GATEWAY_PORT: 4000
-      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
+      WEB_ORIGIN: http://localhost:3000
+      SELLER_ORIGIN: http://localhost:3001
+      ADMIN_ORIGIN: http://localhost:3002
       TRUST_PROXY_HOPS: 0
       SERVICE_TIMEOUT_MS: 5000
       AUTH_THROTTLE_MULTIPLIER: 1

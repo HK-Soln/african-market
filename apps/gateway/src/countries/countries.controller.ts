@@ -1,13 +1,6 @@
 import { Body, Controller, Get, Header, Param, Patch, Req } from '@nestjs/common';
 import type { Request } from 'express';
-import {
-  ApiBearerAuth,
-  ApiCookieAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthenticatedUser, CurrentUser, Public, Roles } from '@am/auth';
 import {
   COUNTRY_LIST_SPEC,
@@ -43,7 +36,6 @@ export class CountriesController {
 /** Countries as admins edit them. */
 @ApiTags('admin')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Roles('admin')
 @Controller('admin/countries')
 export class AdminCountriesController {

@@ -26,7 +26,19 @@ export interface AuthenticatedUser extends AccessTokenClaims {
   id: string;
 }
 
-export const ACCESS_TOKEN_COOKIE = 'am_at';
-export const REFRESH_TOKEN_COOKIE = 'am_rt';
+/**
+ * The three browser apps. Each keeps its own session (decision T-46): signing in to one never
+ * replaces the session of another in the same browser. The gateway knows which app is calling
+ * from the browser's Origin header, which page scripts cannot change.
+ */
+export const CLIENT_APPS = ['web', 'seller', 'admin'] as const;
+export type ClientApp = (typeof CLIENT_APPS)[number];
+
+/** The access and refresh cookie of one app, e.g. `am_seller_at` and `am_seller_rt`. */
+export const sessionCookies = (app: ClientApp) => ({
+  access: `am_${app}_at`,
+  refresh: `am_${app}_rt`,
+});
+
 export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 export const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;

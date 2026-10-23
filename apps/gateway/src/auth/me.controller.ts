@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Header, Inject, Patch, Req, Res } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCookieAuth,
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
@@ -23,7 +22,6 @@ const HOUR = 60 * 60 * 1000;
 /** The signed-in person's own profile, and their rights over it (UAE PDPL). */
 @ApiTags('me')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Controller('me')
 export class MeController {
   constructor(
@@ -93,7 +91,7 @@ export class MeController {
       authTime: user.auth_time,
       correlationId: correlationId(req),
     });
-    clearAuthCookies(res, this.env);
+    clearAuthCookies(res, req.clientApp, this.env);
     return result;
   }
 }

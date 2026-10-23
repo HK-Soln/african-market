@@ -8,10 +8,11 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import {
-  ACCESS_TOKEN_COOKIE,
   AccessTokenClaims,
   AuthenticatedUser,
+  ClientApp,
   PlatformRole,
+  sessionCookies,
   ShopRole,
 } from './claims';
 import { IS_PUBLIC, ROLES, SHOP_ROLES } from './decorators';
@@ -20,13 +21,19 @@ interface RequestLike {
   headers: Record<string, string | string[] | undefined>;
   cookies?: Record<string, string>;
   params?: Record<string, string>;
+  /** The browser app the request comes from (the gateway sets it from Origin); unset otherwise. */
+  clientApp?: ClientApp;
   user?: AuthenticatedUser;
 }
 
+/**
+ * The Bearer header, or else the access cookie of the app that is calling. A request from no
+ * known app (no Origin: curl, server-side calls) has no cookie session, only the header.
+ */
 function extractToken(req: RequestLike): string | undefined {
   const header = req.headers['authorization'];
   if (typeof header === 'string' && header.startsWith('Bearer ')) return header.slice(7);
-  return req.cookies?.[ACCESS_TOKEN_COOKIE];
+  return req.clientApp ? req.cookies?.[sessionCookies(req.clientApp).access] : undefined;
 }
 
 /** Verifies the access token (Bearer header or cookie) and sets `req.user`. Apply globally in the gateway. */

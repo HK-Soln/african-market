@@ -10,6 +10,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import type { AccessTokenClaims } from '@am/auth';
 import { MediaErrors, MediaPatterns } from '@am/contracts';
+import { TEST_APP_ORIGINS } from './support/app-origins';
 
 const freePort = () =>
   new Promise<number>((resolve, reject) => {
@@ -102,7 +103,7 @@ describe('gateway media routes (HTTP -> gateway -> TCP -> media stand-in)', () =
     const { AppModule } = (await import('../src/app.module')) as typeof import('../src/app.module');
     const { configureApp } = (await import('../src/setup')) as typeof import('../src/setup');
     app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: false });
-    configureApp(app, { corsOrigins: ['http://localhost:3000'] });
+    configureApp(app, { appOrigins: TEST_APP_ORIGINS });
     await app.init();
   }, 60_000);
 

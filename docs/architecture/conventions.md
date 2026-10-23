@@ -107,8 +107,9 @@ Example: "seller creates a branch".
 ## 6. Frontends
 
 - Server components by default; client components only for interactivity (map, forms, chat).
-- Data fetching on the server with `api(locale, accessToken)` from `src/lib/api.ts`; the access token
-  comes from the `am_at` cookie. Browser calls go to the gateway with `credentials: 'include'`.
+- Data fetching on the server with `api(locale, accessToken)` from `src/lib/api.ts`, with a Bearer
+  token. Browser calls go to the gateway with `credentials: 'include'`; the gateway uses the
+  calling app's own session cookies (`am_<app>_at`), chosen by Origin (decision T-46).
 - Shop and product pages: SSR + `generateMetadata` with Open Graph tags (title, image, price in AED)
   so WhatsApp previews look right; `hreflang` alternates for en/ar/fr.
 - Maps go through `apps/web/src/lib/maps/` adapter (`MapProvider` interface; Google Maps

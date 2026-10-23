@@ -25,10 +25,15 @@ The only HTTP API the frontends call: `http://localhost:4000/api/v1/...`, Swagge
 | `POST /api/v1/auth/logout`           | Signs out on this device and clears the cookies.                 |
 | `GET /api/v1/me`, `PATCH /api/v1/me` | The signed-in person's profile and shops.                        |
 
-- A sign-in sets two httpOnly, SameSite=Lax cookies: `am_at` (access token, 15 minutes, path `/`)
-  and `am_rt` (refresh token, 30 days, path `/api/v1/auth`). They are `Secure` in staging and
-  production. The access token is also in the response body; the refresh token never is.
+- Each browser app has its own session (decision T-46). The gateway knows which app is calling
+  from the `Origin` header (`WEB_ORIGIN`, `SELLER_ORIGIN`, `ADMIN_ORIGIN`; also the only origins
+  CORS lets in), and a sign-in sets that app's two httpOnly cookies: `am_<app>_at` (access token,
+  15 minutes, path `/`) and `am_<app>_rt` (refresh token, 30 days, path `/api/v1/auth`), e.g.
+  `am_seller_at`. SameSite=Lax, Strict for the admin app; `Secure` with `COOKIE_SECURE=true`.
+  Signing out clears only the calling app's cookies. A caller with no app Origin (curl, the apps'
+  server-side calls) gets no cookies and uses `Authorization: Bearer`. The access token is also
+  in the response body; the refresh token never is.
 - The gateway adds the caller's IP, user agent, request id and `Accept-Language` to what it sends
   identity. The user id for `/me` comes from the token, never from the body.
-- `COOKIE_DOMAIN` (e.g. `.africanmarket.ae`) and `TRUST_PROXY_HOPS` (1 behind a load balancer) are
-  unset locally and must be set when deployed.
+- `COOKIE_DOMAIN` (e.g. `.africanmarket.ae`, `none` locally) and `TRUST_PROXY_HOPS` (1 behind a
+  load balancer, 0 locally) are set per environment, like every other key.

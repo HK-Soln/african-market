@@ -18,7 +18,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCookieAuth,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -83,7 +82,6 @@ abstract class AdminBase {
 
 @ApiTags('admin')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Roles('admin')
 @Controller('admin')
 export class AdminVerificationController extends AdminBase {
@@ -232,7 +230,6 @@ export class AdminVerificationController extends AdminBase {
 
 @ApiTags('admin')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Roles('admin')
 @Controller('admin')
 export class AdminCatalogueController extends AdminBase {
@@ -341,7 +338,6 @@ export class AdminCatalogueController extends AdminBase {
 
 @ApiTags('admin')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Roles('admin')
 @Controller('admin')
 export class AdminSearchController extends AdminBase {
@@ -392,7 +388,6 @@ export class AdminSearchController extends AdminBase {
 
 @ApiTags('admin')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Roles('admin')
 @Controller('admin')
 export class AdminAuditController {

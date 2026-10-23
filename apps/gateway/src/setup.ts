@@ -3,11 +3,13 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { ACCESS_TOKEN_COOKIE } from '@am/auth';
+import type { ClientApp } from '@am/auth';
+import { identifyClientApp } from './auth/client-app';
 import { HttpErrorFilter, validationException } from './common/http-error.filter';
 
 export interface ConfigureOptions {
-  corsOrigins: string[];
+  /** Where each browser app is served from (see WEB_ORIGIN in env.ts). */
+  appOrigins: Record<ClientApp, string>;
   /** See `TRUST_PROXY_HOPS` in env.ts. */
   trustProxyHops?: number;
 }
@@ -19,7 +21,8 @@ export function configureApp(app: NestExpressApplication, options: ConfigureOpti
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.use(helmet());
   app.use(cookieParser());
-  app.enableCors({ origin: options.corsOrigins, credentials: true });
+  app.use(identifyClientApp(options.appOrigins));
+  app.enableCors({ origin: Object.values(options.appOrigins), credentials: true });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -34,8 +37,9 @@ export function configureApp(app: NestExpressApplication, options: ConfigureOpti
     .setTitle('African Market API')
     .setDescription('Gateway REST API for the web, seller and admin apps')
     .setVersion('1')
+    // The session cookies are per app and chosen by Origin, which Swagger UI cannot send for an
+    // app; it signs in with a Bearer token.
     .addBearerAuth()
-    .addCookieAuth(ACCESS_TOKEN_COOKIE)
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);

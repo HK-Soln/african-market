@@ -8,6 +8,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { IdentityErrors, IdentityPatterns } from '@am/contracts';
 import { FAKE_OTP_CODE, FakeIdentityController, startFakeIdentity } from './support/fake-identity';
+import type { ClientApp } from '@am/auth';
+import { TEST_APP_ORIGINS } from './support/app-origins';
 
 /** A port nothing is listening on, for the stand-in identity service. */
 const freePort = () =>
@@ -36,8 +38,15 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
   /** Generated per run; shared by the gateway and the stand-in, as in a real deployment. */
   const accessKey = `${randomUUID()}${randomUUID()}`;
 
-  const http = () => request(app.getHttpServer());
-  const agent = () => request.agent(app.getHttpServer());
+  /**
+   * A browser on one of the apps (the customer site unless named): it sends that app's Origin,
+   * which is how the gateway picks the session cookies, and keeps the cookies it is given.
+   */
+  const agent = (app_: ClientApp = 'web') =>
+    request.agent(app.getHttpServer()).set('Origin', TEST_APP_ORIGINS[app_]);
+  const http = agent;
+  /** A caller that is not one of the apps: no Origin (curl, the apps' server-side calls). */
+  const bare = () => request(app.getHttpServer());
 
   /** Signs a new person in through the two OTP routes and returns the agent holding the cookies. */
   const signIn = async () => {
@@ -65,7 +74,7 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     const { AppModule } = (await import('../src/app.module')) as typeof import('../src/app.module');
     const { configureApp } = (await import('../src/setup')) as typeof import('../src/setup');
     app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: false });
-    configureApp(app, { corsOrigins: ['http://localhost:3000'] });
+    configureApp(app, { appOrigins: TEST_APP_ORIGINS });
     await app.init();
   }, 60_000);
 
@@ -104,8 +113,8 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
         'gateway-test',
       );
 
-      const access = cookieNamed(verified, 'am_at') ?? '';
-      const refresh = cookieNamed(verified, 'am_rt') ?? '';
+      const access = cookieNamed(verified, 'am_web_at') ?? '';
+      const refresh = cookieNamed(verified, 'am_web_rt') ?? '';
       expect(access).toMatch(/; Path=\/;/);
       expect(access).toMatch(/HttpOnly/);
       expect(access).toMatch(/SameSite=Lax/);
@@ -131,14 +140,14 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
 
       const refreshed = await browser.post('/api/v1/auth/refresh').expect(200);
       expect(refreshed.body.user.id).toBe(verified.body.user.id);
-      expect(cookieNamed(refreshed, 'am_rt')).toBeDefined();
-      expect(cookieNamed(refreshed, 'am_rt')).not.toBe(refresh);
+      expect(cookieNamed(refreshed, 'am_web_rt')).toBeDefined();
+      expect(cookieNamed(refreshed, 'am_web_rt')).not.toBe(refresh);
       await browser.get('/api/v1/me').expect(200);
 
       const out = await browser.post('/api/v1/auth/logout').expect(200);
       expect(out.body).toEqual({ loggedOut: true });
-      expect(cookieNamed(out, 'am_at')).toMatch(/^am_at=;/);
-      expect(cookieNamed(out, 'am_rt')).toMatch(/^am_rt=;/);
+      expect(cookieNamed(out, 'am_web_at')).toMatch(/^am_web_at=;/);
+      expect(cookieNamed(out, 'am_web_rt')).toMatch(/^am_web_rt=;/);
 
       const after = await browser.get('/api/v1/me').expect(401);
       expect(after.body).toMatchObject({ statusCode: 401, code: 'AUTH_REQUIRED' });
@@ -159,7 +168,7 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
         .send({ provider: 'google', token: 'good:ada-0001', termsAccepted: true })
         .expect(200);
       expect(res.body).toMatchObject({ isNewUser: true, user: { email: 'ada-0001@example.com' } });
-      expect(String(res.headers['set-cookie'])).toContain('am_at=');
+      expect(String(res.headers['set-cookie'])).toContain('am_web_at=');
       expect(FakeIdentityController.last(IdentityPatterns.socialSignIn)).toMatchObject({
         provider: 'google',
         preferredLanguage: 'ar',
@@ -265,11 +274,11 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     it('clears the cookies when identity refuses the refresh token', async () => {
       const refused = await http()
         .post('/api/v1/auth/refresh')
-        .set('Cookie', 'am_rt=never-issued')
+        .set('Cookie', 'am_web_rt=never-issued')
         .expect(401);
       expect(refused.body.code).toBe('SESSION_INVALID');
-      expect(cookieNamed(refused, 'am_rt')).toMatch(/^am_rt=;/);
-      expect(cookieNamed(refused, 'am_at')).toMatch(/^am_at=;/);
+      expect(cookieNamed(refused, 'am_web_rt')).toMatch(/^am_web_rt=;/);
+      expect(cookieNamed(refused, 'am_web_at')).toMatch(/^am_web_at=;/);
     });
   });
 
@@ -448,8 +457,8 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
       });
       const sent = FakeIdentityController.last(IdentityPatterns.deleteMe);
       expect(sent).toMatchObject({ userId: expect.any(String), authTime: expect.any(Number) });
-      expect(cookieNamed(res, 'am_at')).toMatch(/Expires=Thu, 01 Jan 1970/);
-      expect(cookieNamed(res, 'am_rt')).toMatch(/Expires=Thu, 01 Jan 1970/);
+      expect(cookieNamed(res, 'am_web_at')).toMatch(/Expires=Thu, 01 Jan 1970/);
+      expect(cookieNamed(res, 'am_web_rt')).toMatch(/Expires=Thu, 01 Jan 1970/);
     });
 
     it('asks for a fresh sign-in when the last one is old', async () => {
@@ -458,10 +467,92 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
         const { browser } = await signIn();
         const res = await browser.delete('/api/v1/me').expect(403);
         expect(res.body.code).toBe('AUTH_REAUTH_REQUIRED');
-        expect(cookieNamed(res, 'am_at')).toBeUndefined();
+        expect(cookieNamed(res, 'am_web_at')).toBeUndefined();
       } finally {
         FakeIdentityController.signedInSecondsAgo = 0;
       }
+    });
+  });
+
+  describe('one session per app (decision T-46)', () => {
+    // Social sign-in: the code routes' per-IP allowance is used up by the tests above.
+    let socialSeq = 0;
+    const SOCIAL = '/api/v1/auth/social';
+    const signInOn = (req: request.Test) =>
+      req
+        .send({ provider: 'google', token: `good:t46-${++socialSeq}`, termsAccepted: true })
+        .expect(200);
+    const signedIn: Partial<Record<ClientApp, request.Response>> = {};
+
+    beforeAll(async () => {
+      for (const app_ of ['web', 'seller', 'admin'] as const) {
+        signedIn[app_] = await signInOn(agent(app_).post(SOCIAL));
+      }
+    });
+
+    it('names the cookies after the app that signed in, so apps never replace each other', () => {
+      expect(cookieNamed(signedIn.web!, 'am_web_at')).toBeDefined();
+      expect(cookieNamed(signedIn.seller!, 'am_seller_at')).toBeDefined();
+      expect(cookieNamed(signedIn.seller!, 'am_seller_rt')).toBeDefined();
+      expect(cookieNamed(signedIn.admin!, 'am_admin_at')).toBeDefined();
+      for (const res of Object.values(signedIn)) expect(cookiesOf(res!)).toHaveLength(2);
+    });
+
+    it('keeps the admin cookies off requests that another site starts', () => {
+      expect(cookieNamed(signedIn.admin!, 'am_admin_at')).toMatch(/SameSite=Strict/);
+      expect(cookieNamed(signedIn.admin!, 'am_admin_rt')).toMatch(/SameSite=Strict/);
+      expect(cookieNamed(signedIn.seller!, 'am_seller_at')).toMatch(/SameSite=Lax/);
+    });
+
+    it('signs out of one app only', async () => {
+      // One cookie jar, as one browser: signed in to the seller app and the customer site.
+      const jar = request.agent(app.getHttpServer());
+      const as = (app_: ClientApp) => ({
+        get: (path: string) => jar.get(path).set('Origin', TEST_APP_ORIGINS[app_]),
+        post: (path: string) => jar.post(path).set('Origin', TEST_APP_ORIGINS[app_]),
+      });
+      for (const app_ of ['web', 'seller'] as const) await signInOn(as(app_).post(SOCIAL));
+      await as('seller').get('/api/v1/me').expect(200);
+      await as('web').get('/api/v1/me').expect(200);
+
+      const out = await as('seller').post('/api/v1/auth/logout').expect(200);
+      expect(cookieNamed(out, 'am_seller_at')).toMatch(/^am_seller_at=;/);
+      expect(cookieNamed(out, 'am_web_at')).toBeUndefined();
+      await as('seller').get('/api/v1/me').expect(401);
+      await as('web').get('/api/v1/me').expect(200);
+      // The admin app was never signed in, whatever the other apps hold.
+      await as('admin').get('/api/v1/me').expect(401);
+    });
+
+    it('does not let one app use the session cookie of another', async () => {
+      const token = (cookieNamed(signedIn.web!, 'am_web_at') ?? '').split(';')[0].split('=')[1];
+      await agent('admin').set('Cookie', `am_web_at=${token}`).get('/api/v1/me').expect(401);
+      await agent('admin').set('Cookie', `am_admin_at=${token}`).get('/api/v1/me').expect(200);
+    });
+
+    it('gives a caller that is not an app no cookies, only the token in the body', async () => {
+      for (const origin of [undefined, 'https://elsewhere.example']) {
+        const req = bare().post(SOCIAL);
+        const res = await signInOn(origin ? req.set('Origin', origin) : req);
+        expect(cookiesOf(res)).toEqual([]);
+        await bare()
+          .get('/api/v1/me')
+          .set('Authorization', `Bearer ${res.body.accessToken}`)
+          .expect(200);
+      }
+    });
+
+    it('answers CORS only for the three apps', async () => {
+      const allowed = await bare()
+        .options('/api/v1/me')
+        .set('Origin', TEST_APP_ORIGINS.seller)
+        .set('Access-Control-Request-Method', 'GET');
+      expect(allowed.headers['access-control-allow-origin']).toBe(TEST_APP_ORIGINS.seller);
+      const other = await bare()
+        .options('/api/v1/me')
+        .set('Origin', 'https://elsewhere.example')
+        .set('Access-Control-Request-Method', 'GET');
+      expect(other.headers['access-control-allow-origin']).toBeUndefined();
     });
   });
 

@@ -7,6 +7,7 @@ import { MessagePattern, Payload, RpcException, Transport } from '@nestjs/micros
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { ShopsPatterns, VerificationErrors } from '@am/contracts';
+import { TEST_APP_ORIGINS } from './support/app-origins';
 
 const freePort = () =>
   new Promise<number>((resolve, reject) => {
@@ -64,7 +65,7 @@ describe('gateway webhooks (HTTP -> gateway -> TCP -> shops stand-in)', () => {
       logger: false,
       rawBody: true,
     });
-    configureApp(app, { corsOrigins: ['http://localhost:3000'] });
+    configureApp(app, { appOrigins: TEST_APP_ORIGINS });
     await app.init();
   }, 60_000);
 
@@ -81,7 +82,7 @@ describe('gateway webhooks (HTTP -> gateway -> TCP -> shops stand-in)', () => {
       .set('Content-Type', 'application/json')
       .set('X-Signature', 'abc')
       .set('X-Timestamp', '1792150000')
-      .set('Cookie', 'am_at=whatever')
+      .set('Cookie', 'am_web_at=whatever')
       .send(body)
       .expect(200, { accepted: true });
 

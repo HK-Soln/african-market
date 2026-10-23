@@ -13,14 +13,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiCookieAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AuthenticatedUser, CurrentUser } from '@am/auth';
@@ -96,7 +89,6 @@ abstract class SellerBase {
 
 @ApiTags('seller')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Controller('seller/shops')
 export class SellerShopsController extends SellerBase {
   constructor(
@@ -340,7 +332,6 @@ export class SellerShopsController extends SellerBase {
 
 @ApiTags('seller')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Controller('seller/shops/:shopId/verification')
 export class SellerVerificationController extends SellerBase {
   constructor(
@@ -453,7 +444,6 @@ export class SellerVerificationController extends SellerBase {
 
 @ApiTags('seller')
 @ApiBearerAuth()
-@ApiCookieAuth()
 @Controller('seller/shops/:shopId')
 export class SellerProductsController extends SellerBase {
   constructor(

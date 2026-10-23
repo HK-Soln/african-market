@@ -14,7 +14,7 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
-import { Public, REFRESH_TOKEN_COOKIE } from '@am/auth';
+import { Public, sessionCookies } from '@am/auth';
 import {
   AuthenticatedUserResponse,
   EmailCodeResponse,
@@ -91,7 +91,7 @@ export class AuthController {
       correlationId: correlationId(req),
       ...requestOrigin(req),
     });
-    return this.signedIn(res, result.user, result.session, result.isNewUser);
+    return this.signedIn(req, res, result.user, result.session, result.isNewUser);
   }
 
   @ApiOperation({
@@ -116,7 +116,7 @@ export class AuthController {
       correlationId: correlationId(req),
       ...requestOrigin(req),
     });
-    return this.signedIn(res, result.user, result.session, result.isNewUser);
+    return this.signedIn(req, res, result.user, result.session, result.isNewUser);
   }
 
   @ApiOperation({
@@ -172,7 +172,7 @@ export class AuthController {
       correlationId: correlationId(req),
       ...requestOrigin(req),
     });
-    return this.signedIn(res, result.user, result.session, result.isNewUser);
+    return this.signedIn(req, res, result.user, result.session, result.isNewUser);
   }
 
   @ApiOperation({ summary: 'Sign in with email and password' })
@@ -189,7 +189,7 @@ export class AuthController {
       IdentityPatterns.loginWithPassword,
       { ...body, ...requestOrigin(req) },
     );
-    return this.signedIn(res, result.user, result.session);
+    return this.signedIn(req, res, result.user, result.session);
   }
 
   @ApiOperation({ summary: 'Email a password reset code' })
@@ -219,7 +219,7 @@ export class AuthController {
       ...body,
       ...requestOrigin(req),
     });
-    return this.signedIn(res, result.user, result.session);
+    return this.signedIn(req, res, result.user, result.session);
   }
 
   @ApiOperation({ summary: 'Swap the refresh cookie for a new access and refresh token' })
@@ -243,12 +243,12 @@ export class AuthController {
         IdentityPatterns.refreshSession,
         { refreshToken, ...requestOrigin(req) },
       );
-      return this.signedIn(res, result.user, result.session);
+      return this.signedIn(req, res, result.user, result.session);
     } catch (err) {
       // A refused token will never work again, so stop the browser sending it. An outage is
       // different: the session is still good and the cookies stay.
       if (err instanceof HttpException && [401, 403].includes(err.getStatus())) {
-        clearAuthCookies(res, this.env);
+        clearAuthCookies(res, req.clientApp, this.env);
       }
       throw err;
     }
@@ -264,7 +264,7 @@ export class AuthController {
   ): Promise<LoggedOutDto> {
     const refreshToken = this.refreshCookie(req);
     // The cookies go first: the person is signed out here even if identity cannot be reached.
-    clearAuthCookies(res, this.env);
+    clearAuthCookies(res, req.clientApp, this.env);
     if (refreshToken) {
       await this.identity<LogoutResponse>(IdentityPatterns.logout, { refreshToken });
     }
@@ -275,18 +275,22 @@ export class AuthController {
     return this.caller.call<TResult>('identity', pattern, data);
   }
 
+  /** The refresh cookie of the app that is calling; none for a caller that is not an app. */
   private refreshCookie(req: Request): string | undefined {
-    const value = (req.cookies as Record<string, unknown> | undefined)?.[REFRESH_TOKEN_COOKIE];
+    if (!req.clientApp) return undefined;
+    const name = sessionCookies(req.clientApp).refresh;
+    const value = (req.cookies as Record<string, unknown> | undefined)?.[name];
     return typeof value === 'string' && value.length > 0 && value.length <= 256 ? value : undefined;
   }
 
   private signedIn(
+    req: Request,
     res: Response,
     user: UserDto,
     session: SessionTokens,
     isNewUser = false,
   ): AuthSessionDto {
-    setAuthCookies(res, session, this.env);
+    setAuthCookies(res, req.clientApp, session, this.env);
     return {
       user,
       isNewUser,

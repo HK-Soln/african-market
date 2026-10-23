@@ -6,7 +6,7 @@ import ar from '../apps/web/messages/ar.json';
 import en from '../apps/web/messages/en.json';
 import { COOKIE_NOTICE_KEY, COOKIE_NOTICE_VERSION } from '../apps/web/src/lib/cookie-notice';
 /* eslint-enable no-restricted-imports */
-import { GATEWAY_URL } from './urls';
+import { GATEWAY_URL, WEB_URL } from './urls';
 
 /** The app's own words, so a test finds a button by what a person reads in that language. */
 export const messages = { en, ar };
@@ -82,7 +82,12 @@ export const test = base.extend<Fixtures>({
   },
 
   api: async ({ playwright, context }, use) => {
-    const request = await playwright.request.newContext({ baseURL: GATEWAY_URL });
+    // As the customer site: the gateway picks the session cookies by Origin (decision T-46), and
+    // these are the cookies handed to the browser below.
+    const request = await playwright.request.newContext({
+      baseURL: GATEWAY_URL,
+      extraHTTPHeaders: { Origin: new URL(WEB_URL).origin },
+    });
     await use({
       otpFor: (phone) => otpFor(request, phone),
       signUp: async ({ name = 'Adaeze Okafor', locale = 'en' } = {}) => {

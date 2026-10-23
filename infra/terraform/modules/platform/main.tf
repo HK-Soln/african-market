@@ -267,7 +267,9 @@ module "gateway" {
 
   environment = merge(local.backend_env, {
     GATEWAY_PORT             = "4000"
-    CORS_ORIGINS             = join(",", local.origins)
+    WEB_ORIGIN               = "https://${local.hosts.web}"
+    SELLER_ORIGIN            = "https://${local.hosts.seller}"
+    ADMIN_ORIGIN             = "https://${local.hosts.admin}"
     COOKIE_DOMAIN            = ".${var.domain}"
     COOKIE_SECURE            = "true"
     TRUST_PROXY_HOPS         = "1"

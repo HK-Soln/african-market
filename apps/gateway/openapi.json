@@ -403,9 +403,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -441,9 +438,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -473,9 +467,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -503,9 +494,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -610,9 +598,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -649,9 +634,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -700,9 +682,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -760,9 +739,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -816,9 +792,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -904,9 +877,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -955,9 +925,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -995,9 +962,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1033,9 +997,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -1084,9 +1045,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1113,9 +1071,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -1172,9 +1127,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1202,9 +1154,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -1344,9 +1293,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -1598,9 +1544,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1648,9 +1591,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1689,9 +1629,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1729,9 +1666,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -1761,9 +1695,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2408,9 +2339,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -2446,9 +2374,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2486,9 +2411,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2535,9 +2457,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2586,9 +2505,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2646,9 +2562,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -2685,9 +2598,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2745,9 +2655,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -2814,9 +2721,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -2870,9 +2774,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -2924,9 +2825,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -2963,9 +2861,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -3015,9 +2910,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3056,9 +2948,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3096,9 +2985,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -3147,9 +3033,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -3271,9 +3154,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3320,9 +3200,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3368,9 +3245,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -3427,9 +3301,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3466,9 +3337,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -3527,9 +3395,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3585,9 +3450,6 @@
           }
         },
         "security": [
-          {
-            "cookie": []
-          },
           {
             "bearer": []
           }
@@ -3646,9 +3508,6 @@
         },
         "security": [
           {
-            "cookie": []
-          },
-          {
             "bearer": []
           }
         ],
@@ -3673,11 +3532,6 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http"
-      },
-      "cookie": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "am_at"
       }
     },
     "schemas": {

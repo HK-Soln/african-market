@@ -120,7 +120,8 @@ Without Docker, run it in a GitHub codespace (made-up data only): see `.devconta
 - **Phones:** E.164, validated with `libphonenumber-js`, default region AE. **Time:** store UTC
   (`timestamptz`), display `Asia/Dubai`. Weekend is Saturday-Sunday.
 - **Validation:** class-validator DTOs at the gateway; services validate again for anything they persist.
-- **Auth:** access JWT 15 min + rotating refresh token in httpOnly cookies. Gateway routes are
+- **Auth:** access JWT 15 min + rotating refresh token in httpOnly cookies, one pair per app
+  (`am_<app>_at`, picked by the browser's Origin; decision T-46). Gateway routes are
   authenticated by default; mark open ones `@Public()`. Shop routes use `:shopId` + `@ShopRoles()`;
   branch-level staff checks use `canAccessBranch()` in the service.
 - **Configuration** is read only through zod schemas: `loadEnv` / `APP_ENV` from `@am/core` in the

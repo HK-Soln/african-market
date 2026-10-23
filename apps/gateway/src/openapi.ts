@@ -12,7 +12,14 @@ async function main() {
     logger: ['error', 'warn'],
     abortOnError: false,
   });
-  const document = configureApp(app, { corsOrigins: [] });
+  // Only the description is written; no browser calls this app.
+  const document = configureApp(app, {
+    appOrigins: {
+      web: 'http://web.invalid',
+      seller: 'http://seller.invalid',
+      admin: 'http://admin.invalid',
+    },
+  });
   writeFileSync(join(__dirname, '..', 'openapi.json'), JSON.stringify(document, null, 2));
   await app.close();
   process.exit(0);

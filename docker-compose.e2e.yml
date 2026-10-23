@@ -20,7 +20,7 @@ services:
     environment:
       DEPLOY_ENV: test
       TEST_SUPPORT_ROUTES: 'true'
-      CORS_ORIGINS: http://localhost:3100
+      WEB_ORIGIN: http://localhost:3100
       # Every test comes from the runner's one IP; the real limits are covered by the gateway's
       # own tests.
       AUTH_THROTTLE_MULTIPLIER: 20

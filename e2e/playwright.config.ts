@@ -70,7 +70,7 @@ export default defineConfig({
             TEST_SUPPORT_ROUTES: 'true',
             GATEWAY_PORT: '4100',
             IDENTITY_TCP_PORT: '4111',
-            CORS_ORIGINS: WEB_URL,
+            WEB_ORIGIN: new URL(WEB_URL).origin,
             LOG_LEVEL: 'warn',
           },
           reuseExistingServer: !ci,

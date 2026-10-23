@@ -1,5 +1,5 @@
 import type { CookieOptions, Response } from 'express';
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@am/auth';
+import { type ClientApp, sessionCookies } from '@am/auth';
 import type { SessionTokens } from '@am/contracts';
 import type { GatewayEnv } from '../env';
 
@@ -8,33 +8,48 @@ export const REFRESH_COOKIE_PATH = '/api/v1/auth';
 
 /**
  * httpOnly keeps both tokens away from page scripts. SameSite=Lax means another site cannot make
- * the browser send them on a POST, which is what protects the state-changing routes.
+ * the browser send them on a POST, which is what protects the state-changing routes; the admin
+ * app's are Strict, so they never travel with a request another site starts.
  */
-function baseOptions(env: GatewayEnv): CookieOptions {
+function baseOptions(app: ClientApp, env: GatewayEnv): CookieOptions {
   return {
     httpOnly: true,
     secure: env.COOKIE_SECURE,
-    sameSite: 'lax',
+    sameSite: app === 'admin' ? 'strict' : 'lax',
     ...(env.COOKIE_DOMAIN ? { domain: env.COOKIE_DOMAIN } : {}),
   };
 }
 
-export function setAuthCookies(res: Response, session: SessionTokens, env: GatewayEnv): void {
-  const base = baseOptions(env);
-  res.cookie(ACCESS_TOKEN_COOKIE, session.accessToken, {
+/**
+ * Sets the session cookies of the app that is calling (decision T-46). A caller that is not one
+ * of the browser apps gets none: it has the access token in the response body.
+ */
+export function setAuthCookies(
+  res: Response,
+  app: ClientApp | undefined,
+  session: SessionTokens,
+  env: GatewayEnv,
+): void {
+  if (!app) return;
+  const base = baseOptions(app, env);
+  const names = sessionCookies(app);
+  res.cookie(names.access, session.accessToken, {
     ...base,
     path: '/',
     expires: new Date(session.accessTokenExpiresAt),
   });
-  res.cookie(REFRESH_TOKEN_COOKIE, session.refreshToken, {
+  res.cookie(names.refresh, session.refreshToken, {
     ...base,
     path: REFRESH_COOKIE_PATH,
     expires: new Date(session.refreshTokenExpiresAt),
   });
 }
 
-export function clearAuthCookies(res: Response, env: GatewayEnv): void {
-  const base = baseOptions(env);
-  res.clearCookie(ACCESS_TOKEN_COOKIE, { ...base, path: '/' });
-  res.clearCookie(REFRESH_TOKEN_COOKIE, { ...base, path: REFRESH_COOKIE_PATH });
+/** Signs the calling app out of this browser; the other apps keep their sessions. */
+export function clearAuthCookies(res: Response, app: ClientApp | undefined, env: GatewayEnv): void {
+  if (!app) return;
+  const base = baseOptions(app, env);
+  const names = sessionCookies(app);
+  res.clearCookie(names.access, { ...base, path: '/' });
+  res.clearCookie(names.refresh, { ...base, path: REFRESH_COOKIE_PATH });
 }

@@ -1,5 +1,12 @@
 import { z } from 'zod';
+import type { ClientApp } from '@am/auth';
 import { type BaseEnv, flag, isDeployed, noneMeansOff } from '@am/core';
+
+/** A scheme, host and port, as a browser sends it in Origin: no path, no trailing slash. */
+const origin = () =>
+  z
+    .url()
+    .refine((value) => new URL(value).origin === value, 'an origin: no path, no slash at the end');
 
 export const gatewayEnvSchema = z.object({
   /** /health/services checks the services of this phase and earlier. */
@@ -7,8 +14,14 @@ export const gatewayEnvSchema = z.object({
   GATEWAY_PORT: z.coerce.number().int().positive(),
   /** HS256 secret for access tokens, shared with identity. Production: from AWS Secrets Manager. */
   JWT_ACCESS_SECRET: z.string().min(32),
-  /** Comma-separated origins of the three Next.js apps. */
-  CORS_ORIGINS: z.string().min(1),
+  /**
+   * Where each browser app is served from, e.g. `https://seller.africanmarket.ae`: the only
+   * origins CORS lets in, and how the gateway knows which app's session cookies to use
+   * (decision T-46).
+   */
+  WEB_ORIGIN: origin(),
+  SELLER_ORIGIN: origin(),
+  ADMIN_ORIGIN: origin(),
   /**
    * Scales the per-IP limits on the auth routes (auth/auth.throttles.ts). 1 everywhere real; only
    * the end-to-end stack raises it, because every test there comes from the same IP.
@@ -50,3 +63,10 @@ export function assertSafeGatewayEnv(env: GatewayEnv): void {
   if (env.TEST_SUPPORT_ROUTES)
     throw new Error('TEST_SUPPORT_ROUTES hands out sign-in codes; it must be false here');
 }
+
+/** Which origin is which app, for configureApp. */
+export const appOrigins = (env: GatewayEnv): Record<ClientApp, string> => ({
+  web: env.WEB_ORIGIN,
+  seller: env.SELLER_ORIGIN,
+  admin: env.ADMIN_ORIGIN,
+});

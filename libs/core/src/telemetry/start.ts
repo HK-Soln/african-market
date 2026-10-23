@@ -20,7 +20,7 @@ import { baseEnvSchema, loadEnv } from '../env';
 import { setTelemetryState, telemetryState, type TelemetryState } from './state';
 
 const telemetryEnvSchema = baseEnvSchema.pick({
-  NODE_ENV: true,
+  DEPLOY_ENV: true,
   OTEL_EXPORTER_OTLP_ENDPOINT: true,
   OTEL_TRACES_SAMPLE_RATIO: true,
   SENTRY_DSN: true,
@@ -33,7 +33,7 @@ const telemetryEnvSchema = baseEnvSchema.pick({
  * whatever was loaded before.
  *
  * Spans are always made, so every log line and event carries a trace id; they are exported only
- * when OTEL_EXPORTER_OTLP_ENDPOINT is set. Sentry runs only when SENTRY_DSN is set, and only for
+ * when OTEL_EXPORTER_OTLP_ENDPOINT is set (not `none`). Sentry runs only when SENTRY_DSN is set, and only for
  * errors: traces go to the collector, not to Sentry.
  */
 /** `source` is for tests; apps read process.env (through loadEnv). */
@@ -47,7 +47,7 @@ export function startTelemetry(service: string, source?: NodeJS.ProcessEnv): Tel
     resource: resourceFromAttributes({
       [ATTR_SERVICE_NAME]: service,
       'service.namespace': 'african-market',
-      'deployment.environment.name': env.NODE_ENV,
+      'deployment.environment.name': env.DEPLOY_ENV,
     }),
     sampler: new ParentBasedSampler({
       root: new TraceIdRatioBasedSampler(env.OTEL_TRACES_SAMPLE_RATIO),
@@ -86,7 +86,7 @@ export function startTelemetry(service: string, source?: NodeJS.ProcessEnv): Tel
   if (env.SENTRY_DSN) {
     Sentry.init({
       dsn: env.SENTRY_DSN,
-      environment: env.NODE_ENV,
+      environment: env.DEPLOY_ENV,
       serverName: service,
       initialScope: { tags: { service } },
       // No user fields, cookies, bodies or query strings; scrubErrorReport removes what is left.

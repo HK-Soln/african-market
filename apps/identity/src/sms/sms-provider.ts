@@ -32,7 +32,7 @@ export class ConsoleSmsProvider implements SmsProvider {
 /**
  * End-to-end tests only: keeps the last message per phone in memory so a test can read the code
  * it would have received. Chosen with SMS_PROVIDER=memory, which `assertSafeIdentityEnv` refuses
- * unless NODE_ENV=test.
+ * in staging and production.
  */
 export class MemorySmsProvider implements SmsProvider {
   private readonly last = new Map<string, SmsMessage>();

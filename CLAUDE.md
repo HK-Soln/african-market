@@ -124,12 +124,17 @@ Without Docker, run it in a GitHub codespace (made-up data only): see `.devconta
   authenticated by default; mark open ones `@Public()`. Shop routes use `:shopId` + `@ShopRoles()`;
   branch-level staff checks use `canAccessBranch()` in the service.
 - **Configuration** is read only through zod schemas: `loadEnv` / `APP_ENV` from `@am/core` in the
-  backends (a new key goes into `baseEnvSchema` or the service's own schema, with its default), and
+  backends (a new key goes into `baseEnvSchema` or the service's own schema), and
   `src/lib/config.ts` in each Next app. ESLint rejects `process.env` anywhere else (tests excepted).
-  **No default for anything that differs between environments** (connection URLs, hosts, secrets,
-  providers, origins, phase): the app must stop at start and name the missing key. Defaults are
-  only for values that are the same everywhere (ports, log level, timings). Add a new required
-  key to `.env.example`, CI's `env:` and docker compose in the same change.
+  **No defaults, for anything** (decision T-45): every key must be set, or the app stops at start
+  (a Next app at `next build`) and names it. A feature that can be off is set to `none`
+  (`noneMeansOff` / `listOrNone` from `@am/core`), never left empty: ECS drops empty values.
+  `DEPLOY_ENV` names the environment and is read only to refuse unsafe settings in staging and
+  production; `NODE_ENV` belongs to Node and Next. A behaviour gets its own switch
+  (`COOKIE_SECURE`, `TEST_SUPPORT_ROUTES`, `FAKE_SOCIAL_SIGN_IN`), never "if the environment is X".
+  Add a new key to `.env.example`, CI's `env:`, docker compose and Terraform
+  (`infra/terraform/modules/platform`) in the same change; tests build env objects from
+  `testBaseEnv` (`@am/core/testing`).
 - **Lists** take one query format and use cursor (keyset) pagination, never offset:
   `filter[field][op]=`, `sort=-a,b`, `limit` (max 100), `cursor` → `{ items, nextCursor, prevCursor }`.
   Declare a `ListSpec` in `@am/contracts`; use `@ListQueryParams`/`@ApiListQuery` in the gateway and

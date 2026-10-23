@@ -36,7 +36,7 @@ export function testNumber(index: number): { national: string; e164: string; cod
 export interface Api {
   /**
    * The code the backend "sent" to a phone. Only works against a backend running with
-   * NODE_ENV=test; anywhere else the route does not exist.
+   * TEST_SUPPORT_ROUTES=true; anywhere else the route does not exist.
    */
   otpFor(phone: string): Promise<string>;
   /** Creates an account by phone through the API and returns the signed-in request context. */
@@ -61,7 +61,7 @@ async function otpFor(request: APIRequestContext, phone: string): Promise<string
   const response = await request.get('/api/v1/test/otp', { params: { phone } });
   expect(
     response.status(),
-    'GET /api/v1/test/otp needs the backend to run with NODE_ENV=test (see playwright.config.ts)',
+    'GET /api/v1/test/otp needs the backend to run with TEST_SUPPORT_ROUTES=true (see playwright.config.ts)',
   ).toBe(200);
   const { code } = (await response.json()) as { code: string | null };
   expect(code, `no code was sent to ${phone}`).toMatch(/^\d{6}$/);

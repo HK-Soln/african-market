@@ -10,7 +10,7 @@ const lastOtpSchema = z.object({ phone: z.string().min(1).max(32) });
 
 /**
  * Lets an end-to-end test read the code it was "sent". This hands out sign-in codes, so it must
- * never exist outside a test run: it is only registered by `testSupportModules('test')`, and it
+ * never exist outside a test run: it is only registered with TEST_SUPPORT_ROUTES=true, and it
  * only answers when the SMS provider is the in-memory one.
  */
 @Controller()
@@ -30,6 +30,6 @@ export class TestSupportController {
 @Module({ controllers: [TestSupportController] })
 export class TestSupportModule {}
 
-/** The test-only modules to load: all of them under NODE_ENV=test, none otherwise. */
-export const testSupportModules = (nodeEnv: string | undefined): Type<unknown>[] =>
-  nodeEnv === 'test' ? [TestSupportModule] : [];
+/** The test-only modules to load: all of them with TEST_SUPPORT_ROUTES=true, none otherwise. */
+export const testSupportModules = (enabled: boolean): Type<unknown>[] =>
+  enabled ? [TestSupportModule] : [];

@@ -90,7 +90,7 @@ describe('gateway media routes (HTTP -> gateway -> TCP -> media stand-in)', () =
     process.env.MEDIA_TCP_PORT = String(port);
     process.env.MEDIA_HOST = '127.0.0.1';
     process.env.JWT_ACCESS_SECRET = accessKey;
-    process.env.NODE_ENV = 'test';
+    process.env.DEPLOY_ENV = 'test';
     process.env.LOG_LEVEL = 'fatal';
     media = await NestFactory.createMicroservice(FakeMediaModule, {
       transport: Transport.TCP,

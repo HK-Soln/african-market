@@ -1,4 +1,5 @@
-import { baseEnvSchema } from '@am/core';
+import { baseEnvSchema, loadEnv } from '@am/core';
+import { testBaseEnv } from '@am/core/testing';
 import { assertSafeIdentityEnv, IdentityEnv, identityEnvSchema } from '../config/identity-env';
 import { ConsoleSmsProvider, MemorySmsProvider } from '../sms/sms-provider';
 import {
@@ -9,36 +10,68 @@ import {
 
 /** Everything identity requires, as on a laptop; each test sets what it is about. */
 const required = {
-  DATABASE_URL: 'postgres://am:am@localhost:5432/african_market',
-  RABBITMQ_URL: 'amqp://am:am@localhost:5672',
-  REDIS_URL: 'redis://localhost:6379',
+  ...testBaseEnv,
+  DEPLOY_ENV: 'development',
   JWT_ACCESS_SECRET: 'test-access-secret-0123456789-0123456789',
   OTP_HMAC_SECRET: 'test-otp-hmac-secret-0123456789-0123456789',
   SMTP_URL: 'smtp://localhost:1025',
   EMAIL_FROM: 'African Market <no-reply@africanmarket.local>',
-  SOCIAL_PROVIDERS: '',
+  EMAIL_PROVIDER: 'smtp',
+  SMS_PROVIDER: 'console',
+  OTP_TEST_NUMBERS: 'none',
+  SOCIAL_PROVIDERS: 'none',
+  GOOGLE_CLIENT_IDS: 'none',
+  FACEBOOK_APP_ID: 'none',
+  FACEBOOK_APP_SECRET: 'none',
+  FAKE_SOCIAL_SIGN_IN: 'false',
+  TEST_SUPPORT_ROUTES: 'false',
 };
 
 const envWith = (values: Record<string, string>): IdentityEnv =>
   baseEnvSchema.extend(identityEnvSchema.shape).parse({ ...required, ...values });
 
 describe('test-only support for end-to-end tests', () => {
-  it('is loaded under NODE_ENV=test and nowhere else', () => {
-    expect(testSupportModules('test')).toEqual([TestSupportModule]);
-    for (const env of ['development', 'staging', 'production', '', undefined]) {
-      expect(testSupportModules(env)).toEqual([]);
+  it('is loaded only when TEST_SUPPORT_ROUTES is switched on', () => {
+    expect(testSupportModules(true)).toEqual([TestSupportModule]);
+    expect(testSupportModules(false)).toEqual([]);
+  });
+
+  it('refuses every test-only setting in staging and production', () => {
+    const real = {
+      JWT_ACCESS_SECRET: 'a-real-access-secret-0123456789-0123456789',
+      OTP_HMAC_SECRET: 'a-real-otp-hmac-secret-0123456789-0123456789',
+      SMS_PROVIDER: 'twilio',
+    };
+    const testOnly: Record<string, string>[] = [
+      { SMS_PROVIDER: 'memory' },
+      { FAKE_SOCIAL_SIGN_IN: 'true' },
+      { TEST_SUPPORT_ROUTES: 'true' },
+    ];
+    for (const DEPLOY_ENV of ['staging', 'production']) {
+      expect(() => assertSafeIdentityEnv(envWith({ ...real, DEPLOY_ENV }))).not.toThrow();
+      for (const setting of testOnly) {
+        expect(() => assertSafeIdentityEnv(envWith({ ...real, DEPLOY_ENV, ...setting }))).toThrow(
+          new RegExp(Object.keys(setting)[0]),
+        );
+      }
+    }
+    for (const DEPLOY_ENV of ['development', 'test']) {
+      for (const setting of testOnly) {
+        expect(() =>
+          assertSafeIdentityEnv(envWith({ ...real, DEPLOY_ENV, ...setting })),
+        ).not.toThrow();
+      }
     }
   });
 
-  it('refuses the in-memory SMS provider outside a test run', () => {
-    for (const NODE_ENV of ['development', 'staging', 'production']) {
-      expect(() => assertSafeIdentityEnv(envWith({ NODE_ENV, SMS_PROVIDER: 'memory' }))).toThrow(
-        'NODE_ENV=test',
+  it('has a default for none of its keys', () => {
+    for (const key of Object.keys(identityEnvSchema.shape)) {
+      const values: Record<string, string> = { ...required };
+      delete values[key];
+      expect(() => loadEnv(baseEnvSchema.extend(identityEnvSchema.shape), values)).toThrow(
+        new RegExp(`${key}: not set`),
       );
     }
-    expect(() =>
-      assertSafeIdentityEnv(envWith({ NODE_ENV: 'test', SMS_PROVIDER: 'memory' })),
-    ).not.toThrow();
   });
 
   it('refuses test numbers in production, and a malformed list anywhere', () => {
@@ -48,12 +81,12 @@ describe('test-only support for end-to-end tests', () => {
       SMS_PROVIDER: 'twilio',
       OTP_TEST_NUMBERS: '+971500000001:123456',
     };
-    expect(() => assertSafeIdentityEnv(envWith({ ...real, NODE_ENV: 'production' }))).toThrow(
-      'must be empty in production',
+    expect(() => assertSafeIdentityEnv(envWith({ ...real, DEPLOY_ENV: 'production' }))).toThrow(
+      'must be none in production',
     );
-    expect(() => assertSafeIdentityEnv(envWith({ ...real, NODE_ENV: 'staging' }))).not.toThrow();
+    expect(() => assertSafeIdentityEnv(envWith({ ...real, DEPLOY_ENV: 'staging' }))).not.toThrow();
     expect(() =>
-      assertSafeIdentityEnv(envWith({ ...real, NODE_ENV: 'staging', OTP_TEST_NUMBERS: 'x' })),
+      assertSafeIdentityEnv(envWith({ ...real, DEPLOY_ENV: 'staging', OTP_TEST_NUMBERS: 'x' })),
     ).toThrow('OTP_TEST_NUMBERS');
   });
 
@@ -74,8 +107,9 @@ describe('test-only support for end-to-end tests', () => {
   });
 
   it('needs the keys of every social provider it switches on', () => {
-    const base = { NODE_ENV: 'development', SMS_PROVIDER: 'console' };
-    expect(envWith({ ...base, SOCIAL_PROVIDERS: '' }).SOCIAL_PROVIDERS).toEqual([]);
+    const base = { DEPLOY_ENV: 'development', SMS_PROVIDER: 'console' };
+    expect(envWith({ ...base, SOCIAL_PROVIDERS: 'none' }).SOCIAL_PROVIDERS).toEqual([]);
+    expect(() => envWith({ ...base, SOCIAL_PROVIDERS: '' })).toThrow(/write `none`/);
     expect(() => assertSafeIdentityEnv(envWith({ ...base, SOCIAL_PROVIDERS: 'google' }))).toThrow(
       /GOOGLE_CLIENT_IDS/,
     );

@@ -50,10 +50,10 @@ export class SocialController {
   }
 }
 
-/** The providers switched on (SOCIAL_PROVIDERS); with NODE_ENV=test, fakes stand in for them. */
+/** The providers switched on (SOCIAL_PROVIDERS); with FAKE_SOCIAL_SIGN_IN, fakes stand in for them. */
 function verifiersFor(env: IdentityEnv): SocialVerifier[] {
   return env.SOCIAL_PROVIDERS.map((provider) => {
-    if (env.NODE_ENV === 'test') return new FakeSocialVerifier(provider);
+    if (env.FAKE_SOCIAL_SIGN_IN) return new FakeSocialVerifier(provider);
     return provider === 'google'
       ? new GoogleVerifier(env.GOOGLE_CLIENT_IDS)
       : new FacebookVerifier(env.FACEBOOK_APP_ID!, env.FACEBOOK_APP_SECRET!);

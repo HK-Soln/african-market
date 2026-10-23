@@ -1,58 +1,44 @@
 # Every image, in one place, for `docker buildx bake`. CI's pull-request build and the deploy use
 # it; so can you:
 #
-#   docker buildx bake -f infra/docker/docker-bake.hcl                 # phase-0 apps, tagged :local
-#   docker buildx bake -f infra/docker/docker-bake.hcl identity web    # just these
 #   REGISTRY=<account>.dkr.ecr.me-central-1.amazonaws.com/african-market TAG=<commit> \
-#     NEXT_PUBLIC_GATEWAY_URL=https://api.staging.africanmarket.ae \
+#     BUILD_ID=<commit> NEXT_PUBLIC_GATEWAY_URL=https://api.staging.africanmarket.ae \
 #     NEXT_PUBLIC_WEB_URL=https://staging.africanmarket.ae \
-#     docker buildx bake -f infra/docker/docker-bake.hcl --push
+#     NEXT_PUBLIC_SELLER_URL=https://seller.staging.africanmarket.ae \
+#     NEXT_PUBLIC_SENTRY_DSN= NEXT_PUBLIC_SENTRY_ENVIRONMENT= \
+#     NEXT_PUBLIC_GOOGLE_MAPS_KEY= NEXT_PUBLIC_GOOGLE_MAP_ID= \
+#     docker buildx bake -f infra/docker/docker-bake.hcl --push        # or name some targets
 #
 # Run it from the repository root: the build context is the whole workspace.
 
-variable "REGISTRY" {
-  default = "african-market"
-}
+# No defaults (decision T-45): every variable is set by whoever builds (CI, the deploy,
+# infra/deploy/test-env.sh), empty for a feature that is off. A forgotten required one fails the
+# build: an empty REGISTRY or TAG is not a valid image name, and `next build` names any missing
+# NEXT_PUBLIC_* it needs (apps/*/src/lib/config.ts).
+variable "REGISTRY" {}
 
-variable "TAG" {
-  default = "local"
-}
+variable "TAG" {}
 
-# Compiled into the browser code of the Next apps; required for them (no default on purpose).
-variable "NEXT_PUBLIC_GATEWAY_URL" {
-  default = ""
-}
+# Compiled into the browser code of the Next apps.
+variable "NEXT_PUBLIC_GATEWAY_URL" {}
 
-variable "NEXT_PUBLIC_WEB_URL" {
-  default = ""
-}
+variable "NEXT_PUBLIC_WEB_URL" {}
 
-variable "NEXT_PUBLIC_SELLER_URL" {
-  default = ""
-}
+variable "NEXT_PUBLIC_SELLER_URL" {}
 
 # Error reports from the Next apps (F0-15); empty means none. The environment names where they
 # are filed and is required with a DSN.
-variable "NEXT_PUBLIC_SENTRY_DSN" {
-  default = ""
-}
+variable "NEXT_PUBLIC_SENTRY_DSN" {}
 
-variable "NEXT_PUBLIC_SENTRY_ENVIRONMENT" {
-  default = ""
-}
+variable "NEXT_PUBLIC_SENTRY_ENVIRONMENT" {}
 
 # Google Maps in the customer site; empty means lists only. The map id is required with a key.
-variable "NEXT_PUBLIC_GOOGLE_MAPS_KEY" {
-  default = ""
-}
+variable "NEXT_PUBLIC_GOOGLE_MAPS_KEY" {}
 
-variable "NEXT_PUBLIC_GOOGLE_MAP_ID" {
-  default = ""
-}
+variable "NEXT_PUBLIC_GOOGLE_MAP_ID" {}
 
-variable "BUILD_ID" {
-  default = ""
-}
+# Names the build (the commit), so a new deploy replaces the pages the service worker precached.
+variable "BUILD_ID" {}
 
 # The apps that run in the current phase. Later phases add theirs here.
 group "default" {

@@ -79,16 +79,17 @@ case "$action" in
     registry="$(out ecr_repositories | jq -r .gateway | sed 's#/gateway$##')"
     aws ecr get-login-password | docker login --username AWS --password-stdin "${registry%%/*}"
     docker buildx create --use --name am-builder > /dev/null 2>&1 || docker buildx use am-builder
-    # The Next apps get this environment's addresses compiled in, and Google Maps when
-    # GOOGLE_MAPS_BROWSER_KEY and GOOGLE_MAP_ID are set (GitHub variables of the `test`
-    # environment; without them the site shows lists only).
+    # The Next apps get this environment's addresses compiled in, and Google Maps from
+    # GOOGLE_MAPS_BROWSER_KEY and GOOGLE_MAP_ID (GitHub variables of the `test` environment;
+    # `none` for a site with lists only). No defaults (decision T-45): a missing one stops here.
     REGISTRY="$registry" TAG="$tag" BUILD_ID="$tag" \
       NEXT_PUBLIC_GATEWAY_URL="https://api.$DOMAIN" \
       NEXT_PUBLIC_WEB_URL="https://$DOMAIN" \
       NEXT_PUBLIC_SELLER_URL="https://seller.$DOMAIN" \
+      NEXT_PUBLIC_SENTRY_DSN=none \
       NEXT_PUBLIC_SENTRY_ENVIRONMENT=test \
-      NEXT_PUBLIC_GOOGLE_MAPS_KEY="${GOOGLE_MAPS_BROWSER_KEY:-}" \
-      NEXT_PUBLIC_GOOGLE_MAP_ID="${GOOGLE_MAP_ID:-}" \
+      NEXT_PUBLIC_GOOGLE_MAPS_KEY="${GOOGLE_MAPS_BROWSER_KEY:?set the GitHub variable, none for no map}" \
+      NEXT_PUBLIC_GOOGLE_MAP_ID="${GOOGLE_MAP_ID:?set the GitHub variable, none for no map}" \
       docker buildx bake -f infra/docker/docker-bake.hcl --push phase1
 
     section "3/6 Infrastructure, apps not started"
@@ -116,7 +117,7 @@ case "$action" in
     section "Ready"
     out urls | jq -r 'to_entries[] | "\(.key): \(.value)"'
     echo "Deletes itself at $(out expires_at | jq -r .) (UTC)."
-    echo "Test sign-in codes: aws secretsmanager get-secret-value --secret-id $secret --query SecretString --output text"
+    echo "Test sign-in codes: aws secretsmanager get-secret-value --secret-id $secret --query SecretString --output text --profile aws-toolkit --region eu-north-1"
     ;;
 
   down)

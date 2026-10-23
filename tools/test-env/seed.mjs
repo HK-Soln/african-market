@@ -6,24 +6,35 @@
  * to show that state). Never run it against staging or production: it needs OTP_TEST_NUMBERS,
  * which identity refuses there.
  *
- *   node tools/test-env/seed.mjs        (SEED_GATEWAY_URL defaults to http://localhost:4000)
+ *   SEED_GATEWAY_URL=http://localhost:4000 SEED_RUNNER=compose node tools/test-env/seed.mjs
  *
- * Against a test environment in AWS (infra/deploy/test-env.sh does this), set SEED_RUNNER=ecs and
- * SEED_TF_DIR: the admin role is then granted by a one-off task instead of `docker compose exec`.
+ * Every setting is required (decision T-45). Against a test environment in AWS
+ * (infra/deploy/test-env.sh does this), SEED_RUNNER=ecs and SEED_TF_DIR: the admin role is then
+ * granted by a one-off task instead of `docker compose exec`.
  *
  * Running it again skips shops that already exist.
  */
 import { execFileSync } from 'node:child_process';
 
-const GATEWAY = (process.env.SEED_GATEWAY_URL ?? 'http://localhost:4000') + '/api/v1';
+/** A setting the seed cannot run without; it stops here and names it. */
+function required(name) {
+  const value = process.env[name];
+  if (!value || value === 'none')
+    throw new Error(`${name} must be set (see the header of this file)`);
+  return value;
+}
+
+const GATEWAY = required('SEED_GATEWAY_URL') + '/api/v1';
 const SELLER = '+971500000010';
 const ADMIN = '+971500000011';
 /** compose: the codespace stack (docker compose); ecs: a test environment in AWS. */
-const RUNNER = process.env.SEED_RUNNER ?? 'compose';
+const RUNNER = required('SEED_RUNNER');
+if (!['compose', 'ecs'].includes(RUNNER)) throw new Error('SEED_RUNNER is compose or ecs');
+const TF_DIR = RUNNER === 'ecs' ? required('SEED_TF_DIR') : undefined;
 
 /** The fixed codes, from the same variable identity reads. */
 const codes = new Map(
-  (process.env.OTP_TEST_NUMBERS ?? '')
+  required('OTP_TEST_NUMBERS')
     .split(',')
     .filter(Boolean)
     .map((entry) => entry.trim().split(':')),
@@ -253,11 +264,9 @@ async function main() {
   if (!admin.user.roles.includes('admin')) {
     const grant = ['node', 'dist/scripts/grant-role.js', ADMIN, 'admin'];
     if (RUNNER === 'ecs') {
-      execFileSync(
-        'bash',
-        ['infra/deploy/run-once.sh', process.env.SEED_TF_DIR, 'identity', ...grant],
-        { stdio: 'inherit' },
-      );
+      execFileSync('bash', ['infra/deploy/run-once.sh', TF_DIR, 'identity', ...grant], {
+        stdio: 'inherit',
+      });
     } else {
       execFileSync('docker', ['compose', 'exec', '-T', 'identity', ...grant], { stdio: 'inherit' });
     }

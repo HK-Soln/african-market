@@ -56,7 +56,9 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
     process.env.IDENTITY_TCP_PORT = String(port);
     process.env.IDENTITY_HOST = '127.0.0.1';
     process.env.JWT_ACCESS_SECRET = accessKey;
-    process.env.NODE_ENV = 'test';
+    process.env.DEPLOY_ENV = 'test';
+    process.env.TEST_SUPPORT_ROUTES = 'true';
+    process.env.COOKIE_SECURE = 'false';
     process.env.LOG_LEVEL = 'fatal';
     identity = await startFakeIdentity(port, accessKey);
 
@@ -110,7 +112,7 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
       expect(refresh).toMatch(/; Path=\/api\/v1\/auth;/);
       expect(refresh).toMatch(/HttpOnly/);
       expect(refresh).toMatch(/SameSite=Lax/);
-      // Secure is added in staging and production only; plain http is used locally.
+      // Secure only with COOKIE_SECURE=true (every HTTPS environment); this run is plain http.
       expect(access).not.toMatch(/Secure/);
 
       const me = await browser.get('/api/v1/me').expect(200);
@@ -377,18 +379,37 @@ describe('gateway auth routes (HTTP -> gateway -> TCP -> identity stand-in)', ()
   });
 
   describe('test-only support', () => {
-    it('serves the code route under NODE_ENV=test, which this run is', async () => {
+    it('serves the code route with TEST_SUPPORT_ROUTES=true, which this run has', async () => {
       const res = await http().get('/api/v1/test/otp').query({ phone: '+971501234567' });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ code: FAKE_OTP_CODE });
     });
 
-    it('loads no test-only module under any other NODE_ENV', async () => {
+    it('loads no test-only module when the switch is off', async () => {
       const { testSupportModules } = await import('../src/test-support/test-support.module');
-      for (const env of ['development', 'staging', 'production', '', undefined]) {
-        expect(testSupportModules(env)).toEqual([]);
+      expect(testSupportModules(false)).toEqual([]);
+      expect(testSupportModules(true)).toHaveLength(1);
+    });
+
+    it('refuses the route, and plain-http cookies, in staging and production', async () => {
+      const { assertSafeGatewayEnv } = await import('../src/env');
+      const safe = { COOKIE_SECURE: true, TEST_SUPPORT_ROUTES: false };
+      for (const DEPLOY_ENV of ['staging', 'production'] as const) {
+        expect(() => assertSafeGatewayEnv({ DEPLOY_ENV, ...safe } as never)).not.toThrow();
+        expect(() =>
+          assertSafeGatewayEnv({ DEPLOY_ENV, ...safe, TEST_SUPPORT_ROUTES: true } as never),
+        ).toThrow(/TEST_SUPPORT_ROUTES/);
+        expect(() =>
+          assertSafeGatewayEnv({ DEPLOY_ENV, ...safe, COOKIE_SECURE: false } as never),
+        ).toThrow(/COOKIE_SECURE/);
       }
-      expect(testSupportModules('test')).toHaveLength(1);
+      expect(() =>
+        assertSafeGatewayEnv({
+          DEPLOY_ENV: 'test',
+          COOKIE_SECURE: false,
+          TEST_SUPPORT_ROUTES: true,
+        } as never),
+      ).not.toThrow();
     });
 
     it('keeps the route out of the published API description', async () => {

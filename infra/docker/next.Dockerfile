@@ -32,20 +32,23 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --offline
 ARG APP
 RUN test -n "$APP" || (echo "Build with --build-arg APP=<web|seller|admin>" && exit 1)
-# Required: where the browser finds the gateway and the customer site in this environment.
+# No defaults (decision T-45): every value is passed by the build (bake, compose), empty for a
+# feature that is off. `next build` stops on a missing NEXT_PUBLIC_* it needs (src/lib/config.ts).
+# Where the browser finds the gateway and the customer site in this environment.
 ARG NEXT_PUBLIC_GATEWAY_URL
 ARG NEXT_PUBLIC_WEB_URL
 # Where the customer site sends sellers (web only).
-ARG NEXT_PUBLIC_SELLER_URL=
-# Google Maps (web); empty means no map. The map id is required with a key.
-ARG NEXT_PUBLIC_GOOGLE_MAPS_KEY=
-ARG NEXT_PUBLIC_GOOGLE_MAP_ID=
-ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+ARG NEXT_PUBLIC_SELLER_URL
+# Google Maps (web, seller); empty means no map. The map id is required with a key.
+ARG NEXT_PUBLIC_GOOGLE_MAPS_KEY
+ARG NEXT_PUBLIC_GOOGLE_MAP_ID
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 # Error reports (Sentry); empty means none. The environment is required with a DSN.
-ARG NEXT_PUBLIC_SENTRY_DSN=
-ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT=
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT
 # Names this build, so a new deploy replaces the pages the service worker precached.
-ARG BUILD_ID=
+ARG BUILD_ID
+# NEXT_DIST_DIR is the output folder the copy below expects (only a laptop end-to-end run moves it).
 ENV NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL} \
     NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL} \
     NEXT_PUBLIC_SELLER_URL=${NEXT_PUBLIC_SELLER_URL} \
@@ -54,9 +57,10 @@ ENV NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL} \
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY} \
     NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN} \
     NEXT_PUBLIC_SENTRY_ENVIRONMENT=${NEXT_PUBLIC_SENTRY_ENVIRONMENT} \
-    BUILD_ID=${BUILD_ID}
-RUN test -n "$NEXT_PUBLIC_GATEWAY_URL" && test -n "$NEXT_PUBLIC_WEB_URL" \
- || (echo "Build with --build-arg NEXT_PUBLIC_GATEWAY_URL=... --build-arg NEXT_PUBLIC_WEB_URL=..." && exit 1)
+    BUILD_ID=${BUILD_ID} \
+    NEXT_DIST_DIR=.next
+RUN test -n "$NEXT_PUBLIC_GATEWAY_URL" && test -n "$NEXT_PUBLIC_WEB_URL" && test -n "$BUILD_ID" \
+ || (echo "Build with --build-arg NEXT_PUBLIC_GATEWAY_URL=... NEXT_PUBLIC_WEB_URL=... BUILD_ID=..." && exit 1)
 # Builds the libs the app depends on, then `next build` (standalone output).
 RUN pnpm nx run "@am/${APP}:build" --output-style=static
 # The standalone server does not include static assets; put them where it looks for them.

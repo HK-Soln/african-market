@@ -9,6 +9,7 @@ import sharp from 'sharp';
 import { DataSource } from 'typeorm';
 import { MediaActor, MediaErrors } from '@am/contracts';
 import { baseEnvSchema, loadEnv } from '@am/core';
+import { testBaseEnv } from '@am/core/testing';
 import { OutboxMessage, OutboxService } from '@am/database';
 import { MediaEnv, mediaEnvSchema } from '../src/config/media-env';
 import { MediaAccessLog, MediaObject } from '../src/entities';
@@ -23,10 +24,7 @@ import { createTestDatabase, TestDatabase } from './support/test-database';
 
 const run = randomUUID().slice(0, 8);
 const env = loadEnv(baseEnvSchema.extend(mediaEnvSchema.shape), {
-  NODE_ENV: 'test',
-  DATABASE_URL: 'postgres://unused:unused@localhost:5432/unused',
-  RABBITMQ_URL: 'amqp://unused',
-  REDIS_URL: 'redis://unused',
+  ...testBaseEnv,
   S3_REGION: 'me-central-1',
   S3_ENDPOINT: process.env.S3_ENDPOINT ?? 'http://localhost:9000',
   S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID ?? 'am-minio',
@@ -34,6 +32,9 @@ const env = loadEnv(baseEnvSchema.extend(mediaEnvSchema.shape), {
   S3_UPLOADS_BUCKET: `t-${run}-uploads`,
   S3_PUBLIC_BUCKET: `t-${run}-public`,
   S3_PRIVATE_BUCKET: `t-${run}-private`,
+  S3_PRESIGN_ENDPOINT: 'none',
+  CLOUDFRONT_DISTRIBUTION_ID: 'none',
+  S3_CREATE_BUCKETS: 'false',
   MEDIA_PUBLIC_BASE_URL: `${process.env.S3_ENDPOINT ?? 'http://localhost:9000'}/t-${run}-public`,
 }) as MediaEnv;
 

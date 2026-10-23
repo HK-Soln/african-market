@@ -19,7 +19,7 @@ echo "Starting: ${APPS[*]} and mailpit"
 docker compose --profile apps up -d --wait "${APPS[@]}" mailpit
 
 if [[ "${1:-}" != "--no-seed" ]]; then
-  node tools/test-env/seed.mjs
+  SEED_GATEWAY_URL=http://localhost:4000 SEED_RUNNER=compose node tools/test-env/seed.mjs
 fi
 
 cat <<'EOF'

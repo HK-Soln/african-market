@@ -1,5 +1,5 @@
 import { Inject, Module, OnModuleInit } from '@nestjs/common';
-import { APP_ENV, loadNodeEnv, ServiceCoreModule } from '@am/core';
+import { APP_ENV, loadEnv, ServiceCoreModule } from '@am/core';
 import { DatabaseModule } from '@am/database';
 import { assertSafeIdentityEnv, IdentityEnv, identityEnvSchema } from './config/identity-env';
 import { AuditModule } from './audit/audit.module';
@@ -29,7 +29,9 @@ import { UsersModule } from './users/users.module';
     EmailAuthModule,
     SocialModule,
     UsersModule,
-    ...testSupportModules(loadNodeEnv()),
+    ...testSupportModules(
+      loadEnv(identityEnvSchema.pick({ TEST_SUPPORT_ROUTES: true })).TEST_SUPPORT_ROUTES,
+    ),
   ],
 })
 export class AppModule implements OnModuleInit {

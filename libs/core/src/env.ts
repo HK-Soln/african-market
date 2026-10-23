@@ -1,41 +1,42 @@
 import { z } from 'zod';
-import { EVENTS_EXCHANGE, SERVICE_NAMES, SERVICES, ServiceName } from '@am/contracts';
+import { SERVICE_NAMES, ServiceName } from '@am/contracts';
+import { DEPLOY_ENVS, flag } from './settings';
 import { telemetryEnvShape } from './telemetry/env';
 
 // The only place backend code reads process.env: everything else receives typed values from
 // loadEnv (or APP_ENV in Nest). The lint rule `no-restricted-properties` keeps it that way.
 //
-// Defaults only for values that are the same in every environment (ports, log level, timings).
-// Anything that differs between a laptop, staging and production (where the database is, which
-// provider to use, secrets) has no default: a missing value stops the process at start, instead
-// of it quietly connecting to localhost.
+// No defaults, for anything (decision T-45): every key a process reads must be set, or it stops
+// at start and names the missing key. A value that happens to be the same everywhere today is
+// still written down in each environment, so nothing runs on a value nobody chose. A feature
+// that can be off (Sentry, tracing, a provider's keys) is set to `none`: the key is still
+// required, so a forgotten value is never mistaken for a decision.
 
 /** Variables every backend process needs. Services extend this with their own keys. */
 export const baseEnvSchema = z.object({
   /**
-   * The one exception to "no default for what differs": Nx loads .env into `next build` too, so
-   * .env cannot set it. The images set NODE_ENV=production, so a deployed container never falls
-   * back to development.
+   * development, test (CI and the throwaway AWS environment), staging or production. Not
+   * NODE_ENV: Next and React read that one to mean "production build", and Nx loads .env into
+   * every task, so it cannot double as the environment's name.
    */
-  NODE_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  DEPLOY_ENV: z.enum(DEPLOY_ENVS),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']),
+  /** `json` (one line per entry, for machines) or `pretty` (for a person reading a terminal). */
+  LOG_FORMAT: z.enum(['json', 'pretty']),
   DATABASE_URL: z.url(),
   RABBITMQ_URL: z.url(),
   REDIS_URL: z.url(),
-  /** The topic exchange events are published to. Only tests change it, to stay out of the way. */
-  EVENTS_EXCHANGE: z.string().min(1).default(EVENTS_EXCHANGE),
+  /** The topic exchange events are published to, `am.events`; tests use their own. */
+  EVENTS_EXCHANGE: z.string().min(1),
   /**
    * How long a failed event waits before each new try, in ms. When the list runs out the event
-   * goes to the dead-letter queue: by default three retries, after 5 s, 30 s and 2 min.
+   * goes to the dead-letter queue, e.g. `5000,30000,120000`: three retries, after 5 s, 30 s, 2 min.
    */
-  EVENT_RETRY_DELAYS_MS: z
-    .string()
-    .regex(/^\d+(,\d+)*$/)
-    .default('5000,30000,120000'),
+  EVENT_RETRY_DELAYS_MS: z.string().regex(/^\d+(,\d+)*$/),
   /** Log every SQL query (`true`) or only errors. */
-  TYPEORM_LOGGING: z.stringbool().default(false),
+  TYPEORM_LOGGING: flag(),
   /** How often the outbox relay looks for events to publish, in ms. */
-  OUTBOX_POLL_MS: z.coerce.number().int().positive().default(500),
+  OUTBOX_POLL_MS: z.coerce.number().int().positive(),
   ...telemetryEnvShape,
 });
 
@@ -48,15 +49,17 @@ export function loadEnv<T extends z.ZodType>(
 ): z.infer<T> {
   const parsed = schema.safeParse(source);
   if (!parsed.success) {
-    const issues = parsed.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n');
+    const issues = parsed.error.issues
+      .map((issue) => {
+        const key = issue.path.join('.');
+        const missing = issue.path.length === 1 && source[key] === undefined;
+        return `  ${key}: ${missing ? 'not set (every key is required; see .env.example)' : issue.message}`;
+      })
+      .join('\n');
     throw new Error(`Invalid environment:\n${issues}`);
   }
   return parsed.data;
 }
-
-/** NODE_ENV alone, for code that runs before Nest is up (choosing test-only modules). */
-export const loadNodeEnv = (source: NodeJS.ProcessEnv = process.env): BaseEnv['NODE_ENV'] =>
-  loadEnv(baseEnvSchema.pick({ NODE_ENV: true }), source).NODE_ENV;
 
 export interface ServiceEndpoint {
   host: string;
@@ -65,29 +68,23 @@ export interface ServiceEndpoint {
 }
 
 const envPrefix = (name: ServiceName) => name.toUpperCase();
+const port = () => z.coerce.number().int().positive();
 
 /**
- * `<NAME>_TCP_PORT` and `<NAME>_HTTP_PORT` for every service, defaulting to the ports in SERVICES
- * (libs/contracts), plus `<NAME>_HOST`, which has no default: where a service runs differs
- * between environments.
+ * `<NAME>_HOST`, `<NAME>_TCP_PORT` and `<NAME>_HTTP_PORT` for every service, all required. The
+ * usual ports are in SERVICES (libs/contracts); tests and the end-to-end run choose others.
  */
 export const serviceEndpointsSchema = z.object(
   Object.fromEntries(
     SERVICE_NAMES.flatMap((name) => [
       [`${envPrefix(name)}_HOST`, z.string().min(1)],
-      [
-        `${envPrefix(name)}_TCP_PORT`,
-        z.coerce.number().int().positive().default(SERVICES[name].tcpPort),
-      ],
-      [
-        `${envPrefix(name)}_HTTP_PORT`,
-        z.coerce.number().int().positive().default(SERVICES[name].httpPort),
-      ],
+      [`${envPrefix(name)}_TCP_PORT`, port()],
+      [`${envPrefix(name)}_HTTP_PORT`, port()],
     ]),
   ),
 );
 
-/** Where each service is reached: for the gateway. Every `<NAME>_HOST` must be set. */
+/** Where each service is reached: for the gateway. */
 export function loadServiceEndpoints(
   source: NodeJS.ProcessEnv = process.env,
 ): Record<ServiceName, ServiceEndpoint> {

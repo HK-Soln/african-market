@@ -1,24 +1,26 @@
 // Container healthcheck for every image: exits 0 when the app's health URL answers 2xx.
 //
-// APP is set in the image. Ports follow the same env overrides the apps themselves read:
-//   Next apps     PORT                (default 3000)    GET /health
-//   gateway       GATEWAY_PORT        (default 4000)    GET /api/v1/health
-//   services      <NAME>_HTTP_PORT    (default from SERVICES in @am/contracts)    GET /health
+// APP is set in the image. The port is the one the app itself listens on, from the same
+// required settings (no defaults, decision T-45):
+//   Next apps     PORT                (set in the image)    GET /health
+//   gateway       GATEWAY_PORT                              GET /api/v1/health
+//   services      <NAME>_HTTP_PORT                          GET /health
 'use strict';
 
 const app = process.env.APP;
 const NEXT_APPS = new Set(['web', 'seller', 'admin']);
 
+function setting(name) {
+  const value = process.env[name];
+  if (!value) throw new Error(`healthcheck: ${name} is not set`);
+  return value;
+}
+
 function target() {
-  if (NEXT_APPS.has(app)) return { port: process.env.PORT || 3000, path: '/health' };
-  if (app === 'gateway') return { port: process.env.GATEWAY_PORT || 4000, path: '/api/v1/health' };
-  const { SERVICES } = require('@am/contracts');
-  const service = SERVICES[app];
-  if (!service) throw new Error(`healthcheck: unknown APP "${app}"`);
-  return {
-    port: process.env[`${app.toUpperCase()}_HTTP_PORT`] || service.httpPort,
-    path: '/health',
-  };
+  if (NEXT_APPS.has(app)) return { port: setting('PORT'), path: '/health' };
+  if (app === 'gateway') return { port: setting('GATEWAY_PORT'), path: '/api/v1/health' };
+  if (!app) throw new Error('healthcheck: APP is not set');
+  return { port: setting(`${app.toUpperCase()}_HTTP_PORT`), path: '/health' };
 }
 
 const { port, path } = target();

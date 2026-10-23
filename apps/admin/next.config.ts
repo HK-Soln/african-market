@@ -10,10 +10,6 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../..'),
   reactStrictMode: true,
   poweredByHeader: false,
-  images: {
-    // Product and shop images come from the media service's CDN (MinIO locally).
-    remotePatterns: [{ protocol: 'http', hostname: 'localhost', port: '9000' }],
-  },
 };
 
 export default withNextIntl(nextConfig);

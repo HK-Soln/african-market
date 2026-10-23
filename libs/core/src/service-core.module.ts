@@ -72,7 +72,7 @@ export class ServiceCoreModule {
               return id;
             },
             transport:
-              env.NODE_ENV === 'development'
+              env.LOG_FORMAT === 'pretty'
                 ? { target: 'pino-pretty', options: { singleLine: true } }
                 : undefined,
           },

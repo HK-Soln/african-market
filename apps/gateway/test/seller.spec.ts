@@ -148,7 +148,7 @@ describe('gateway seller routes (HTTP -> gateway -> TCP -> service stand-ins)', 
       process.env[`${name}_HOST`] = '127.0.0.1';
     }
     process.env.JWT_ACCESS_SECRET = accessKey;
-    process.env.NODE_ENV = 'test';
+    process.env.DEPLOY_ENV = 'test';
     process.env.LOG_LEVEL = 'fatal';
     services = await NestFactory.createMicroservice(FakeServicesModule, {
       transport: Transport.TCP,

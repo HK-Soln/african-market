@@ -59,7 +59,7 @@ import { OtpService } from './otp.service';
           outbox,
           challenges,
           sessions,
-          OtpTestNumbers.parse(env.OTP_TEST_NUMBERS),
+          OtpTestNumbers.fromSetting(env.OTP_TEST_NUMBERS),
           countries,
         ),
     },

@@ -6,10 +6,12 @@
 #   backends ──▶ RDS Postgres, ElastiCache Redis, Amazon MQ, S3; secrets from Secrets Manager
 
 locals {
-  ses       = var.email_provider == "ses"
-  didit     = var.kyc_provider == "didit"
-  name      = "am-${var.environment}"
-  namespace = "${var.environment}.am.internal"
+  ses   = var.email_provider == "ses"
+  didit = var.kyc_provider == "didit"
+  # Social sign-in (F1-09): only the providers with ids set are switched on.
+  social_providers = join(",", compact([length(var.google_client_ids) > 0 ? "google" : "", var.facebook_app_id != "" ? "facebook" : ""]))
+  name             = "am-${var.environment}"
+  namespace        = "${var.environment}.am.internal"
 
   hosts = {
     web     = var.domain
@@ -200,12 +202,26 @@ module "alb" {
 # ── apps ──────────────────────────────────────────────────────────────────────────────────────
 
 locals {
-  service_hosts = { for name, _ in local.services : "${upper(name)}_HOST" => "${name}.${local.namespace}" }
+  # Where each service listens and is reached. Every key is set: the apps have no defaults
+  # (decision T-45), and a feature that is off is written `none` (ECS drops empty values).
+  service_endpoints = merge([for name, svc in local.services : {
+    "${upper(name)}_HOST"      = "${name}.${local.namespace}"
+    "${upper(name)}_TCP_PORT"  = tostring(svc.tcp)
+    "${upper(name)}_HTTP_PORT" = tostring(svc.http)
+  }]...)
 
-  backend_env = merge(local.service_hosts, {
-    NODE_ENV      = var.environment
-    LOG_LEVEL     = "info"
-    CURRENT_PHASE = tostring(var.current_phase)
+  backend_env = merge(local.service_endpoints, {
+    DEPLOY_ENV            = var.environment
+    LOG_LEVEL             = "info"
+    LOG_FORMAT            = "json"
+    CURRENT_PHASE         = tostring(var.current_phase)
+    EVENTS_EXCHANGE       = "am.events"
+    EVENT_RETRY_DELAYS_MS = "5000,30000,120000"
+    TYPEORM_LOGGING       = "false"
+    OUTBOX_POLL_MS        = "500"
+    # The end-to-end routes and made-up social sign-in stay off in every AWS environment.
+    TEST_SUPPORT_ROUTES      = "false"
+    OTEL_TRACES_SAMPLE_RATIO = "1"
     # Phone codes: the real provider (WhatsApp first). Until it is built identity answers
     # SMS_PROVIDER_NOT_CONFIGURED, and the console provider is refused outside development.
     SMS_PROVIDER               = "twilio"
@@ -217,12 +233,10 @@ locals {
     CLOUDFRONT_DISTRIBUTION_ID = module.media.distribution_id
     S3_PRIVATE_BUCKET          = module.media.private_bucket
     MEDIA_PUBLIC_BASE_URL      = module.media.public_base_url
-    },
-    # The collector beside each task (modules/ecs-service); absent, spans are made but kept.
-    var.tracing ? { OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318" } : {},
-    # Left out rather than empty when there is none: ECS drops empty values anyway.
-    var.sentry_dsn_backend == "" ? {} : { SENTRY_DSN = var.sentry_dsn_backend },
-  )
+    # The collector beside each task (modules/ecs-service); `none`: spans are made but kept.
+    OTEL_EXPORTER_OTLP_ENDPOINT = var.tracing ? "http://localhost:4318" : "none"
+    SENTRY_DSN                  = var.sentry_dsn_backend == "" ? "none" : var.sentry_dsn_backend
+  })
 
   otel_collector = var.tracing ? { image = var.otel_collector_image } : null
 
@@ -252,10 +266,13 @@ module "gateway" {
   log_retention_days = var.log_retention_days
 
   environment = merge(local.backend_env, {
-    GATEWAY_PORT     = "4000"
-    CORS_ORIGINS     = join(",", local.origins)
-    COOKIE_DOMAIN    = ".${var.domain}"
-    TRUST_PROXY_HOPS = "1"
+    GATEWAY_PORT             = "4000"
+    CORS_ORIGINS             = join(",", local.origins)
+    COOKIE_DOMAIN            = ".${var.domain}"
+    COOKIE_SECURE            = "true"
+    TRUST_PROXY_HOPS         = "1"
+    SERVICE_TIMEOUT_MS       = "5000"
+    AUTH_THROTTLE_MULTIPLIER = "1"
   })
   secrets        = local.backend_secrets
   otel_collector = local.otel_collector
@@ -299,11 +316,24 @@ module "service" {
   environment = merge(
     local.backend_env,
     # Seller identity verification (decision T-28): the hosted page sends sellers back here.
-    # Social sign-in (F1-09): only the providers with ids set are switched on.
-    each.key == "identity" ? {
-      SOCIAL_PROVIDERS  = join(",", compact([length(var.google_client_ids) > 0 ? "google" : "", var.facebook_app_id != "" ? "facebook" : ""]))
-      GOOGLE_CLIENT_IDS = join(",", var.google_client_ids)
-      FACEBOOK_APP_ID   = var.facebook_app_id
+    each.key == "identity" ? merge(
+      {
+        SOCIAL_PROVIDERS    = local.social_providers == "" ? "none" : local.social_providers
+        GOOGLE_CLIENT_IDS   = length(var.google_client_ids) > 0 ? join(",", var.google_client_ids) : "none"
+        FACEBOOK_APP_ID     = var.facebook_app_id == "" ? "none" : var.facebook_app_id
+        FAKE_SOCIAL_SIGN_IN = "false"
+      },
+      # Secrets otherwise (below); `none` when there are none.
+      local.has_test_numbers ? {} : { OTP_TEST_NUMBERS = "none" },
+      var.facebook_app_id != "" ? {} : { FACEBOOK_APP_SECRET = "none" },
+    ) : {},
+    # Storage is reached with the task's role, not keys, at AWS's own endpoint.
+    each.key == "media" ? {
+      S3_ENDPOINT          = "none"
+      S3_PRESIGN_ENDPOINT  = "none"
+      S3_ACCESS_KEY_ID     = "none"
+      S3_SECRET_ACCESS_KEY = "none"
+      S3_CREATE_BUCKETS    = "false"
     } : {},
     each.key == "shops" ? merge(
       {
@@ -313,7 +343,12 @@ module "service" {
       local.didit ? {
         DIDIT_API_URL     = "https://verification.didit.me"
         DIDIT_WORKFLOW_ID = var.didit_workflow_id
-      } : {},
+        } : {
+        DIDIT_API_URL     = "none"
+        DIDIT_WORKFLOW_ID = "none"
+        DIDIT_API_KEY     = "none"
+        DIDIT_API_SECRET  = "none"
+      },
     ) : {},
   )
   # Only identity may see the test numbers' codes and Facebook's secret, and only shops Didit's keys.

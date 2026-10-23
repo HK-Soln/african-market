@@ -1,4 +1,5 @@
 export * from './env';
+export * from './settings';
 export * from './rpc-error';
 export * from './list-query';
 export * from './health';

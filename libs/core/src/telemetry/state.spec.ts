@@ -1,8 +1,9 @@
 import { trace } from '@opentelemetry/api';
 import { describeTelemetry, shutdownTelemetry } from './state';
 import { startTelemetry } from './start';
+import { testBaseEnv } from '../testing';
 
-const base = { NODE_ENV: 'test' };
+const base = testBaseEnv;
 
 describe('startTelemetry', () => {
   afterEach(() => shutdownTelemetry());
@@ -12,10 +13,10 @@ describe('startTelemetry', () => {
   });
 
   it('makes spans with trace ids even when they are not exported', () => {
-    const state = startTelemetry('identity', { ...base, OTEL_EXPORTER_OTLP_ENDPOINT: '' });
+    const state = startTelemetry('identity', { ...base, OTEL_EXPORTER_OTLP_ENDPOINT: 'none' });
     expect(state).toMatchObject({ service: 'identity', exportingTo: undefined, sentry: false });
     expect(describeTelemetry()).toBe(
-      'telemetry: traces not exported (OTEL_EXPORTER_OTLP_ENDPOINT unset); Sentry off (SENTRY_DSN unset)',
+      'telemetry: traces not exported (OTEL_EXPORTER_OTLP_ENDPOINT none); Sentry off (SENTRY_DSN none)',
     );
     const span = trace.getTracer('test').startSpan('work');
     expect(span.spanContext().traceId).toMatch(/^[0-9a-f]{32}$/);

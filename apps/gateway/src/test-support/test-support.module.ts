@@ -14,8 +14,8 @@ class LastOtpQuery {
 
 /**
  * `GET /api/v1/test/otp?phone=`: the code an end-to-end test was "sent". It hands out sign-in
- * codes, so it is only registered by `testSupportModules('test')`; with any other NODE_ENV the
- * route does not exist, and identity has no handler for it either.
+ * codes, so it is only registered with TEST_SUPPORT_ROUTES=true (refused in staging and
+ * production); otherwise the route does not exist, and identity has no handler for it either.
  */
 @ApiExcludeController()
 @Public()
@@ -32,6 +32,6 @@ export class TestSupportController {
 @Module({ controllers: [TestSupportController] })
 export class TestSupportModule {}
 
-/** The test-only modules to load: all of them under NODE_ENV=test, none otherwise. */
-export const testSupportModules = (nodeEnv: string | undefined): Type<unknown>[] =>
-  nodeEnv === 'test' ? [TestSupportModule] : [];
+/** The test-only modules to load: all of them with TEST_SUPPORT_ROUTES=true, none otherwise. */
+export const testSupportModules = (enabled: boolean): Type<unknown>[] =>
+  enabled ? [TestSupportModule] : [];

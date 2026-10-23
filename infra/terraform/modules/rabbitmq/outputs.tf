@@ -13,11 +13,6 @@ output "console_url" {
   value = aws_mq_broker.this.instances[0].console_url
 }
 
-output "console_ip" {
-  description = "The private address of the (single) broker, where the load balancer reaches the management console."
-  value       = aws_mq_broker.this.instances[0].ip_address
-}
-
 output "username" {
   description = "The broker's one user, which also signs in to the management console."
   value       = var.username

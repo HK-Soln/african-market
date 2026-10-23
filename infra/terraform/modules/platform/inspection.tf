@@ -104,8 +104,10 @@ module "pgweb" {
   }
 }
 
-# The broker's console is not a task: the load balancer forwards mq.<domain> to the broker's
-# private address on 443. The broker has its own certificate, which the load balancer does not
+# The broker's console is not a task: the load balancer forwards mq.<domain> to it on 443. A
+# private RabbitMQ broker is reached through an endpoint Amazon MQ puts in our network; Amazon MQ
+# does not report that endpoint's address (ip_address is empty for RabbitMQ), but the console's
+# host name resolves to it, so it is looked up once the broker exists. The broker has its own certificate, which the load balancer does not
 # check (it does not check targets' certificates); browsers see the load balancer's.
 resource "aws_lb_target_group" "mq_console" {
   count       = local.inspection ? 1 : 0
@@ -125,10 +127,15 @@ resource "aws_lb_target_group" "mq_console" {
   }
 }
 
+data "dns_a_record_set" "mq_console" {
+  count = local.inspection ? 1 : 0
+  host  = trimsuffix(trimprefix(module.rabbitmq.console_url, "https://"), "/")
+}
+
 resource "aws_lb_target_group_attachment" "mq_console" {
   count            = local.inspection ? 1 : 0
   target_group_arn = aws_lb_target_group.mq_console[0].arn
-  target_id        = module.rabbitmq.console_ip
+  target_id        = data.dns_a_record_set.mq_console[0].addrs[0]
   port             = 443
 }
 

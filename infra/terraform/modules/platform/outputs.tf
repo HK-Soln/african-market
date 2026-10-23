@@ -48,10 +48,28 @@ output "cluster_name" {
 output "desired_counts" {
   description = "Tasks per ECS service when running. Terraform sets a count only when it creates a service (ignore_changes), so a script that starts the apps later uses these."
   # Only the apps that have a service in this phase.
-  value = {
-    for app in concat(["gateway"], keys(local.enabled_services), keys(local.next_apps)) :
-    app => lookup(var.app_sizes, app, local.default_size).desired_count
-  }
+  value = merge(
+    {
+      for app in concat(["gateway"], keys(local.enabled_services), keys(local.next_apps)) :
+      app => lookup(var.app_sizes, app, local.default_size).desired_count
+    },
+    # The inspection tools (inspection.tf), one task each.
+    local.inspection ? { mailpit = 1, pgweb = 1 } : {},
+  )
+}
+
+output "inspection_urls" {
+  description = "The inspection pages (test environments with inspection_tools), or {}."
+  value       = { for tool, host in local.inspection_hosts : tool => "https://${host}" }
+}
+
+output "inspection_logins" {
+  description = "How to sign in to each inspection page: the user, and the Secrets Manager secret (and JSON key, for the database) holding the password. Never the passwords themselves."
+  value = local.inspection ? {
+    mail = { user = local.inspection_user, secret = "african-market/${var.environment}/MAILPIT_UI_AUTH", note = "the secret is user:password" }
+    db   = { user = local.inspection_user, secret = "african-market/${var.environment}/PGWEB_AUTH_PASS", note = "the secret is the password" }
+    mq   = { user = module.rabbitmq.username, secret = "african-market/${var.environment}/RABBITMQ_URL", note = "the password is between the second : and the @" }
+  } : {}
 }
 
 output "migration" {

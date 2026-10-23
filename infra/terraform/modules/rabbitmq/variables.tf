@@ -15,6 +15,12 @@ variable "allowed_security_groups" {
   type        = map(string)
 }
 
+variable "console_security_groups" {
+  description = "Name to security group id of what may open the management console (HTTPS 443): the load balancer, in test environments only. Empty everywhere else."
+  type        = map(string)
+  default     = {}
+}
+
 variable "engine_version" {
   description = "Matches the local docker compose image (3.13)."
   type        = string

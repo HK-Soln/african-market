@@ -16,6 +16,16 @@ resource "aws_vpc_security_group_ingress_rule" "amqps" {
   referenced_security_group_id = each.value
 }
 
+resource "aws_vpc_security_group_ingress_rule" "console" {
+  for_each                     = var.console_security_groups
+  security_group_id            = aws_security_group.this.id
+  description                  = "Management console from ${each.key}"
+  ip_protocol                  = "tcp"
+  from_port                    = 443
+  to_port                      = 443
+  referenced_security_group_id = each.value
+}
+
 resource "random_password" "app" {
   length  = 40
   special = false # Amazon MQ refuses commas, colons and equals signs; it also goes into a URL

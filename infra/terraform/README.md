@@ -34,8 +34,9 @@ AWS's UAE region is unavailable for now, so infrastructure is tested in **throwa
 environments** (decision T-43): up for a session, then gone. Made-up data only.
 
 - `envs/test`: the whole platform at the smallest sizes in `eu-north-1`, at
-  `https://am.amahkudi.dev` (web), `api.`, `seller.` and `admin.am.amahkudi.dev`. It lives **3
-  hours** from when it was created.
+  `https://am.amahkudi.dev` (web), `api.`, `seller.` and `admin.am.amahkudi.dev`. It lives the
+  **lifetime chosen at `up`** (45 to 180 minutes, 180 in the workflow's form) from when it was
+  created.
 - `bootstrap` (applied once, kept): the state bucket, the $10/month budget and its email alerts,
   the `am.amahkudi.dev` zone (delegated from Vercel with four NS records), the GitHub OIDC
   provider and the role `github-deploy-test`, and a CodeBuild runner (`african-market-env`) for
@@ -43,18 +44,46 @@ environments** (decision T-43): up for a session, then gone. Made-up data only.
 - About $1 per 3-hour session; about 20-30 minutes up (most of it building images), 10-15 down.
 
 **Run it from GitHub:** Actions → **Test environment** → Run workflow → choose the branch and
-`up`, `down` or `status`.
+`up` (and its lifetime), `down`, `status` or `unlock`.
 
 | GitHub environment | Runs                                 | Approval        | Branches |
 | ------------------ | ------------------------------------ | --------------- | -------- |
-| `test`             | `up`                                 | the owner, each | any      |
+| `test`             | `up`, `unlock`                       | the owner, each | any      |
 | `test-teardown`    | `down`, `status`, the teardown check | none            | `dev`    |
+
+`up` needs the repository variable `TEST_SCHEDULED_TEARDOWN` (`false` until CodeBuild builds are
+allowed, then `true`), and the `test` environment's `GOOGLE_MAPS_BROWSER_KEY` and
+`GOOGLE_MAP_ID` (`none` for no map): no setting has a default (decision T-45).
 
 Every 30 minutes the workflow runs `reap`, which takes down an environment past its deadline,
 without waiting for anyone. With `scheduled_teardown = true` (once CodeBuild builds are allowed)
 the environment also carries a one-time AWS schedule that starts the CodeBuild runner with
 `ACTION=down`, which does not depend on GitHub. By hand:
-`AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh up|down|reap|status` (needs Docker for `up`).
+`AWS_PROFILE=aws-toolkit bash infra/deploy/test-env.sh up|down|reap|status|unlock` (`up` needs
+Docker, `TTL_MINUTES` and `SCHEDULED_TEARDOWN`).
+
+**Inspection pages** (decision T-47; test environments only, never staging or production). Each
+has its own login; `up` prints the addresses and the commands that read the passwords:
+
+| Page                           | What                                                           | User         |
+| ------------------------------ | -------------------------------------------------------------- | ------------ |
+| `https://mail.am.amahkudi.dev` | Mailpit: every email the apps send; none reaches a real person | `inspect`    |
+| `https://mq.am.amahkudi.dev`   | The RabbitMQ management console (queues, dead letters)         | the broker's |
+| `https://db.am.amahkudi.dev`   | pgweb, a read-only view of the database                        | `inspect`    |
+
+**Proving the automatic teardown.** Run `up` with lifetime `45`, and do nothing. Without
+`TEST_SCHEDULED_TEARDOWN=true`, the teardown check takes it down at its first run after the
+deadline (GitHub runs the schedule late, sometimes by much more than 30 minutes). With it, AWS
+starts the CodeBuild runner on the minute: check CodeBuild's build history for a `down` that
+started at the deadline. The lifetime cannot be shorter than 45 minutes: the timer starts when
+the infrastructure is created, and the rest of `up` takes another 15-20 minutes.
+
+**A run that was stopped.** Never cancel an `up` or a `down` half way. Terraform holds a lock
+while it works and leaves it behind, together with resources it made but did not record; the next
+run then fails with "Error acquiring the state lock". If it happens: run `unlock` (it refuses
+while another run of the workflow is going), then `down`. If `down` reports something that
+"already exists" or cannot be found, delete those leftovers by their tag
+(`Project=african-market`, `Environment=test`) and run `down` again.
 
 Sign in with the test numbers: `+971500000010` is the seeded seller, `+971500000011` the admin.
 Their codes are generated per environment:

@@ -39,7 +39,7 @@
     "@opentelemetry/semantic-conventions": "^1.43.0",
     "@sentry/node": "^11.8.0",
     "amqp-connection-manager": "^4.1.15",
-    "amqplib": "^0.10.9",
+    "amqplib": "^2.2.0",
     "nestjs-pino": "^5.3.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",

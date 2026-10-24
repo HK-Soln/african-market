@@ -106,8 +106,10 @@ module "rabbitmq" {
   subnet_ids              = module.network.database_subnet_ids
   allowed_security_groups = { backend = aws_security_group.backend.id }
   console_security_groups = var.inspection_tools ? { alb = module.alb.security_group_id } : {}
-  instance_type           = var.mq_instance_type
-  cluster                 = var.mq_cluster
+  # Throwaway environments leave nothing behind (decision T-48).
+  general_logs  = var.protect_data
+  instance_type = var.mq_instance_type
+  cluster       = var.mq_cluster
 }
 
 module "media" {
@@ -197,11 +199,14 @@ module "secrets" {
 # ── cluster and load balancer ─────────────────────────────────────────────────────────────────
 
 module "cluster" {
-  source      = "../ecs-cluster"
-  name        = local.name
-  vpc_id      = module.network.vpc_id
-  namespace   = local.namespace
-  secret_arns = module.secrets.all_arns
+  source = "../ecs-cluster"
+  name   = local.name
+  # Enhanced Container Insights is billed per metric and writes a log group outside Terraform,
+  # which outlived every test environment: on only where data is kept.
+  container_insights = var.protect_data
+  vpc_id             = module.network.vpc_id
+  namespace          = local.namespace
+  secret_arns        = module.secrets.all_arns
 }
 
 module "alb" {

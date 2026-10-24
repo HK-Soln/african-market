@@ -34,6 +34,19 @@ backend() { sed -n "s/^$1 *= *\"\(.*\)\"/\1/p" "$TF/backend.tfbackend"; }
 
 section() { printf '\n== %s\n' "$*"; }
 
+# What AWS services make by themselves, outside Terraform, outlives a destroy: their log groups
+# and a database's retained backups (decision T-48 switches those off; this says if any remain).
+leftovers() {
+  local groups backups
+  groups="$(aws logs describe-log-groups \
+    --query 'logGroups[?!starts_with(logGroupName, `/codebuild/`)].logGroupName' --output text 2> /dev/null || true)"
+  backups="$(aws rds describe-db-instance-automated-backups \
+    --query "DBInstanceAutomatedBackups[?DBInstanceIdentifier=='am-test'].DbiResourceId" --output text 2> /dev/null || true)"
+  if [ -n "$groups$backups" ]; then
+    echo "::warning::Still in the account after the destroy (not Terraform's): $groups $backups"
+  fi
+}
+
 # Sets the task count of every service in the cluster, then waits until ECS has done it:
 # `scale stopped` (0 tasks) or `scale running` (the counts in Terraform's desired_counts).
 # Terraform sets a count only when it creates a service (ignore_changes in modules/ecs-service),
@@ -149,6 +162,7 @@ case "$action" in
   down)
     section "Destroying the test environment"
     tf destroy -input=false -auto-approve "${vars[@]}"
+    leftovers
     echo "Gone. The state bucket, the runner, the budget and the DNS zone stay (bootstrap)."
     ;;
 
@@ -166,6 +180,7 @@ case "$action" in
     fi
     section "Past its deadline ($expires): destroying"
     tf destroy -input=false -auto-approve "${vars[@]}"
+    leftovers
     ;;
 
   unlock)

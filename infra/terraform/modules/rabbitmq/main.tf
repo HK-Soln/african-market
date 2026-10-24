@@ -51,7 +51,7 @@ resource "aws_mq_broker" "this" {
   }
 
   logs {
-    general = true
+    general = var.general_logs
   }
 
   maintenance_window_start_time {

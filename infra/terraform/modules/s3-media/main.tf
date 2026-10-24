@@ -122,9 +122,10 @@ resource "aws_s3_bucket_policy" "public" {
 # ── private documents (KYC) ─────────────────────────────────────────────────────────────────
 
 resource "aws_kms_key" "private" {
-  description             = "${var.name} private documents (KYC, trade licences)"
-  enable_key_rotation     = true
-  deletion_window_in_days = 30
+  description         = "${var.name} private documents (KYC, trade licences)"
+  enable_key_rotation = true
+  # AWS's longest wait where data is kept; its shortest for a throwaway environment.
+  deletion_window_in_days = var.force_destroy ? 7 : 30
 }
 
 resource "aws_kms_alias" "private" {

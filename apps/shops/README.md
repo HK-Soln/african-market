@@ -2,13 +2,13 @@
 
 Phase introduced: **1** (see `docs/directives/`).
 
-|                         |                                                                                                               |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Owns                    | Shops, branches, opening hours, special hours, service areas, KYC and verification status, contact-tap events |
-| Tables (schema `shops`) | shop, branch, opening_hours, special_hours, verification_request, contact_event                               |
-| Publishes               | `shop.created`, `shop.updated`, `shop.verified`, `branch.updated`, `audit.recorded` (admin actions)           |
-| Consumes                | `user.deleted` (deletes the provider's identity session at erasure time)                                      |
-| Ports (dev)             | TCP and HTTP from `SERVICES.shops` in `libs/contracts/src/services.ts`                                        |
+|                         |                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Owns                    | Shops, branches, opening hours, special hours, service areas, KYC and verification status, contact-tap events, reports on shops |
+| Tables (schema `shops`) | shop, branch, opening_hours, special_hours, verification_request, contact_event, shop_report                                    |
+| Publishes               | `shop.created`, `shop.updated`, `shop.verified`, `branch.updated`, `audit.recorded` (admin actions)                             |
+| Consumes                | `user.deleted` (deletes the provider's identity session at erasure time; forgets who sent taps and reports)                     |
+| Ports (dev)             | TCP and HTTP from `SERVICES.shops` in `libs/contracts/src/services.ts`                                                          |
 
 ## Shops and branches (F1-02)
 
@@ -56,6 +56,17 @@ Phase introduced: **1** (see `docs/directives/`).
 `KYC_PROVIDER=fake` approves at once, for local work and tests (refused in staging and production).
 Didit needs `DIDIT_API_URL`, `DIDIT_API_KEY` (scopes to create, read and delete sessions),
 `DIDIT_API_SECRET` (the webhook destination's secret) and `DIDIT_WORKFLOW_ID`.
+
+## Reports on shops (F1-15)
+
+| Pattern (`ShopsPatterns`) | What it does                                                                                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `submitReport`            | Public: a reason (`REPORT_REASONS`) and optional details on a verified shop; one open report per visitor and shop.                                          |
+| `listReports`             | Admins: reports by status, reason or shop, open ones oldest first (`REPORT_LIST_SPEC`).                                                                     |
+| `decideReport`            | Admins: `resolved` or `dismissed` with an optional note; closes every open report on the shop and records `shop.report_resolved` / `shop.report_dismissed`. |
+
+The reporter's account (when signed in) is kept to follow up and is never returned; `user.deleted`
+clears it. Reports on products live in the catalog service.
 
 Rules: never read another service's schema; publish events through `OutboxService.enqueue` inside
 the same transaction as the change; wrap every consumer in `IdempotentConsumer.handle`; add new

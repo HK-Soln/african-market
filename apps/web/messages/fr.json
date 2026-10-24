@@ -343,5 +343,68 @@
     "report": "Signaler ce produit",
     "notFoundTitle": "Ce produit n’est pas disponible",
     "notFoundBody": "La boutique l’a peut-être retiré. Visitez la boutique ou cherchez autre chose."
+  },
+  "report": {
+    "metaTitle": "Signaler une annonce",
+    "titleShop": "Signaler cette boutique",
+    "titleProduct": "Signaler ce produit",
+    "soldBy": "Vendu par {shop}",
+    "intro": "Dites-nous ce qui ne va pas. Notre équipe examine chaque signalement et agit sur ceux qui enfreignent nos règles.",
+    "reasonLabel": "Quel est le problème ?",
+    "reasonRequired": "Choisissez le problème.",
+    "reasons": {
+      "fraud": {
+        "label": "Arnaque ou fraude",
+        "shop": "Demande de l'argent d'avance, se fait passer pour quelqu'un d'autre ou ne livre jamais.",
+        "product": "Une fausse offre pour prendre de l'argent."
+      },
+      "counterfeit": {
+        "label": "Contrefaçon",
+        "shop": "Vend des copies de produits de marque.",
+        "product": "Une copie d'un produit de marque."
+      },
+      "prohibited": {
+        "label": "Interdit aux EAU",
+        "shop": "Vend quelque chose qui ne peut pas être vendu ici.",
+        "product": "Quelque chose qui ne peut pas être vendu ici."
+      },
+      "misleading": {
+        "label": "Faux ou trompeur",
+        "shop": "Adresse, horaires, prix ou photos faux.",
+        "product": "Prix, photos ou description faux."
+      },
+      "offensive": {
+        "label": "Choquant",
+        "shop": "Mots ou images choquants.",
+        "product": "Mots ou images choquants."
+      },
+      "unavailable": {
+        "label": "N'existe plus",
+        "shop": "La boutique a fermé ou n'est pas à cette adresse.",
+        "product": "La boutique ne le vend plus."
+      },
+      "other": {
+        "label": "Autre chose",
+        "shop": "Expliquez ci-dessous.",
+        "product": "Expliquez ci-dessous."
+      }
+    },
+    "detailsLabel": "Plus de détails",
+    "optional": "facultatif",
+    "detailsHint": "Tout ce qui nous aide à vérifier. N'indiquez ni numéro de carte ni mot de passe.",
+    "detailsHintOther": "Expliquez le problème en au moins {min} caractères.",
+    "detailsRequired": "Expliquez le problème en au moins {min} caractères.",
+    "privacyAnonymous": "Pas besoin de vous connecter. Le vendeur ne sait jamais qui a signalé.",
+    "privacySignedIn": "Envoyé avec votre compte pour que nous puissions suivre. Le vendeur ne sait jamais qui a signalé.",
+    "send": "Envoyer le signalement",
+    "sending": "Envoi…",
+    "sentTitle": "Merci, nous avons reçu votre signalement",
+    "sentBody": "Notre équipe va l'examiner. Vous n'aurez pas de réponse pour chaque signalement, mais nous agissons sur ceux qui enfreignent nos règles.",
+    "back": "Retour à l'annonce",
+    "problems": {
+      "tooMany": "Trop de signalements d'ici pour le moment. Réessayez dans une minute.",
+      "gone": "Cette annonce n'est plus publique, il n'y a rien à signaler.",
+      "failed": "Votre signalement n'a pas pu être envoyé. Vérifiez votre connexion et réessayez."
+    }
   }
 }

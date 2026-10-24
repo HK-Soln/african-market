@@ -16,3 +16,4 @@ export * from './dto/catalog';
 export * from './dto/discovery';
 export * from './dto/contact-events';
 export * from './dto/audit';
+export * from './dto/reports';

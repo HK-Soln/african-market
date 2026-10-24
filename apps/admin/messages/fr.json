@@ -11,7 +11,8 @@
     "productsHint": "Les produits alimentaires et réglementés en attente de vérification avant d’apparaître.",
     "categoriesHint": "L’arbre des catégories dans chaque langue, et celles qui sont vérifiées.",
     "emiratesHint": "Ouvrir la recherche par émirat, et reconstruire l’index de recherche.",
-    "auditHint": "Qui a fait quoi dans cette console, et quand."
+    "auditHint": "Qui a fait quoi dans cette console, et quand.",
+    "reportsHint": "Ce que les clients ont signalé sur les boutiques et les produits."
   },
   "emirates": {
     "DXB": "Dubai",
@@ -142,7 +143,10 @@
     "CATEGORY_NOT_FOUND": "Cette catégorie est introuvable. Rechargez la page.",
     "CATEGORY_INVALID": "Ce changement ne convient pas à l’arbre des catégories.",
     "CATALOG_TOO_MANY_CATEGORIES": "Le catalogue a atteint le nombre maximal de catégories.",
-    "IDENTITY_ADMIN_ONLY": "Réservé aux administrateurs."
+    "IDENTITY_ADMIN_ONLY": "Réservé aux administrateurs.",
+    "REPORT_ALREADY_CLOSED": "Un autre admin a clos ce signalement entre-temps. Rechargez la page.",
+    "REPORT_NOT_FOUND": "Signalement introuvable. Rechargez la page.",
+    "REPORT_ADMIN_ONLY": "Réservé aux admins."
   },
   "account": {
     "signIn": "Se connecter",
@@ -194,7 +198,8 @@
     "products": "Produits",
     "categories": "Catégories",
     "emirates": "Émirats",
-    "audit": "Journal d’audit"
+    "audit": "Journal d’audit",
+    "reports": "Signalements"
   },
   "shops": {
     "title": "Boutiques",
@@ -355,7 +360,8 @@
     "reasonHint": "Le vendeur le lit. Dites ce qu’il faut changer.",
     "reasonRequired": "Écrivez le motif que le vendeur lira.",
     "cancel": "Annuler",
-    "saving": "Enregistrement"
+    "saving": "Enregistrement",
+    "optional": "facultatif"
   },
   "documents": {
     "close": "Fermer",
@@ -532,11 +538,15 @@
         "listing_reinstated": "Boutique rétablie",
         "license_approved": "Licence commerciale acceptée",
         "license_rejected": "Licence commerciale refusée",
-        "kyc_document_viewed": "Image d’identité consultée"
+        "kyc_document_viewed": "Image d’identité consultée",
+        "report_resolved": "Signalements de boutique clos : mesure prise",
+        "report_dismissed": "Signalements de boutique clos : rien à redire"
       },
       "product": {
         "approved": "Produit accepté",
-        "rejected": "Produit refusé"
+        "rejected": "Produit refusé",
+        "report_resolved": "Signalements de produit clos : mesure prise",
+        "report_dismissed": "Signalements de produit clos : rien à redire"
       },
       "category": {
         "created": "Catégorie ajoutée",
@@ -559,6 +569,54 @@
         "role_granted": "Rôle attribué",
         "role_revoked": "Rôle retiré"
       }
+    }
+  },
+  "reports": {
+    "title": "Signalements",
+    "intro": "Ce que les clients ont signalé sur les boutiques et les produits, les plus anciens d'abord. Clore un signalement clôt tous ceux ouverts sur la même annonce. Suspendez une boutique ou refusez un produit depuis l'examen de la boutique.",
+    "kindLabel": "Signalements sur",
+    "kind": {
+      "shops": "Boutiques",
+      "products": "Produits"
+    },
+    "status": "Statut",
+    "statuses": {
+      "open": "Ouvert",
+      "resolved": "Mesure prise",
+      "dismissed": "Rien à redire"
+    },
+    "emptyOpen": "Aucun signalement ouvert",
+    "empty": "Aucun signalement ici",
+    "retry": "Réessayer",
+    "loadMore": "Voir plus",
+    "loading": "Chargement",
+    "sentAt": "Envoyé le {when}",
+    "signedIn": "par un client connecté",
+    "anonymous": "sans connexion",
+    "untitled": "Produit sans nom",
+    "shop": "La boutique",
+    "review": "Ouvrir l'examen de la boutique",
+    "publicPage": "Page publique",
+    "noDetails": "Aucun détail.",
+    "decidedAt": "Clos le {when}",
+    "resolve": "Mesure prise",
+    "dismiss": "Rien à redire",
+    "resolveTitle": "Clore avec mesure prise ?",
+    "resolveBody": "À utiliser une fois l'annonce traitée, par exemple la boutique suspendue ou le produit refusé. Tous les signalements ouverts dessus sont clos.",
+    "dismissTitle": "Clore sans suite ?",
+    "dismissBody": "Tous les signalements ouverts sur cette annonce sont clos et l'annonce reste telle quelle.",
+    "note": "Note",
+    "noteHint": "Pour les autres admins ; ni le vendeur ni le client ne la voient.",
+    "closed": "{n, plural, one {1 signalement clos} other {# signalements clos}}",
+    "close": "Fermer",
+    "reasons": {
+      "fraud": "Arnaque ou fraude",
+      "counterfeit": "Contrefaçon",
+      "prohibited": "Interdit aux EAU",
+      "misleading": "Faux ou trompeur",
+      "offensive": "Choquant",
+      "unavailable": "N'existe plus",
+      "other": "Autre chose"
     }
   }
 }

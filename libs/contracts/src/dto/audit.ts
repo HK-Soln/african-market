@@ -17,9 +17,13 @@ export const AUDIT_ACTIONS = [
   'shop.license_approved',
   'shop.license_rejected',
   'shop.kyc_document_viewed',
+  'shop.report_resolved',
+  'shop.report_dismissed',
   // catalog
   'product.approved',
   'product.rejected',
+  'product.report_resolved',
+  'product.report_dismissed',
   'category.created',
   'category.updated',
   // discovery

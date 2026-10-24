@@ -34,7 +34,7 @@ export async function SellerDetails({ shop }: { shop: PublicShop }) {
   );
 }
 
-/** Where people report a listing (the form itself is F1-15). */
+/** Where people report a listing (the form is at /report). */
 export async function ReportLink({
   query,
   label,

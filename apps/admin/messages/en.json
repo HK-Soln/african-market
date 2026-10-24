@@ -11,7 +11,8 @@
     "productsHint": "Food and restricted products waiting for review before they show.",
     "categoriesHint": "The category tree in each language, and which categories are reviewed.",
     "emiratesHint": "Open customer search per emirate, and rebuild the search index.",
-    "auditHint": "Who did what in this console, and when."
+    "auditHint": "Who did what in this console, and when.",
+    "reportsHint": "What customers reported about shops and products."
   },
   "emirates": {
     "DXB": "Dubai",
@@ -142,7 +143,10 @@
     "CATEGORY_NOT_FOUND": "This category was not found. Reload the page.",
     "CATEGORY_INVALID": "This change does not fit the category tree.",
     "CATALOG_TOO_MANY_CATEGORIES": "The catalogue has as many categories as it can hold.",
-    "IDENTITY_ADMIN_ONLY": "Only admins can do this."
+    "IDENTITY_ADMIN_ONLY": "Only admins can do this.",
+    "REPORT_ALREADY_CLOSED": "Another admin closed this report meanwhile. Reload the page.",
+    "REPORT_NOT_FOUND": "This report was not found. Reload the page.",
+    "REPORT_ADMIN_ONLY": "Only admins can do this."
   },
   "account": {
     "signIn": "Sign in",
@@ -194,7 +198,8 @@
     "products": "Products",
     "categories": "Categories",
     "emirates": "Emirates",
-    "audit": "Audit log"
+    "audit": "Audit log",
+    "reports": "Reports"
   },
   "shops": {
     "title": "Shops",
@@ -355,7 +360,8 @@
     "reasonHint": "The seller reads this. Say what to change.",
     "reasonRequired": "Write the reason the seller will read.",
     "cancel": "Cancel",
-    "saving": "Saving"
+    "saving": "Saving",
+    "optional": "optional"
   },
   "documents": {
     "close": "Close",
@@ -532,11 +538,15 @@
         "listing_reinstated": "Shop reinstated",
         "license_approved": "Trade licence approved",
         "license_rejected": "Trade licence rejected",
-        "kyc_document_viewed": "Identity image viewed"
+        "kyc_document_viewed": "Identity image viewed",
+        "report_resolved": "Shop reports closed: action taken",
+        "report_dismissed": "Shop reports closed: nothing wrong"
       },
       "product": {
         "approved": "Product approved",
-        "rejected": "Product rejected"
+        "rejected": "Product rejected",
+        "report_resolved": "Product reports closed: action taken",
+        "report_dismissed": "Product reports closed: nothing wrong"
       },
       "category": {
         "created": "Category added",
@@ -559,6 +569,54 @@
         "role_granted": "Role given",
         "role_revoked": "Role taken away"
       }
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "intro": "What customers reported about shops and products, the longest waiting first. Closing a report closes every open report on the same listing. Suspend a shop or reject a product from the shop’s review.",
+    "kindLabel": "Reports on",
+    "kind": {
+      "shops": "Shops",
+      "products": "Products"
+    },
+    "status": "Status",
+    "statuses": {
+      "open": "Open",
+      "resolved": "Action taken",
+      "dismissed": "Nothing wrong"
+    },
+    "emptyOpen": "No open reports",
+    "empty": "No reports here",
+    "retry": "Try again",
+    "loadMore": "Load more",
+    "loading": "Loading",
+    "sentAt": "Sent {when}",
+    "signedIn": "by a signed-in customer",
+    "anonymous": "without signing in",
+    "untitled": "Untitled product",
+    "shop": "The shop",
+    "review": "Open the shop’s review",
+    "publicPage": "Public page",
+    "noDetails": "No details given.",
+    "decidedAt": "Closed {when}",
+    "resolve": "Action taken",
+    "dismiss": "Nothing wrong",
+    "resolveTitle": "Close as action taken?",
+    "resolveBody": "Use this once you have dealt with the listing, for example suspended the shop or rejected the product. Every open report on it is closed.",
+    "dismissTitle": "Close as nothing wrong?",
+    "dismissBody": "Every open report on this listing is closed and the listing stays as it is.",
+    "note": "Note",
+    "noteHint": "For other admins; the seller and the customer do not see it.",
+    "closed": "{n, plural, one {1 report closed} other {# reports closed}}",
+    "close": "Close",
+    "reasons": {
+      "fraud": "Scam or fraud",
+      "counterfeit": "Fake goods",
+      "prohibited": "Not allowed in the UAE",
+      "misleading": "Wrong or misleading",
+      "offensive": "Offensive",
+      "unavailable": "No longer exists",
+      "other": "Something else"
     }
   }
 }

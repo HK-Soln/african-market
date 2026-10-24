@@ -19,6 +19,7 @@ import {
   type KycSummary,
   type VerificationRequest,
 } from './review';
+import { reportsQuery } from './reports';
 
 describe('queueQuery', () => {
   it('lists waiting shops oldest first, so none is left behind', () => {
@@ -219,5 +220,24 @@ describe('audit', () => {
       '/emirates',
     );
     expect(subjectHref({ subjectType: 'user', subjectId: 'u1', shopId: null })).toBeNull();
+  });
+});
+
+describe('reportsQuery', () => {
+  it('lists open reports oldest first, so the longest waiting is on top', () => {
+    expect(reportsQuery('open')).toEqual({
+      'filter[status]': 'open',
+      sort: 'createdAt',
+      limit: 20,
+    });
+  });
+
+  it('lists closed reports newest first, and carries the cursor', () => {
+    expect(reportsQuery('dismissed', 'abc')).toEqual({
+      'filter[status]': 'dismissed',
+      sort: '-createdAt',
+      limit: 20,
+      cursor: 'abc',
+    });
   });
 });

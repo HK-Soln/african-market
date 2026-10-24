@@ -73,6 +73,10 @@ export const ShopsPatterns = {
   recordContact: 'shops.contact.record',
   /** Owners and managers: taps by day, channel and product. */
   contactStats: 'shops.contact.stats',
+  /** Public: a report on a shop (F1-15); admins: the reports queue and decisions. */
+  submitReport: 'shops.report.submit',
+  listReports: 'shops.report.list',
+  decideReport: 'shops.report.decide',
   /** Service to service (discovery), never routed by the gateway: a shop's public search data. */
   searchSnapshot: 'shops.search.snapshot',
   /** Service to service (discovery's rebuild): verified shops' ids, a page at a time. */
@@ -97,6 +101,10 @@ export const CatalogPatterns = {
   /** Admins: products waiting for review, and decisions on them. */
   reviewQueue: 'catalog.product.review_queue',
   decideProduct: 'catalog.product.decide',
+  /** Public: a report on a product (F1-15); admins: the reports queue and decisions. */
+  submitReport: 'catalog.report.submit',
+  listReports: 'catalog.report.list',
+  decideReport: 'catalog.report.decide',
   /** Service to service (discovery), never routed by the gateway: one product's search data. */
   productSnapshot: 'catalog.search.product_snapshot',
   /** Service to service (discovery): every live product of a shop. */

@@ -21,6 +21,12 @@ variable "console_security_groups" {
   default     = {}
 }
 
+variable "general_logs" {
+  description = "Send the broker's general log to CloudWatch. Amazon MQ makes those log groups itself, outside Terraform, so they outlive the broker and never expire; off in throwaway environments."
+  type        = bool
+  default     = true
+}
+
 variable "engine_version" {
   description = "Matches the local docker compose image (3.13)."
   type        = string

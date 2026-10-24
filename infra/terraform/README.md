@@ -78,6 +78,11 @@ starts the CodeBuild runner on the minute: check CodeBuild's build history for a
 started at the deadline. The lifetime cannot be shorter than 45 minutes: the timer starts when
 the infrastructure is created, and the rest of `up` takes another 15-20 minutes.
 
+**What a teardown leaves.** Nothing but the bootstrap (decision T-48). AWS services that make
+things outside Terraform are set up not to in test environments, and `down` warns about any log
+group or retained database backup still in the account. The media bucket's encryption key waits 7
+days before AWS deletes it ("pending deletion", not billed).
+
 **A run that was stopped.** Never cancel an `up` or a `down` half way. Terraform holds a lock
 while it works and leaves it behind, together with resources it made but did not record; the next
 run then fails with "Error acquiring the state lock". If it happens: run `unlock` (it refuses

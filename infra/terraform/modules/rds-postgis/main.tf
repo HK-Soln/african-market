@@ -65,11 +65,13 @@ resource "aws_db_instance" "this" {
   parameter_group_name   = aws_db_parameter_group.this.name
 
   # Daily snapshots and point-in-time recovery.
-  backup_retention_period  = var.backup_retention_days
-  backup_window            = "22:00-23:00" # 02:00-03:00 in the UAE
-  maintenance_window       = "fri:23:00-sat:00:00"
-  copy_tags_to_snapshot    = true
-  delete_automated_backups = false
+  backup_retention_period = var.backup_retention_days
+  backup_window           = "22:00-23:00" # 02:00-03:00 in the UAE
+  maintenance_window      = "fri:23:00-sat:00:00"
+  copy_tags_to_snapshot   = true
+  # Kept after the database is deleted only where its data is kept (a final snapshot); a test
+  # environment's backups went on costing after every teardown otherwise.
+  delete_automated_backups = !var.final_snapshot
 
   auto_minor_version_upgrade   = true
   performance_insights_enabled = true

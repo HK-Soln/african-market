@@ -3,6 +3,7 @@ import { createTestDatabase as createDatabase, type TestDatabase } from '@am/dat
 import { dataSourceConfig } from '../../src/data-source';
 import { Init1791504000000 } from '../../src/migrations/1791504000000-init';
 import { Catalogue1792166400000 } from '../../src/migrations/1792166400000-Catalogue';
+import { ProductReports1792900000000 } from '../../src/migrations/1792900000000-ProductReports';
 
 export type { TestDatabase };
 
@@ -10,5 +11,5 @@ export type { TestDatabase };
 export const createTestDatabase = (): Promise<TestDatabase> =>
   createDatabase({
     ...dataSourceConfig,
-    migrations: [Init1791504000000, Catalogue1792166400000],
+    migrations: [Init1791504000000, Catalogue1792166400000, ProductReports1792900000000],
   });

@@ -5,6 +5,7 @@ import { Init1791504000000 } from '../../src/migrations/1791504000000-init';
 import { ShopsAndBranches1792153253703 } from '../../src/migrations/1792153253703-ShopsAndBranches';
 import { SellerVerification1792158369273 } from '../../src/migrations/1792158369273-SellerVerification';
 import { ContactEvents1792339300000 } from '../../src/migrations/1792339300000-ContactEvents';
+import { ShopReports1792900000000 } from '../../src/migrations/1792900000000-ShopReports';
 
 export type { TestDatabase };
 
@@ -17,5 +18,6 @@ export const createTestDatabase = (): Promise<TestDatabase> =>
       ShopsAndBranches1792153253703,
       SellerVerification1792158369273,
       ContactEvents1792339300000,
+      ShopReports1792900000000,
     ],
   });

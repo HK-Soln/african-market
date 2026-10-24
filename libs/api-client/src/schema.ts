@@ -827,6 +827,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report a shop or a product
+         * @description Public; a signed-in customer’s report carries their account, never shown to the seller. Send shopId or productId. One open report per visitor and listing: a repeat is accepted and not kept.
+         */
+        post: operations["ReportsController_submit_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/shops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reports on shops
+         * @description Oldest first; filter by status.
+         */
+        get: operations["AdminReportsController_shops_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reports on products
+         * @description Oldest first; filter by status.
+         */
+        get: operations["AdminReportsController_products_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/shops/{reportId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close a report on a shop
+         * @description Closes every open report on the shop. Suspending it is a separate action.
+         */
+        post: operations["AdminReportsController_decideShop_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/products/{reportId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close a report on a product
+         * @description Closes every open report on the product. Rejecting it is a separate action.
+         */
+        post: operations["AdminReportsController_decideProduct_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/seller/shops": {
         parameters: {
             query?: never;
@@ -1676,7 +1776,7 @@ export interface components {
             /** @description The admin's name now */
             actorName: string | null;
             /** @enum {string} */
-            action: "shop.listing_approved" | "shop.listing_rejected" | "shop.listing_suspended" | "shop.listing_reinstated" | "shop.license_approved" | "shop.license_rejected" | "shop.kyc_document_viewed" | "product.approved" | "product.rejected" | "category.created" | "category.updated" | "emirate.search_opened" | "emirate.search_closed" | "search.rebuilt" | "document.downloaded" | "country.updated" | "user.role_granted" | "user.role_revoked";
+            action: "shop.listing_approved" | "shop.listing_rejected" | "shop.listing_suspended" | "shop.listing_reinstated" | "shop.license_approved" | "shop.license_rejected" | "shop.kyc_document_viewed" | "shop.report_resolved" | "shop.report_dismissed" | "product.approved" | "product.rejected" | "product.report_resolved" | "product.report_dismissed" | "category.created" | "category.updated" | "emirate.search_opened" | "emirate.search_closed" | "search.rebuilt" | "document.downloaded" | "country.updated" | "user.role_granted" | "user.role_revoked";
             /** @enum {string} */
             subjectType: "shop" | "product" | "category" | "emirate" | "search" | "media" | "country" | "user";
             /** @description An id, or a code for an emirate or a country */
@@ -1955,6 +2055,97 @@ export interface components {
             branches: components["schemas"]["PublicBranchDto"][];
             /** @description Set once an admin approved the trade licence, until it expires */
             seller: components["schemas"]["LicensedSellerDto"] | null;
+        };
+        SubmitReportDto: {
+            /**
+             * Format: uuid
+             * @description The shop reported; or send productId
+             */
+            shopId?: string;
+            /**
+             * Format: uuid
+             * @description The product reported; or send shopId
+             */
+            productId?: string;
+            /** @enum {string} */
+            reason: "fraud" | "counterfeit" | "prohibited" | "misleading" | "offensive" | "unavailable" | "other";
+            /** @description What is wrong; at least 10 characters for "other" */
+            details?: string;
+            /**
+             * @description The app's random visitor id (8-64 letters, digits, - or _), kept on the device
+             * @example k3J9xQ2mZpL8
+             */
+            sessionId: string;
+        };
+        SubmitReportResponseDto: {
+            /** @description False when this visitor already had an open report on it */
+            recorded: boolean;
+        };
+        ShopReportDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** @enum {string} */
+            reason: "fraud" | "counterfeit" | "prohibited" | "misleading" | "offensive" | "unavailable" | "other";
+            details: string | null;
+            /** @description Sent while signed in; who it was is never shown */
+            signedIn: boolean;
+            /** @enum {string} */
+            status: "open" | "resolved" | "dismissed";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt: string | null;
+            /** @description For admins only */
+            decisionNote: string | null;
+            shopName: string;
+            shopSlug: string;
+        };
+        ShopReportPageDto: {
+            items: components["schemas"]["ShopReportDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
+        };
+        ProductReportDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            shopId: string;
+            /** @enum {string} */
+            reason: "fraud" | "counterfeit" | "prohibited" | "misleading" | "offensive" | "unavailable" | "other";
+            details: string | null;
+            /** @description Sent while signed in; who it was is never shown */
+            signedIn: boolean;
+            /** @enum {string} */
+            status: "open" | "resolved" | "dismissed";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt: string | null;
+            /** @description For admins only */
+            decisionNote: string | null;
+            /** Format: uuid */
+            productId: string;
+            productTitle: components["schemas"]["LocalizedTextDto"];
+        };
+        ProductReportPageDto: {
+            items: components["schemas"]["ProductReportDto"][];
+            nextCursor: string | null;
+            prevCursor: string | null;
+        };
+        DecideReportBody: {
+            /**
+             * @description `resolved`: something was done about it; `dismissed`: nothing was wrong
+             * @enum {string}
+             */
+            outcome: "resolved" | "dismissed";
+            /** @description For other admins */
+            note?: string;
+        };
+        DecideReportResponseDto: {
+            /** @description Open reports closed: this one and the others on the same listing */
+            closed: number;
         };
         LocalizedInput: {
             en?: string;
@@ -3009,9 +3200,9 @@ export interface operations {
     AdminAuditController_list_v1: {
         parameters: {
             query?: {
-                /** @description enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked) */
+                /** @description enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, shop.report_resolved, shop.report_dismissed, product.approved, product.rejected, product.report_resolved, product.report_dismissed, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked) */
                 "filter[action]"?: string;
-                /** @description enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked), comma-separated */
+                /** @description enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, shop.report_resolved, shop.report_dismissed, product.approved, product.rejected, product.report_resolved, product.report_dismissed, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked), comma-separated */
                 "filter[action][in]"?: string;
                 /** @description enum (shop, product, category, emirate, search, media, country, user) */
                 "filter[subjectType]"?: string;
@@ -3473,6 +3664,151 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductPageDto"];
+                };
+            };
+        };
+    };
+    ReportsController_submit_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitReportDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmitReportResponseDto"];
+                };
+            };
+        };
+    };
+    AdminReportsController_shops_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (open, resolved, dismissed) */
+                "filter[status]"?: string;
+                /** @description enum (open, resolved, dismissed), comma-separated */
+                "filter[status][in]"?: string;
+                /** @description enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other) */
+                "filter[reason]"?: string;
+                /** @description enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other), comma-separated */
+                "filter[reason][in]"?: string;
+                /** @description uuid */
+                "filter[shopId]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: createdAt. Default: createdAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopReportPageDto"];
+                };
+            };
+        };
+    };
+    AdminReportsController_products_v1: {
+        parameters: {
+            query?: {
+                /** @description enum (open, resolved, dismissed) */
+                "filter[status]"?: string;
+                /** @description enum (open, resolved, dismissed), comma-separated */
+                "filter[status][in]"?: string;
+                /** @description enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other) */
+                "filter[reason]"?: string;
+                /** @description enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other), comma-separated */
+                "filter[reason][in]"?: string;
+                /** @description uuid */
+                "filter[shopId]"?: string;
+                /** @description Comma-separated, `-` for descending. Fields: createdAt. Default: createdAt. */
+                sort?: string;
+                /** @description Page size, default 20, at most 100. */
+                limit?: number;
+                /** @description A `nextCursor` or `prevCursor` from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductReportPageDto"];
+                };
+            };
+        };
+    };
+    AdminReportsController_decideShop_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideReportBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecideReportResponseDto"];
+                };
+            };
+        };
+    };
+    AdminReportsController_decideProduct_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideReportBody"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecideReportResponseDto"];
                 };
             };
         };

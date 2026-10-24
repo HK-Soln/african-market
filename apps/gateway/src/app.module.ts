@@ -14,6 +14,7 @@ import { assertSafeGatewayEnv, gatewayEnvSchema } from './env';
 import { GatewayHealthController } from './health/health.controller';
 import { MediaModule } from './media/media.module';
 import { PublicModule } from './public/public.module';
+import { ReportsModule } from './reports/reports.module';
 import { SellerModule } from './seller/seller.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { testSupportModules } from './test-support/test-support.module';
@@ -41,6 +42,7 @@ assertSafeGatewayEnv(env);
     CountriesModule,
     MediaModule,
     PublicModule,
+    ReportsModule,
     SellerModule,
     WebhooksModule,
     ...testSupportModules(env.TEST_SUPPORT_ROUTES),

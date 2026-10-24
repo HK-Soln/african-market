@@ -1173,7 +1173,7 @@
             "name": "filter[action]",
             "required": false,
             "in": "query",
-            "description": "enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked)",
+            "description": "enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, shop.report_resolved, shop.report_dismissed, product.approved, product.rejected, product.report_resolved, product.report_dismissed, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked)",
             "schema": {
               "type": "string"
             }
@@ -1182,7 +1182,7 @@
             "name": "filter[action][in]",
             "required": false,
             "in": "query",
-            "description": "enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, product.approved, product.rejected, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked), comma-separated",
+            "description": "enum (shop.listing_approved, shop.listing_rejected, shop.listing_suspended, shop.listing_reinstated, shop.license_approved, shop.license_rejected, shop.kyc_document_viewed, shop.report_resolved, shop.report_dismissed, product.approved, product.rejected, product.report_resolved, product.report_dismissed, category.created, category.updated, emirate.search_opened, emirate.search_closed, search.rebuilt, document.downloaded, country.updated, user.role_granted, user.role_revoked), comma-separated",
             "schema": {
               "type": "string"
             }
@@ -2270,6 +2270,341 @@
         "summary": "A verified shop’s active products, a page at a time",
         "tags": [
           "shops"
+        ]
+      }
+    },
+    "/api/v1/reports": {
+      "post": {
+        "description": "Public; a signed-in customer’s report carries their account, never shown to the seller. Send shopId or productId. One open report per visitor and listing: a repeat is accepted and not kept.",
+        "operationId": "ReportsController_submit_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitReportResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Report a shop or a product",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/admin/reports/shops": {
+      "get": {
+        "description": "Oldest first; filter by status.",
+        "operationId": "AdminReportsController_shops_v1",
+        "parameters": [
+          {
+            "name": "filter[status]",
+            "required": false,
+            "in": "query",
+            "description": "enum (open, resolved, dismissed)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (open, resolved, dismissed), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[reason]",
+            "required": false,
+            "in": "query",
+            "description": "enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[reason][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[shopId]",
+            "required": false,
+            "in": "query",
+            "description": "uuid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: createdAt. Default: createdAt.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 20, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopReportPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reports on shops",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reports/products": {
+      "get": {
+        "description": "Oldest first; filter by status.",
+        "operationId": "AdminReportsController_products_v1",
+        "parameters": [
+          {
+            "name": "filter[status]",
+            "required": false,
+            "in": "query",
+            "description": "enum (open, resolved, dismissed)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (open, resolved, dismissed), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[reason]",
+            "required": false,
+            "in": "query",
+            "description": "enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[reason][in]",
+            "required": false,
+            "in": "query",
+            "description": "enum (fraud, counterfeit, prohibited, misleading, offensive, unavailable, other), comma-separated",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[shopId]",
+            "required": false,
+            "in": "query",
+            "description": "uuid",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated, `-` for descending. Fields: createdAt. Default: createdAt.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Page size, default 20, at most 100.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "A `nextCursor` or `prevCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductReportPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reports on products",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reports/shops/{reportId}/decision": {
+      "post": {
+        "description": "Closes every open report on the shop. Suspending it is a separate action.",
+        "operationId": "AdminReportsController_decideShop_v1",
+        "parameters": [
+          {
+            "name": "reportId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideReportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecideReportResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Close a report on a shop",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reports/products/{reportId}/decision": {
+      "post": {
+        "description": "Closes every open report on the product. Rejecting it is a separate action.",
+        "operationId": "AdminReportsController_decideProduct_v1",
+        "parameters": [
+          {
+            "name": "reportId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideReportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecideReportResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Close a report on a product",
+        "tags": [
+          "admin"
         ]
       }
     },
@@ -5261,8 +5596,12 @@
               "shop.license_approved",
               "shop.license_rejected",
               "shop.kyc_document_viewed",
+              "shop.report_resolved",
+              "shop.report_dismissed",
               "product.approved",
               "product.rejected",
+              "product.report_resolved",
+              "product.report_dismissed",
               "category.created",
               "category.updated",
               "emirate.search_opened",
@@ -6186,6 +6525,289 @@
           "codEnabled",
           "branches",
           "seller"
+        ]
+      },
+      "SubmitReportDto": {
+        "type": "object",
+        "properties": {
+          "shopId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The shop reported; or send productId"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The product reported; or send shopId"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "fraud",
+              "counterfeit",
+              "prohibited",
+              "misleading",
+              "offensive",
+              "unavailable",
+              "other"
+            ]
+          },
+          "details": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "What is wrong; at least 10 characters for \"other\""
+          },
+          "sessionId": {
+            "type": "string",
+            "example": "k3J9xQ2mZpL8",
+            "description": "The app's random visitor id (8-64 letters, digits, - or _), kept on the device"
+          }
+        },
+        "required": [
+          "reason",
+          "sessionId"
+        ]
+      },
+      "SubmitReportResponseDto": {
+        "type": "object",
+        "properties": {
+          "recorded": {
+            "type": "boolean",
+            "description": "False when this visitor already had an open report on it"
+          }
+        },
+        "required": [
+          "recorded"
+        ]
+      },
+      "ShopReportDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "fraud",
+              "counterfeit",
+              "prohibited",
+              "misleading",
+              "offensive",
+              "unavailable",
+              "other"
+            ]
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "signedIn": {
+            "type": "boolean",
+            "description": "Sent while signed in; who it was is never shown"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "resolved",
+              "dismissed"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "decisionNote": {
+            "type": "string",
+            "nullable": true,
+            "description": "For admins only"
+          },
+          "shopName": {
+            "type": "string"
+          },
+          "shopSlug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "shopId",
+          "reason",
+          "details",
+          "signedIn",
+          "status",
+          "createdAt",
+          "decidedAt",
+          "decisionNote",
+          "shopName",
+          "shopSlug"
+        ]
+      },
+      "ShopReportPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopReportDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "prevCursor"
+        ]
+      },
+      "ProductReportDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "fraud",
+              "counterfeit",
+              "prohibited",
+              "misleading",
+              "offensive",
+              "unavailable",
+              "other"
+            ]
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "signedIn": {
+            "type": "boolean",
+            "description": "Sent while signed in; who it was is never shown"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "resolved",
+              "dismissed"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "decisionNote": {
+            "type": "string",
+            "nullable": true,
+            "description": "For admins only"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productTitle": {
+            "$ref": "#/components/schemas/LocalizedTextDto"
+          }
+        },
+        "required": [
+          "id",
+          "shopId",
+          "reason",
+          "details",
+          "signedIn",
+          "status",
+          "createdAt",
+          "decidedAt",
+          "decisionNote",
+          "productId",
+          "productTitle"
+        ]
+      },
+      "ProductReportPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductReportDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "prevCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "prevCursor"
+        ]
+      },
+      "DecideReportBody": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "dismissed"
+            ],
+            "description": "`resolved`: something was done about it; `dismissed`: nothing was wrong"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "For other admins"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "DecideReportResponseDto": {
+        "type": "object",
+        "properties": {
+          "closed": {
+            "type": "number",
+            "description": "Open reports closed: this one and the others on the same listing"
+          }
+        },
+        "required": [
+          "closed"
         ]
       },
       "LocalizedInput": {

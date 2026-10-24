@@ -5,6 +5,7 @@ import { assertSafeShopsEnv, ShopsEnv, shopsEnvSchema } from './config/shops-env
 import { ContactsModule } from './contacts/contacts.module';
 import { dataSourceConfig } from './data-source';
 import { VerificationModule } from './kyc/verification.module';
+import { ReportsModule } from './reports/reports.module';
 import { ShopsModule } from './shops/shops.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { ShopsModule } from './shops/shops.module';
     ShopsModule,
     VerificationModule,
     ContactsModule,
+    ReportsModule,
   ],
 })
 export class AppModule implements OnModuleInit {

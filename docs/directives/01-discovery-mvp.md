@@ -341,9 +341,18 @@ Location discovery and search, Contact, UAE specifics.
   > it newest first, by action or for one shop (linked from the shop's review). Country changes
   > and `grant-role` runs are recorded too. The reports queue is part of F1-15.
 
-- [ ] **F1-15 Report listing** (depends on F1-12)
+- [x] **F1-15 Report listing** (depends on F1-12)
       Public "report this shop/product" (reason enum + text, optional sign-in), stored in the owning
       service, surfaced in the admin reports queue.
+
+  > Note: shops keep reports on shops and catalog on products (`POST /api/v1/reports` routes by
+  > `shopId` or `productId`); the console's Reports area has a tab for each (decision T-49). Seven
+  > reasons; details are optional except for "other" (10 characters). One open report per visitor
+  > and listing (the contact taps' visitor id), five a minute per address. An admin closes a
+  > report as "action taken" or "nothing wrong" with an optional note; that closes every open
+  > report on the listing and is audit-logged. Suspending the shop or rejecting the product stays
+  > on the shop's review. Neither the seller nor other customers are told about reports, and
+  > reporters get no follow-up message (no notifications until Phase 2).
 
 ## Launch readiness
 

@@ -343,5 +343,68 @@
     "report": "Report this product",
     "notFoundTitle": "This product is not available",
     "notFoundBody": "The shop may have removed it. Visit the shop or search for something else."
+  },
+  "report": {
+    "metaTitle": "Report a listing",
+    "titleShop": "Report this shop",
+    "titleProduct": "Report this product",
+    "soldBy": "Sold by {shop}",
+    "intro": "Tell us what is wrong. Our team reviews every report and acts on the ones that break our rules.",
+    "reasonLabel": "What is wrong?",
+    "reasonRequired": "Choose what is wrong.",
+    "reasons": {
+      "fraud": {
+        "label": "Scam or fraud",
+        "shop": "Asks for money up front, pretends to be someone else, or never delivers.",
+        "product": "A fake offer meant to take money."
+      },
+      "counterfeit": {
+        "label": "Fake goods",
+        "shop": "Sells copies of branded products.",
+        "product": "A copy of a branded product."
+      },
+      "prohibited": {
+        "label": "Not allowed in the UAE",
+        "shop": "Sells something that may not be sold here.",
+        "product": "Something that may not be sold here."
+      },
+      "misleading": {
+        "label": "Wrong or misleading",
+        "shop": "Wrong address, hours, prices or photos.",
+        "product": "Wrong price, photos or description."
+      },
+      "offensive": {
+        "label": "Offensive",
+        "shop": "Offensive words or pictures.",
+        "product": "Offensive words or pictures."
+      },
+      "unavailable": {
+        "label": "No longer exists",
+        "shop": "The shop has closed or is not at this address.",
+        "product": "The shop no longer sells it."
+      },
+      "other": {
+        "label": "Something else",
+        "shop": "Tell us below.",
+        "product": "Tell us below."
+      }
+    },
+    "detailsLabel": "More details",
+    "optional": "optional",
+    "detailsHint": "Anything that helps us check it. Do not include card numbers or passwords.",
+    "detailsHintOther": "Say what is wrong in at least {min} characters.",
+    "detailsRequired": "Say what is wrong in at least {min} characters.",
+    "privacyAnonymous": "You do not need to sign in. The seller is never told who reported.",
+    "privacySignedIn": "Sent with your account so we can follow up. The seller is never told who reported.",
+    "send": "Send report",
+    "sending": "Sending…",
+    "sentTitle": "Thank you, we have your report",
+    "sentBody": "Our team will look at it. You will not hear back about each report, but we act on the ones that break our rules.",
+    "back": "Back to the listing",
+    "problems": {
+      "tooMany": "Too many reports from here just now. Try again in a minute.",
+      "gone": "This listing is no longer public, so there is nothing to report.",
+      "failed": "Your report could not be sent. Check your connection and try again."
+    }
   }
 }

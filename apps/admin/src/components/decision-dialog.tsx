@@ -15,6 +15,8 @@ export interface DecisionDialogProps {
   confirm: string;
   /** Asks for a reason the seller will read. */
   reason?: boolean;
+  /** Offers an optional note instead (for other admins), with its label and hint. */
+  note?: { label: string; hint: string };
   danger?: boolean;
   open: boolean;
   onClose: () => void;
@@ -30,6 +32,7 @@ export function DecisionDialog({
   body,
   confirm,
   reason: withReason,
+  note,
   danger,
   open,
   onClose,
@@ -51,7 +54,7 @@ export function DecisionDialog({
   const submit = async () => {
     if (withReason && !reason.trim()) return setError(t('reasonRequired'));
     setBusy(true);
-    const result = await onConfirm(withReason ? reason.trim() : undefined);
+    const result = await onConfirm(withReason || note ? reason.trim() || undefined : undefined);
     setBusy(false);
     if (result.ok) onClose();
     else setError(errorText(result.code));
@@ -91,6 +94,17 @@ export function DecisionDialog({
             rows={4}
             onChange={(e) => setReason(e.target.value)}
             error={error ?? undefined}
+          />
+        )}
+        {note && !withReason && (
+          <Textarea
+            label={note.label}
+            hint={note.hint}
+            optional={t('optional')}
+            value={reason}
+            maxLength={1000}
+            rows={3}
+            onChange={(e) => setReason(e.target.value)}
           />
         )}
         {!withReason && error && (
